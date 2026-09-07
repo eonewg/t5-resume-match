@@ -13,7 +13,9 @@ git clone https://github.com/eonewg/t5-resume-match.git
 cd t5-resume-match
 ```
 
-在 Agent 中粘贴对应任务，普通 Git 操作由 Agent 按根 AGENTS.md 执行：
+克隆后，将你自己的角色 `AGENTS.md` 放在仓库根目录。该文件仅供本地使用，已忽略，不会随正常提交上传。不要复制其他成员的个人指令。共享规则在 [team-rules.md](team-rules.md)，普通 Git 操作由 Agent 按你的个人角色指令执行。
+
+在 Agent 中粘贴对应任务：
 
 | 成员 | 可直接使用的任务 |
 | --- | --- |
@@ -23,7 +25,9 @@ cd t5-resume-match
 | D | 你负责 D。读取 AGENTS.md 和 docs/roles/D.md，在 feat/diagnosis-d 实现 AI 诊断模块。 |
 | E | 你负责 E。读取 AGENTS.md 和 docs/roles/E.md，在 feat/analytics-qa-e 实现数据分析与质量保障。 |
 
-先阅读 [接口契约](api-contract.md)、[架构说明](architecture.md) 和自己的角色文件。根 AGENTS.md 现在是团队规则，不默认所有人承担 A。同一工作目录不要同时切换多个角色分支，使用各自 clone 或独立 worktree。
+先阅读 [接口契约](api-contract.md)、[架构说明](architecture.md) 和对应的分工资料；`docs/roles/` 不替代各人的本地 AGENTS.md。同一工作目录不要同时切换多个角色分支，使用各自 clone 或独立 worktree。
+
+如果已克隆旧版（其中 AGENTS.md 仍被跟踪），更新前先在仓库外备份自己的文件，更新到取消跟踪的版本后恢复。旧分支仍跟踪该路径，跨旧分支切换也需先备份；新成员从最新 main 克隆后再放入个人文件即可。
 
 ## 第一轮交付
 
