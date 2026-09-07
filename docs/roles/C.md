@@ -1,6 +1,6 @@
 # C：JD 与匹配模块
 
-固定分支：`feat/jobs-c`。先读取根 [AGENTS.md](../../AGENTS.md)。
+固定分支：`feat/matching-c`。先读取根 [AGENTS.md](../../AGENTS.md)。
 
 负责 JD 解析、技能提取、匹配分数与差距清单。允许修改 `backend/modules/jobs/`、`tests/jobs/`、`docs/integration_requests/C-*.md`。前端组件预留 `frontend/src/modules/jobs/`，需先与 A 确认共享前端工程。
 
