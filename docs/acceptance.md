@@ -42,3 +42,15 @@
 - 待实现/待验收：尚无完整交付或未执行验收，不预填结论。
 
 A 自有模块执行相同门槛；新增提交重新检查，集成失败保留证据并停止后续合并。最终只通过 feat/core-a → main PR 交付。
+
+## 待处理交付
+
+### PR #5 · D 文档交接 — BLOCKED
+
+- 源提交：dd1933e02642172d4ddbf2c3cf0ac61a9b0e978b；A 基线：124466058255a4094615a7ea84d0a47a5082b1eb。
+- 范围：6 个 Markdown 文件，位于 Diagnosis README 和 D 集成请求目录；无业务代码、公共 Schema、依赖或 CI 修改。未检出常见密钥/私钥格式。
+- 当前 PR 为 draft，GitHub 显示冲突；检查结果为 1 项 FAILURE、3 项 CANCELLED，不能记为通过。
+- 必须修复：同步最新 A 基线并解决文档冲突；D-agent-policy、D-two-person-allocation 与 D-strict-plan 含失效职责/流程叙述和过期命令，须改为当前 A/D 约定；共享需求/分工应引用根规范，避免复制后产生不同版本。
+- D-strict-plan 将 owner 映射、双模块自检、分支触发和公共说明列为未完成，但当前 A 已具备这些能力。应只保留仍需处理的 JD 字段、向量参数、超时预算和样本等请求。
+- Diagnosis README 的新增计划链接相对路径多了一层父目录，需要修复。
+- 该 PR 仅文档交付，不代表 Jobs/Matching 或 Embedding 实现；本次未运行不存在的模块测试，也未合并。D 更新准确提交并重跑适用检查后复验。
