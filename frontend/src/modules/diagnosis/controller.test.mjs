@@ -1,0 +1,58 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { connectDiagnosis } from "./controller.js";
+
+function fixture(request, state = { resumeId: "r", jdId: "j", result: null }) {
+  const abort = new AbortController();
+  let listener;
+  let removed = 0;
+  const views = [];
+  const controller = connectDiagnosis({ api: { request }, getState: () => state,
+    subscribe: fn => { listener = fn; return () => removed++; }, signal: abort.signal },
+  view => views.push(view));
+  return { ...controller, abort, views, update: next => listener(next), removed: () => removed };
+}
+const record = (mock = false) => ({ data: { id: "d", resume_id: "r", jd_id: "j", summary: "摘要",
+  suggestions: ["【STAR】原文、优化、理由"], is_mock: mock } });
+
+test("missing selection never calls API", async () => {
+  const f = fixture(() => { throw Error("must not call"); }, {});
+  await f.run(); assert.match(f.views.at(-1).error, /选择/); f.dispose();
+});
+test("uses public pair contract and distinguishes Mock and real", async () => {
+  for (const mock of [true, false]) {
+    const f = fixture(async (url, options) => {
+      assert.equal(url, "/api/v1/diagnoses");
+      assert.deepEqual(options.body, { resume_id: "r", jd_id: "j" });
+      return record(mock);
+    });
+    await f.run(); assert.equal(f.views.at(-1).record.is_mock, mock); f.dispose();
+  }
+});
+test("errors clear stale output and allow retry", async () => {
+  let calls = 0;
+  const f = fixture(async () => { if (++calls === 1) throw Error("服务失败"); return record(); });
+  await f.run(); assert.equal(f.views.at(-1).record, null); assert.equal(f.views.at(-1).busy, false);
+  await f.run(); assert.equal(f.views.at(-1).record.id, "d"); f.dispose();
+});
+test("changed selection discards pending responses", async () => {
+  let resolve;
+  const f = fixture(() => new Promise(done => { resolve = done; }));
+  const pending = f.run(); f.update({ resumeId: "new", jdId: "j" });
+  resolve(record()); await pending; assert.equal(f.views.at(-1).record, null); f.dispose();
+});
+test("navigation releases subscription and suppresses late output", async () => {
+  let resolve;
+  const f = fixture(() => new Promise(done => { resolve = done; }));
+  const pending = f.run(); f.abort.abort(); const count = f.views.length;
+  resolve(record()); await pending; f.dispose();
+  assert.equal(f.views.length, count); assert.equal(f.removed(), 1);
+});
+test("duplicate click and mismatched response cannot display incorrect records", async () => {
+  let calls = 0, resolve;
+  const f = fixture(() => { calls++; return new Promise(done => { resolve = done; }); });
+  const pending = f.run(); await f.run(); assert.equal(calls, 1);
+  const wrong = record(); wrong.data.resume_id = "someone-else";
+  resolve(wrong); await pending;
+  assert.equal(f.views.at(-1).record, null); assert.match(f.views.at(-1).error, /契约/); f.dispose();
+});
