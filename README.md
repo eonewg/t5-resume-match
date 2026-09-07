@@ -50,7 +50,7 @@ smoke 会新建一份演示简历、一个岗位及匹配/诊断记录，然后�
 | `T5_DIAGNOSIS_PROVIDER` | `mock` | D，诊断 |
 | `T5_ANALYTICS_PROVIDER` | `mock` | E，分析 |
 
-模块详细边界、接入示例和数据库说明见 [架构](docs/architecture.md)。业务成员的请求放入 `docs/integration_requests/`，由 A 实施公共变更。不要把根 AGENTS.md 的 A 固定分支规则当成 B/C/D/E 的开发规则；其他角色开始前应由团队明确其适用角色指令。
+模块详细边界、接入示例和数据库说明见 [架构](docs/architecture.md)。业务成员的请求放入 `docs/integration_requests/`，由 A 实施公共变更。根 [AGENTS.md](AGENTS.md) 是团队共用规则，按角色加载 `docs/roles/` 中的职责说明；分支分工、成员启动任务及 PR 合并前的基线选择见 [团队上手说明](docs/team-onboarding.md)。
 
 如使用 PostgreSQL，先创建空数据库，执行 `uv sync --locked --extra postgres`，配置 `T5_DATABASE_URL=postgresql+psycopg://...`，再直接执行上述 uvicorn 命令。当前验收使用 SQLite；PostgreSQL 未实机验证，pgvector 暂不引入，待 C 确认向量模型和维度后由 A 增加公共迁移。
 
