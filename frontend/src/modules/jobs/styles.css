@@ -1,0 +1,9 @@
+[data-module="jobs"]{padding:24px;min-width:0;overflow-wrap:anywhere}
+[data-module="jobs"] .jobs-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-block:20px}
+[data-module="jobs"] label{display:block;margin:12px 0 6px;font-weight:600}
+[data-module="jobs"] input,[data-module="jobs"] select,[data-module="jobs"] textarea{width:100%;min-width:0;padding:10px;border:1px solid #a9bfb6;border-radius:6px;font:inherit}
+[data-module="jobs"] textarea{min-height:190px;resize:vertical}
+[data-module="jobs"] .button{margin:12px 6px 12px 0}
+[data-module="jobs"] p,[data-module="jobs"] li{white-space:pre-wrap;line-height:1.8}
+[data-module="jobs"] [data-error="true"]{color:#a32a28}
+@media(max-width:720px){[data-module="jobs"] .jobs-grid{grid-template-columns:1fr}}
