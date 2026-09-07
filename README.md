@@ -53,8 +53,12 @@ smoke 会新建一份演示简历、一个岗位及匹配/诊断记录，然后�
 | `T5_DATABASE_URL` | `sqlite:///data/t5.db` | 公共数据库；相对路径按项目根目录解析 |
 | `T5_RESUME_PROVIDER` | `mock` | B，文本解析 |
 | `T5_JOBS_PROVIDER` | `mock` | C，JD 解析与匹配 |
-| `T5_DIAGNOSIS_PROVIDER` | `mock` | D，诊断 |
+| `T5_DIAGNOSIS_PROVIDER` | `mock` | D，诊断；真实实现 `backend.modules.diagnosis.public:DiagnosisService` |
+| `DEEPSEEK_API_KEY` | 空 | D 专用，启用真实诊断时设置；未设置时诊断明确失败而非降级 Mock |
+| `T5_DIAGNOSIS_MODEL` | `deepseek-v4-flash` | D 专用，模型名 |
 | `T5_ANALYTICS_PROVIDER` | `mock` | E，分析 |
+
+D 真实诊断的完整配置与行为说明见 [D 模块 README](backend/modules/diagnosis/README.md)。
 
 模块详细边界、接入示例和数据库说明见 [架构](docs/architecture.md)。业务成员的请求放入 `docs/integration_requests/`，由 A 实施公共变更。[团队通用约定](docs/team-rules.md) 与分工资料保存在 docs 中；每位成员使用自己的本地 `AGENTS.md`，该文件不纳入版本控制。分支分工及启动任务见 [团队上手说明](docs/team-onboarding.md)。A 按 [验收台账](docs/acceptance.md) 对成员逐个验收并集成，真实业务最终验收与当前 Mock 基线分开记录。
 
