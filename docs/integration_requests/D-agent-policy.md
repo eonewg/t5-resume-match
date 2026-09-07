@@ -2,23 +2,23 @@
 
 ## 生效范围与依据
 
-负责 T5「AI 简历诊断与岗位匹配系统」的 JD、matching、embedding 与 AI diagnosis，接管原 C+D 的业务责任。
+负责 T5「AI 简历诊断与岗位匹配系统」的 JD、matching、embedding 与 AI diagnosis。
 本文件由用户提供的 AGENTS_D_T5_STRICT.md、T5_REQUIREMENTS_MATRIX.md、T5_TWO_PERSON_ALLOCATION_STRICT.md 综合优化。
-新两人开发约定替代旧五人代码 owner 分工；课程正式小组组织形式不变。
+开发 owner 为 A/D；课程正式小组组织形式按课程要求执行。
 路径均相对于 `t5/t5-resume-match` 仓库根；不要在课程材料目录直接运行仓库 Git 命令。
 用户当次明确指令决定任务范围；更新约定/文档的任务不自动扩展成实现所有功能。
 原始参考材料是需求依据，不把其中示例、待办或推荐项误记为已经完成。
 
 可共享的需求与分工依据：
 
-- `docs/integration_requests/D-requirements-matrix.md`
-- `docs/integration_requests/D-two-person-allocation.md`
+- `T5_REQUIREMENTS_MATRIX.md`
+- `T5_TWO_PERSON_ALLOCATION_STRICT.md`
+- `docs/roles/D.md` 与 `docs/team-rules.md`
 - 开发顺序、验收状态及公共请求：`docs/integration_requests/D-strict-plan.md`
 
 ## Git 与交付
 
 唯一新开发分支为 `feat/intelligence-d`，基线与 PR 目标均为 `origin/feat/core-a` / `feat/core-a`。
-`feat/diagnosis-d` 是历史交付分支，不继续开发；此前要求 PR 指向 main 不再沿用。
 
 1. 进入仓库，检查 `git status --porcelain`、当前分支、origin，然后 `git fetch origin`。
 2. 有未知修改时不得覆盖、删除、stash 或 reset；解释冲突并保留现场。自己的已知修改可继续完成。
@@ -128,8 +128,10 @@ node scripts/check_frontend.mjs
 ```
 
 另跑适用的成员/范围自检、jobs/diagnosis 浏览器 smoke，检查 diff、敏感数据、链接和改动范围。
-目录未实现、命令不支持新 owner、CI 分支映射过旧要明确报告；不建空测试、放宽规则或把跳过写成通过。
-当前公共自检仍是旧 C/D 分工；在 A 更新前，`check_member D` 只证明 diagnosis，不能代表 jobs 或新两人分工全部通过。
+目录未实现或命令失败要明确报告；不建空测试、放宽规则或把跳过写成通过。
+公共自检按模块运行：`uv run --locked python -m scripts.check_member jobs` 与
+`uv run --locked python -m scripts.check_member diagnosis`。A 已支持 D 双模块范围和新分支 CI；
+`check_member --ci` 要求两个模块都存在并有测试。jobs 未实现时应如实报告失败，不削弱规则。
 文档/约定交付说明其范围，不能用已有 diagnosis 测试通过宣称新 jobs/embedding 已实现。
 共享测试规则由 A 修订，D 在 `D-strict-plan.md` 写具体需求、现状和阻塞命令。
 

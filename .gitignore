@@ -3,7 +3,8 @@ __pycache__/
 .pytest_cache/
 *.py[cod]
 .env
-data/
+# Keep local demo databases out; data assets (jd/resumes/baselines) are versioned.
+data/*.db
 .verification/
 # Local course materials remain on disk; not application source.
 doc/

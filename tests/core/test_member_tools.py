@@ -8,24 +8,24 @@ from backend.core.config import Settings
 from backend.core.providers import load_provider, provider_class
 from backend.main import create_app
 from examples.fixtures import load_cases
-from scripts.check_member import CheckFailure, ci_roles, module_tests_exist, probe
+from scripts.check_member import CheckFailure, ci_modules, module_tests_exist, probe
 from scripts.check_scope import allowed_path, violations
-from scripts.member_specs import MEMBERS
+from scripts.member_specs import MODULES
 
 
-@pytest.mark.parametrize("role", MEMBERS)
-def test_runnable_examples(role):
-    result = probe(role, MEMBERS[role].example, examples=True)
+@pytest.mark.parametrize("module", MODULES)
+def test_runnable_examples(module):
+    result = probe(module, MODULES[module].example, examples=True)
     assert result.startswith("EXAMPLE_CHECK_PASS")
     with pytest.raises(CheckFailure, match="示例入口"):
-        probe(role, MEMBERS[role].example)
+        probe(module, MODULES[module].example)
 
 
 def test_examples_stay_mock_in_real_http_pipeline():
     settings = Settings(
         _env_file=None,
         database_url="sqlite:///:memory:",
-        **{f"{spec.key}_provider": spec.example for spec in MEMBERS.values()},
+        **{f"{spec.key}_provider": spec.example for spec in MODULES.values()},
     )
     sample = load_cases()
     with TestClient(create_app(settings)) as client:
@@ -102,22 +102,65 @@ def test_d_offline_probe_never_constructs_or_calls_service(monkeypatch):
         def diagnose(self, data):
             raise AssertionError("Do not call the paid client")
 
-    assert probe("D", module_with(monkeypatch, PaidService)).startswith("OFFLINE")
+    assert probe("diagnosis", module_with(monkeypatch, PaidService)).startswith("OFFLINE")
 
 
 def test_ci_requires_target_member_even_when_missing(tmp_path):
-    assert ci_roles("feat/resume-b", tmp_path) == ["B"]
-    assert ci_roles("feat/core-a", tmp_path) == []
+    assert ci_modules("feat/intelligence-d", tmp_path) == ["jobs", "diagnosis"]
+    assert ci_modules("feat/core-a", tmp_path) == []
     with pytest.raises(CheckFailure, match="缺少"):
-        module_tests_exist("B", tmp_path)
-    with pytest.raises(CheckFailure, match="未知成员分支"):
-        ci_roles("feat/typo", tmp_path)
+        module_tests_exist("resume", tmp_path)
+    with pytest.raises(CheckFailure, match="未知 owner 分支"):
+        ci_modules("feat/typo", tmp_path)
 
 
 def test_scope_rejects_cross_module_and_root_changes():
-    assert allowed_path("B", "backend/modules/resume/public.py")
-    assert allowed_path("E", "tests/quality/test_workflow.py")
-    assert not allowed_path("C", "backend/modules/resume/public.py")
+    assert allowed_path("D", "backend/modules/jobs/public.py")
+    assert allowed_path("D", "frontend/src/modules/diagnosis/index.js")
+    assert allowed_path("D", "tests/jobs/test_match.py")
+    assert allowed_path("D", "docs/integration_requests/D-vector.md")
+    assert not allowed_path("D", "backend/modules/resume/public.py")
+    assert not allowed_path("D", "tests/quality/test_workflow.py")
     assert not allowed_path("D", "pyproject.toml")
-    assert not allowed_path("B", "docs/integration_requests/C-example.md")
-    assert violations("B", ["backend/modules/resume/.env"])
+    assert not allowed_path("D", "docs/integration_requests/A-example.md")
+    assert violations("D", ["backend/modules/jobs/.env"])
+
+
+def test_unassigned_branch_cannot_pass_ci(tmp_path):
+    with pytest.raises(CheckFailure, match="未知 owner 分支"):
+        ci_modules("feat/unassigned", tmp_path)
+
+
+@pytest.mark.parametrize(
+    ("source", "target", "expected"),
+    [
+        ("feat/intelligence-d", "main", 1),
+        ("feat/typo", "feat/core-a", 1),
+        ("feat/core-a", "main", 0),
+        ("main", "feat/core-a", 1),
+    ],
+)
+def test_ci_pr_direction(monkeypatch, source, target, expected):
+    from scripts.check_scope import main
+
+    monkeypatch.setenv("GITHUB_HEAD_REF", source)
+    monkeypatch.setenv("GITHUB_BASE_REF", target)
+    monkeypatch.setattr(sys, "argv", ["check_scope", "--ci"])
+    assert main() == expected
+
+
+def test_d_ci_checks_both_modules_even_if_only_diagnosis_exists(tmp_path):
+    (tmp_path / "backend/modules/diagnosis").mkdir(parents=True)
+    assert ci_modules("feat/intelligence-d", tmp_path) == ["jobs", "diagnosis"]
+    assert ci_modules("feat/core-a", tmp_path) == ["diagnosis"]
+
+
+def test_owner_mapping_covers_current_modules():
+    from scripts.member_specs import BRANCHES, OWNER_MODULES
+
+    assert BRANCHES == {"A": "feat/core-a", "D": "feat/intelligence-d"}
+    assert OWNER_MODULES == {
+        "A": ("resume", "analytics"),
+        "D": ("jobs", "diagnosis"),
+    }
+    assert set(MODULES) == {"resume", "jobs", "diagnosis", "analytics"}

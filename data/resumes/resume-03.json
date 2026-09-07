@@ -1,0 +1,36 @@
+{
+  "id": "resume-03",
+  "raw_text_anonymized": "姓名：（略）\n求职意向：NLP / 推荐方向算法工程师\n教育经历：某高校 计算机技术专业 硕士在读 2024.09-2027.06（预计毕业），本科为软件工程。主修课程：机器学习、深度学习、自然语言处理。\n实习经历：某互联网公司 AI 团队 算法实习生 2025.09-至今\n- 参与 RAG 问答链路搭建，负责检索模块的召回效果评测\n- 使用 Python 编写离线评测脚本，统计回答准确率并输出周报\n项目经历：课程文本分类系统 2024.10-2025.01\n- 基于 PyTorch 实现 BERT 微调，完成中文新闻文本分类任务\n- 对比多种模型结构，撰写实验报告\n竞赛：参与一次校级数学建模竞赛（名称略）\n技能：Python、PyTorch、机器学习、深度学习、Transformer、Linux\n语言：英语 CET-6，可阅读英文文献\n证书：CET-6",
+  "education": {
+    "degree": "硕士在读",
+    "major": "计算机技术",
+    "school_generalized": "某高校",
+    "period": "2024.09-2027.06"
+  },
+  "experiences": [
+    {
+      "role": "算法实习生",
+      "org_generalized": "某互联网公司",
+      "period": "2025.09-至今",
+      "highlights": [
+        "参与 RAG 问答链路搭建，负责检索模块的召回效果评测",
+        "使用 Python 编写离线评测脚本，统计回答准确率并输出周报"
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "name_generalized": "课程文本分类系统",
+      "role": "课程项目",
+      "period": "2024.10-2025.01",
+      "description": "基于 PyTorch 实现 BERT 微调，完成中文新闻文本分类任务，对比多种模型结构并撰写实验报告",
+      "tech": ["Python", "PyTorch", "BERT", "Transformer"]
+    }
+  ],
+  "skills": ["Python", "PyTorch", "机器学习", "深度学习", "Transformer", "BERT", "RAG", "文本分类", "Linux"],
+  "languages": ["英语 CET-6"],
+  "certificates": ["CET-6"],
+  "source_type": "synthetic",
+  "anonymized": true,
+  "notes": "合成演示简历，非真实学生。构造时即按脱敏规则处理：无姓名/电话/邮箱/学号，学校与公司均使用泛化名称，竞赛名称做省略处理。"
+}

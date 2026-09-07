@@ -4,9 +4,9 @@
 
 课程正式小组仍按原课程组织形式保留，不把“2 人开发 owner”解释成“2 人小组”。
 
-代码开发从原 5 个角色收缩为 2 个主要开发 owner，但项目功能、文档和最终交付必须完整覆盖 T5 的 Level 1、Level 2、Level 3。
+代码开发由 A、D 两个 owner 负责，项目功能、文档和最终交付必须完整覆盖 T5 的 Level 1、Level 2、Level 3。
 
-四个业务模块继续保留：
+四个业务模块为：
 
 - `resume`
 - `jobs`
@@ -65,11 +65,11 @@
 
 ## D：JD、岗位匹配与 AI 简历诊断
 
-新分支：`feat/intelligence-d`
+固定分支：`feat/intelligence-d`
 
 必须从最新 `origin/feat/core-a` 创建。
 
-原 `feat/diagnosis-d` 已完成历史交付，不再继续作为新开发分支。
+所有 D 开发与交付统一使用 feat/intelligence-d → feat/core-a PR。
 
 负责 T5 中：
 
@@ -91,7 +91,7 @@
 - 量化成果补充建议
 - 真实/Mock AI 严格区分
 
-### 向量匹配增强
+### Embedding 与向量匹配增强
 
 - embedding 模型/接口
 - embedding 维度
@@ -159,7 +159,7 @@ A：
 
 ## 最终完成条件
 
-必须按 T5 逐条验收，而不是按原 B/C/D/E 人员验收：
+必须按 Resume、Jobs/Matching、Diagnosis、Analytics 对照 T5 逐条验收：
 
 - Level 1：结构化简历编辑器 + JD 输入 + 关键词匹配度 + gap 清单
 - Level 2：STAR 内容增强 + JD 定向优化

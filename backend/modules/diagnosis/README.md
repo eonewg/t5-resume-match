@@ -1,13 +1,13 @@
-# D：AI 简历诊断模块
+# Diagnosis 模块
 
 当前按两人开发分工执行：D 同时负责 jobs 与 diagnosis，新分支为 `feat/intelligence-d`，
 从最新 core-a 开发并向 core-a 提交 PR。完整约定与待办见
-[D 严格版计划](../../../../docs/integration_requests/D-strict-plan.md)。
+[D 严格版计划](../../../docs/integration_requests/D-strict-plan.md)。
 本 README 的早期验证段落保留为历史记录；A 已在 `93e1b12` 正式挂载 diagnosis 页面。
 新 jobs/embedding 尚未实现，不能用 diagnosis 的离线结果代替新功能验收。
 
 负责 DeepSeek 调用、STAR 经历改写、面向 JD 的建议、关键词强化、结构校验、有限重试及内存缓存。
-公共入口与现有仓库契约兼容，不修改 A/B/C/E 的代码。
+Owner 为 D，开发分支 feat/intelligence-d，PR 指向 feat/core-a。公共接口与数据库由 A 维护。
 
 ## 接入公共系统
 
@@ -21,7 +21,7 @@ T5_DIAGNOSIS_MODEL=deepseek-v4-flash
 
 `DEEPSEEK_API_KEY` 填本人的模型服务密钥；GitHub 登录凭据不能用于 DeepSeek。
 支持进程环境变量或项目根 `.env`，环境变量优先，修改后重启。
-配置说明及 A 的待办见 [D 集成说明](../../../../docs/integration_requests/D-integration.md)。
+配置说明及 A 的待办见 [D 集成说明](../../../docs/integration_requests/D-integration.md)。
 
 ```python
 from backend.modules.diagnosis.public import DiagnosisService
@@ -51,9 +51,9 @@ print(result.model_dump())  # 只有 summary、suggestions，符合公共 v1 契
 组件只读公共状态、订阅选择变化、使用共享 API；不更改公共注册表、Schema 或路由。
 切换页面释放订阅，忽略取消或选择改变后的迟到响应；输入与模型结果均以纯文本显示。
 结果级 `is_mock` 与 API 的 Mock 标记合并显示，Provider 为真实实现不代表密钥已验证。
-由 A 验收后在公共注册表正式挂载；当前预览无需改公共代码即可运行。
+公共注册表已挂载该模块，预览入口也可独立用于调试。
 
-## 旧版独立页面与 API（保留兼容，非公共集成入口）
+## 独立调试页面与 API
 
 在仓库根目录安装项目及已有开发依赖：
 
@@ -117,7 +117,7 @@ uv run --frozen uvicorn backend.modules.diagnosis.web:create_app --factory --hos
 ## 测试
 
 ```powershell
-uv run --locked python -m scripts.check_member D
+uv run --locked python -m scripts.check_member diagnosis
 uv run --locked pytest -q
 uv run --locked ruff check backend tests scripts examples
 uv run --locked ruff format --check backend tests scripts examples
@@ -127,23 +127,17 @@ node scripts/check_frontend.mjs
 测试强制封锁真实 urllib 网络调用。使用脚本化 LLM 和 HTTP 替身验证成功、
 鉴权/超时/截断/无效 JSON、缓存 TTL/淘汰/隔离/并发、公共 Provider 装载、
 诊断记录读取以及工作流失败不留下半成品记录。
-模块测试已迁移到 `tests/diagnosis`，默认 pytest 和成员自检都会收集。
+模块测试位于 `tests/diagnosis`，默认 pytest 和模块自检都会收集。
 
 可选页面测试：本机有 Playwright 和 Edge、Mock 服务已在 8766 启动时执行
 `node tests/diagnosis/browser-smoke.cjs`。
 它验证示例流程、STAR 显示、HTML 作为文字显示、窄屏排版和失败恢复；截图写入系统临时目录。
 
-## 已完成验证与真实限制（2026-09-07）
+## 当前验证边界
 
-- Python 3.12.14；D 44 项、公共核心 25 项，合计 69 项测试通过，Ruff 检查通过。
-- 成员自检通过；统一前端检查 24 项通过，含 D 的生命周期、模式区分、失败重试测试。
-- 公共服务默认 Mock 在 8767 启动后，`node tests/diagnosis/shell-smoke.cjs` 通过：
-  缺失选择、公共 API、Mock、失败恢复、长文本/XSS、390px 和页面切换。截图写入系统临时目录。
-- 测试环境按已有 pyproject 约束安装依赖，并经 `uv sync --frozen` 核对锁文件；未修改根依赖和锁文件。
-- 新版 Starlette 测试工具出现 HTTPX / AnyIO 弃用提示，未影响测试；交给 A 统一处理依赖。
-- 未提供 DeepSeek 密钥，未进行真实付费模型调用；真实诊断质量、延迟和费用尚未实测。
-- 已合并最新 main 到 D 分支，未把 D 合入 main，也未完成真实 AI 及整套系统验收。
-- 用户指定 PR 目标 main，但当前公共 CI 的成员 PR 目标规则只允许 feat/core-a；保留规则，待 A 决定处理。
+离线测试覆盖公开 provider、持久化、工作流回滚及模型失败处理；最新实际结果见 [验证记录](../../../docs/validation.md)。
+
+真实模型的质量、延迟和费用尚待配置有效凭证实测。公共超时预算和依赖弃用提示由 A/D 按 [集成事项](../../../docs/integration_requests/D-integration.md) 处理。离线通过不代表真实模型或整套 T5 已验收。
 
 ## 个人报告可使用的实际开发记录
 

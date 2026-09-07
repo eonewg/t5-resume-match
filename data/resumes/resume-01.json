@@ -1,0 +1,37 @@
+{
+  "id": "resume-01",
+  "raw_text_anonymized": "姓名：（略）\n求职意向：数据分析师\n教育经历：某高校 统计学专业 本科 2022.09-2026.06，主修课程：统计学、概率论、线性代数、数据库原理。\n实习经历：某电商公司 数据部 数据分析实习生 2025.07-2025.12\n- 维护日报与周报 SQL 取数脚本，覆盖订单、转化等核心指标\n- 参与一次大促复盘专题分析，整理 Excel 与图表输出\n- 协助搭建部门指标看板，学习 FineBI 使用\n项目经历：校园二手交易平台用户行为分析 2025.03-2025.06\n- 使用 Python（pandas）清洗约 10 万条脱敏行为数据，完成留存与漏斗分析\n- 输出分析报告并提出 3 条产品改进建议\n技能：SQL、Python（pandas）、Excel、FineBI（了解）、统计学基础\n语言：英语 CET-6\n证书：CET-6（2024）",
+  "education": {
+    "degree": "本科",
+    "major": "统计学",
+    "school_generalized": "某高校",
+    "period": "2022.09-2026.06"
+  },
+  "experiences": [
+    {
+      "role": "数据分析实习生",
+      "org_generalized": "某电商公司",
+      "period": "2025.07-2025.12",
+      "highlights": [
+        "维护日报与周报 SQL 取数脚本，覆盖订单、转化等核心指标",
+        "参与一次大促复盘专题分析，整理 Excel 与图表输出",
+        "协助搭建部门指标看板，学习 FineBI 使用"
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "name_generalized": "校园二手交易平台用户行为分析",
+      "role": "课程项目",
+      "period": "2025.03-2025.06",
+      "description": "使用 Python（pandas）清洗约 10 万条脱敏行为数据，完成留存与漏斗分析，输出分析报告并提出 3 条产品改进建议",
+      "tech": ["Python", "pandas"]
+    }
+  ],
+  "skills": ["SQL", "Python", "pandas", "Excel", "FineBI", "统计学基础", "漏斗分析", "留存分析"],
+  "languages": ["英语 CET-6"],
+  "certificates": ["CET-6"],
+  "source_type": "synthetic",
+  "anonymized": true,
+  "notes": "合成演示简历，非真实学生。构造时即按脱敏规则处理：无姓名/电话/邮箱/学号，学校与公司均使用泛化名称。"
+}

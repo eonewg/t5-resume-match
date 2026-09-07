@@ -1,48 +1,56 @@
-# 成员验收与集成台账
+# T5 模块验收台账
 
 ## 当前状态
 
-2026-09-07 检查远端：main、feat/core-a、feat/diagnosis-d。D 分支已验收（PASS）并完成集成；B/C/E 尚未提交远端分支。PR #4（feat/diagnosis-d → feat/core-a）已按规则修正 base 分支。
+验收单位固定为 Resume、Jobs/Matching、Diagnosis、Analytics；A 负责统一验收。当前代码存在于 feat/core-a，D 开发与 PR 使用 feat/intelligence-d → feat/core-a。
 
-| 成员 | 分支 | 待验收提交 | 结论 | 集成提交 | 下一步 |
-| --- | --- | --- | --- | --- | --- |
-| B | `feat/resume-b` | — | 待提交 | — | 实现公开简历入口并提交模块测试 |
-| C | `feat/matching-c` | — | 待提交 | — | 实现 JD 与匹配公开入口 |
-| D | `feat/diagnosis-d` | `16802ad` | PASS | `80d4f55`（合并）/ `93e1b12`（适配） | 待真实 Key 联调 |
-| E | `feat/analytics-qa-e` | — | 待提交 | — | 实现分析公开入口及质量验证 |
+| 模块 | Owner | 当前实现 | 验收状态与待办 |
+| --- | --- | --- | --- |
+| Resume | A | 公共结构化保存/读取 API、Mock；无真实模块实现 | 待实现解析、编辑 UI、保存读取闭环并验收 |
+| Jobs / Matching | D | 公共接口、Mock；当前 A 分支无真实模块实现 | 待验收关键词基线、分数/gap、薪资解析及 embedding 增强 |
+| Diagnosis | D | 已有服务、公共 provider 与前端挂载、离线测试 | 真实模型输出、延迟及 T5 全项待验证；不能据离线检查判定最终 PASS |
+| Analytics | A | 公共基础统计接口、Mock；无真实模块实现 | 待实现词云、薪资/技能分布、来源口径与观察说明并验收 |
 
-现有 Mock 验证记录见 [validation.md](validation.md)，不能替代真实成员模块验收。PR #1 为用户明确授权的公共基线合并，最终系统交付仍须完成四成员验收及联调。
+当前自动化检查见 [验证记录](validation.md)。功能目标与当前实现分别记录，不能把已接入、Mock 或测试通过等同于完整 T5 验收。
 
-## 每次验收记录
+## 最终系统门槛
 
-每次在本文件追加：日期、角色、成员分支与准确 SHA、当前 A 基线、变更范围、越界/误提交检查、公开契约检查、测试命令与结果、问题文件与复现方式、结论和下一步。通过集成后补充集成提交及验证证据。
+所有项目均需准确提交、命令/步骤、实际结果和证据位置；未执行写“待验证”，不预填 PASS。
 
-- PASS：该准确提交验收通过，可以集成。
-- BLOCKED：成员业务问题或越界变更等尚未解决，列出需成员修复的具体内容。
-- ADAPT：需要 A 公共层适配，完成并复验为 PASS 后再集成。
+| 门槛 | Owner | 当前差距 / 所需证据 |
+| --- | --- | --- |
+| 问题定义 | A 汇总、D 分析 | 至少 2 款招聘 APP 对比、5 份真实 JD、3 份学生简历，脱敏、来源与表达/技能 gap；痛点报告待提交验收 |
+| Level 1 resume | A | 原文粘贴→解析→结构化展示→编辑→保存→重新读取；缺失字段留空 |
+| Level 1 jobs/matching | D，A 提供持久化 | JD 输入保存复用、技能/工具提取、关键词基线、0–100 分数、matched/missing/gap 及一致解释；只有向量评分不通过 |
+| Level 2 | D，A 串联 | 平淡经历 STAR、JD 定向关键词/经历建议、量化补充提示、不虚构事实；真实/Mock 与失败行为区分；真实模型待验证 |
+| Level 3 | A，D 解析 JD | 已录入 JD 聚合的近期技能词云、薪资分布、技能要求分布、观察/职业建议；来源、样本量、时间范围和缺失值口径 |
+| PostgreSQL + pgvector | A，D 提供参数 | 实际连接、扩展、字段、索引、向量读写/查询 adapter、迁移和真实集成测试；目前 SQLite 演示不足以通过 |
+| NLP 与向量 | D | 关键词规则基线与向量相似度增强、组合评分解释；模型、维度、距离请求待明确 |
+| 全链路演示与 E2E | A/D | 按 T5 对照表十步演示，包括原始/优化简历对比、全部图表；无未解释关键失败 |
+| 可复现运行 | A | 主程序、数据库初始化、完整依赖安装、README、无密钥 .env.example；最终提交的 clean clone / fresh install |
+| AI 过程与设计材料 | A/D | 真实需求拆解、架构/Schema/API、编码、测试审查、文档/演示复盘；原型工具采用情况如实说明 |
+| 最终合并 | A | 四模块完整 PASS、全部集成、完整测试通过且 A 已 push；仅 feat/core-a → main PR，合并后复核启动/核心链路 |
 
-成员更新提交后重新检查变化，不将旧结论直接用于新 SHA。集成失败保留记录，停止后续模块合并。
 
-## 验收记录
+## 验收与集成记录规范
 
-### 2026-09-07 · A 验收 D（feat/diagnosis-d @ `16802ad`）— PASS
+每条记录必须包含日期、模块、owner、准确源 SHA、A 基线、变更范围、越界/误提交检查、契约检查、测试步骤与结果、未验证项、结论和下一步。集成后补充集成 SHA 与回归证据。
 
-- 基线：A 检查时 `feat/core-a` @ `c209eb0`；成员分支含 3 个提交（`d1e030a` 实现、`9529e3a` 文档验证、`16802ad` 同步 main）。
-- 变更范围：20 个文件全新增（+1337 行），限于 `backend/modules/diagnosis/`、`frontend/src/modules/diagnosis/`、`tests/diagnosis/`、`docs/integration_requests/D-integration.md`；未修改任何公共文件或其他成员目录。
-- 越界检查：通过。无 `core/`、公共 Schema、公共主路由、根配置修改。
-- 误提交检查：通过。无 API Key、无 `.env`、无构建产物与临时调试文件；最大文件为测试 `tests/diagnosis/test_diagnosis.py`（约 11.6KB）。
-- 契约检查（对照 `docs/api-contract.md` v1）：`DiagnosisService` 可无参构造，同步 `diagnose(DiagnosisInput) -> DiagnosisResult`，输出保持 `summary + suggestions`（STAR/岗位/关键词/风险以标签写入 suggestions）；复用公共 `backend/schemas/contracts.py`，未另起 Schema；未配置密钥时抛 `ConfigurationError`，不冒充 Mock；Mock 仅离线演示，不会在真实调用失败后自动兜底；错误消息不回显上游内容。前端模块仅依赖公共 API 与 workspace，响应校验符合契约，Mock 标签清晰。
-- 测试（本地检出 `16802ad`）：`uv sync --locked` 正常；`pytest -q` 69 passed（D 44 + core 25）；`ruff check` / `ruff format --check` 通过；`node scripts/check_frontend.mjs` 24 passed；`scripts.check_member D` PASS。CI（PR #4，4 个 job：Ubuntu/Windows × Python 3.11/3.13）全绿。
-- 未覆盖：真实 DeepSeek Key 的端到端诊断（需团队配置密钥，D 已声明当前不算真实模型验证）；浏览器 smoke 脚本需 Playwright（未入根依赖，采用 D 分支自验记录）。
-- 已知非阻塞事项：Starlette `httpx`/`anyio` 弃用 warning ×2，属根依赖层，由 A 在公共层处理（成员请求第 5 点）。
-- 结论：**PASS**，允许集成。
-- 集成时 A 待办：① `.env.example` 增补 `T5_DIAGNOSIS_PROVIDER`、`DEEPSEEK_API_KEY`（留空）、`T5_DIAGNOSIS_MODEL`；② 前端公共注册表将 diagnosis 从 preview 转正式挂载；③ 真实联调前统一公共 API 客户端 45s 超时与诊断重试上限（30s×最多 5 次）的匹配；④ 处理 Starlette 弃用依赖提示后复验。
+- PASS：准确提交在明确验收范围内通过，可集成。
+- BLOCKED：存在必须修复的业务或越界问题，列出文件、复现与预期。
+- ADAPT：需要 A 公共适配，复验 PASS 后才能集成。
+- 待实现/待验收：尚无完整交付或未执行验收，不预填结论。
 
-### 2026-09-07 · A 集成 D — 完成
+A 自有模块执行相同门槛；新增提交重新检查，集成失败保留证据并停止后续合并。最终只通过 feat/core-a → main PR 交付。
 
-- 合并：PR #4 以 merge commit `80d4f55` 合入 `feat/core-a`；合并前将 PR 从 draft 转为 ready。
-- 集成回归：pytest 69 passed、`ruff check` 通过、`check_frontend.mjs` 24 passed / 0 failed。
-- 公共层适配（`93e1b12`）：`.env.example` 增补 D 真实诊断配置示例（密钥留空）；`frontend/src/core/modules.js` 将 diagnosis 槽位从 preview 转正式挂载；README 环境变量表补充 `DEEPSEEK_API_KEY`、`T5_DIAGNOSIS_MODEL` 及 D 模块 README 链接。
-- 浏览器实测（本地 uvicorn + 公共壳）：`#diagnosis` 正式加载 D 模块（无占位页）；工作台创建演示简历与岗位后，D 页面正确读取关联 ID 并执行诊断；Mock 标签、Provider 状态显示正常，控制台无错误。
-- 待办 ①② 已完成；③ 留待真实 Key 联调时处理；④（Starlette 弃用提示）由 A 另行处理根依赖。
-- 未验证：真实 DeepSeek 模型输出质量与延迟（需配置密钥）。
+## 待处理交付
+
+### PR #5 · D 文档交接 — BLOCKED
+
+- 源提交：dd1933e02642172d4ddbf2c3cf0ac61a9b0e978b；A 基线：124466058255a4094615a7ea84d0a47a5082b1eb。
+- 范围：6 个 Markdown 文件，位于 Diagnosis README 和 D 集成请求目录；无业务代码、公共 Schema、依赖或 CI 修改。未检出常见密钥/私钥格式。
+- 当前 PR 为 draft，GitHub 显示冲突；检查结果为 1 项 FAILURE、3 项 CANCELLED，不能记为通过。
+- 必须修复：同步最新 A 基线并解决文档冲突；D-agent-policy、D-two-person-allocation 与 D-strict-plan 含失效职责/流程叙述和过期命令，须改为当前 A/D 约定；共享需求/分工应引用根规范，避免复制后产生不同版本。
+- D-strict-plan 将 owner 映射、双模块自检、分支触发和公共说明列为未完成，但当前 A 已具备这些能力。应只保留仍需处理的 JD 字段、向量参数、超时预算和样本等请求。
+- Diagnosis README 的新增计划链接相对路径多了一层父目录，需要修复。
+- 该 PR 仅文档交付，不代表 Jobs/Matching 或 Embedding 实现；本次未运行不存在的模块测试，也未合并。D 更新准确提交并重跑适用检查后复验。

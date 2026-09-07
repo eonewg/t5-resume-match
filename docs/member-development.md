@@ -1,59 +1,60 @@
-# 成员开发与交付
+# 模块开发与交付
 
-先把接入链路跑通，再实现业务。个人 `AGENTS.md` 仍只留本地，不被本工具改写。
+先阅读 [团队约定](team-rules.md)。A/D 分支及基线见 [上手说明](team-onboarding.md)，个人 AGENTS.md 仍只留本地。验收和公开自检按 Resume、Jobs/Matching、Diagnosis、Analytics 四模块命名。
 
-本轮支持工具先交付在 `feat/core-a`。如果 main 尚没有 `scripts/check_member.py`，请从 `origin/feat/core-a` 这份已验证基线建立自己的角色分支，不从旧 main 复制零散文件，也不要直接在 A 分支提交业务。公共支持 PR 合入后，新成员即可直接从 main 开始。
+## 公开入口
 
-## 从能运行的示例开始
+| 模块 | Owner | 公开入口 | 测试目录 |
+| --- | --- | --- | --- |
+| resume | A | `backend.modules.resume.public:ResumeService` | `tests/resume/` |
+| jobs（含 matching） | D | `backend.modules.jobs.public:JobsService` | `tests/jobs/` |
+| diagnosis | D | `backend.modules.diagnosis.public:DiagnosisService` | `tests/diagnosis/` |
+| analytics | A | `backend.modules.analytics.public:AnalyticsService` | `tests/analytics/` |
+
+类无参构造、同步实例方法，签名见 `backend/core/ports.py`。实例可能被多请求共享，不保存单次请求输入。公共层只依赖公开入口，不调用其他模块内部实现。
+
+## 示例与自检
 
 ```powershell
 uv sync --locked
-uv run python -m scripts.check_member B --examples
+uv run --locked python -m scripts.check_member resume --examples
+uv run --locked python -m scripts.check_member jobs --examples
+uv run --locked python -m scripts.check_member diagnosis --examples
+uv run --locked python -m scripts.check_member analytics --examples
 ```
 
-将 B 换为自己的角色。示例代码位于 `examples/providers/`，统一输入和参考输出位于 `examples/fixtures/team.json`。示例不能作为真实模块提交；自检会拒绝把 `is_mock=True` 的类或 examples 路径视为真实实现。
+实现后对自己的模块去掉 `--examples`；D 必须分别自检 jobs 和 diagnosis。合成输入来自 `examples/fixtures/team.json`，示例明确标记 Mock，不能作为真实交付。
 
-| 角色 | 自己实现的公开入口 | 模块测试目录 |
-| --- | --- | --- |
-| B | `backend.modules.resume.public:ResumeService` | `tests/resume/` |
-| C | `backend.modules.jobs.public:JobsService` | `tests/jobs/` |
-| D | `backend.modules.diagnosis.public:DiagnosisService` | `tests/diagnosis/` |
-| E | `backend.modules.analytics.public:AnalyticsService` | `tests/analytics/`，系统质量测试可放 `tests/quality/` |
+真实检查拒绝 Mock/示例入口，验证公开输出和保留字段，运行模块测试及公共测试。缺少测试、全部跳过、没有实际通过用例或调用超时均失败。工具不改 .env、分支或公共数据库。公开调用默认 45 秒，模块/公共测试各至少给 180 秒，可用 `--timeout` 调整。
 
-类必须无参构造、同步实例方法；签名见 `backend/core/ports.py`。实例可能被多请求共享，不保存单次请求输入。公开层保持轻薄，内部实现由成员自行组织。
+diagnosis 默认只检查入口与同步签名，不构造服务、不调用 AI；输出需离线替身测试验证。只有明确要做真实验证时使用 `--live`，CI 不传此参数。其他模块不得在默认自检时依赖收费服务；向量网络能力用离线替身测试，并单独记录真实验证。临时入口可用 `--provider module:Class`，不改变正式契约。
 
-## 提交前的一条自检命令
+MODULE_CHECK_PASS 仅表示自动自检通过，不替代 T5 功能、效果与人工验收。测试覆盖空白、重复、大小写、缺字段、失败和边界，不能只复制固定样例输出。
 
-```powershell
-uv run python -m scripts.check_member B
-```
+## 范围与 CI
 
-真实检查导入自己的公开类，用合成输入检查输出契约及关键保留字段，然后运行自己的测试和公共集成测试。缺少测试目录、没有实际通过的模块用例、仍使用 Mock 或公开调用超时都会失败。命令不会改 `.env`、切分支或写入公共数据库。公开调用默认总时限 45 秒，模块/公共测试分别最多 180 秒；可用 `--timeout` 调整。
-
-自检返回 MEMBER_CHECK_PASS 只表示检查通过；不能代替 A 的代码审查、数据质量或算法效果验收。成员自己的测试应覆盖重复/空输入、边界和失败处理，不能只复制固定样例输出。
-
-**D 默认不构造诊断服务、不调用真实 AI**，只检查公开类/签名和运行成员离线测试。D 应在自己的测试中用替身替换外部客户端，再用 `DiagnosisResult.model_validate(...)` 验证实际业务代码生成的响应。不要在测试中依赖真实密钥。只有明确需要真实调用时才手动使用 `--live`；可能产生费用，CI 不传该参数。
-
-如需定位不同公开路径，可加 `--provider module:Class`，不改变正式入口约定。CLI 失败只给出模块异常类型，避免把可能含密钥的异常内容写入 CI；详细定位使用自己的离线测试。
-
-## 目录与 CI
+D 在自己的分支运行：
 
 ```powershell
 git fetch origin
-uv run python -m scripts.check_scope B
-uv run ruff check backend tests scripts examples
-uv run pytest -q
+uv run --locked python -m scripts.check_scope D
+```
+
+检查 `origin/feat/core-a...HEAD` 已提交变化；允许 jobs/diagnosis 后端、前端、测试及 D 集成请求，不允许公共文件。A 的公共/resume/analytics 变更由审查验收，不套用 D 的目录限制。范围检查不是敏感信息扫描，也不包含未提交文件。
+
+共同检查：
+
+```powershell
+uv run --locked pytest -q
+uv run --locked ruff check backend tests scripts examples
+uv run --locked ruff format --check backend tests scripts examples
 node scripts/check_frontend.mjs
 ```
 
-范围检查比较 `origin/feat/core-a...HEAD` 中已提交的变化，不包含未提交内容。成员可改自己的 backend 模块、测试、前端模块及 `docs/integration_requests/<角色>-*.md`；根配置和公共文件需求提交 A。该检查是快速路径检查，不替代敏感信息扫描和人工验收。
+CI 监听 main、feat/core-a、feat/intelligence-d 的 push 和所有 PR，运行 Windows/Ubuntu × Python 3.11/3.13。D 分支必须同时有 jobs/diagnosis 入口和测试；缺一个就失败。A/main 检查已存在模块，缺失模块仍需台账记录，不能视为最终完成。不符合 A/D 分支约定的 PR 被拒绝；D PR base 必须是 feat/core-a，最终 PR 只能由 A 指向 main。
 
-CI 对 main、A 和四成员分支的 push 以及 PR 执行 Windows/Ubuntu × Python 3.11/3.13 检查，pytest 会发现整个 `tests/`。成员分支缺少真实入口或测试时 CI 会失败；A/main 尚未集成成员时会明确提示缺失，不冒充完成。成员 PR 必须指向 `feat/core-a`。CI 的 `check_member --ci` 只补公开入口检查，完整 pytest 已在前一步执行。前端命令需要 Node 22+，会运行公共和成员的 `*.test.mjs`；仅运行系统不需要 Node。
+Node 22+ 仅用于前端检查，自动发现公共与模块的 `*.test.mjs`；运行系统无需 Node。UI 见 [前端接入](frontend-integration.md)。
 
-## 小交付标准
+## 交付
 
-第一轮：能导入的真实公开类、一份合成输入的有效输出、至少一组有意义的模块测试，以及未完成项说明。B/C 优先交这轮，D/E 可并行。
-
-第二轮：补齐角色要求的边界/异常测试；如有 UI，在公共前端壳的模块目录开发，不另建不兼容的工程。
-
-PR 按自动出现的模板填写准确提交 SHA、自检结果、复现步骤、依赖/配置需求和已知限制。公共需求复制 [请求模板](integration_requests/TEMPLATE.md) 为自己的角色文件。A 验收记录在 [台账](acceptance.md)，成员不要预填 PASS。
+PR 填写 T5 条目、模块完成情况、准确 SHA、样例、测试结果、UI 复现及未验证项。公共需求写入 [集成请求](integration_requests/README.md)。A 将 PASS/BLOCKED/ADAPT 与集成证据记录到 [台账](acceptance.md)，不要自行预填 PASS。真实数据库、浏览器、模型和 fresh install 的最终门槛不能用基础自检代替。

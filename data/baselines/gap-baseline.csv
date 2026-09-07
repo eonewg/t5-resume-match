@@ -1,0 +1,16 @@
+pair_id,resume_id,jd_id,matched_skills_manual,missing_skills_manual,expression_gaps_manual,skill_gaps_manual,suggested_keywords_manual,match_level_manual,reviewer,notes
+baseline-01,resume-01,jd-real-01,Python|用户行为分析,机器学习|深度学习|推荐策略|个性化推荐|数据结构与算法（深入理解）|Java|C++|支付风控,实习经历无量化成果|项目成果缺结果表述|技能行未点出数据结构与算法基础,缺少机器学习/深度学习方法基础|无Java/C++工程经验|无支付风控场景经验,SQL|Python|用户行为分析|数据分析,low,manual(A),数据分析背景与算法岗方向错配
+baseline-02,resume-02,jd-real-01,Java,机器学习|深度学习|推荐策略|个性化推荐|数据结构与算法（深入理解）|Python|C++|支付风控|用户数据分析,技能行只写框架不写语言层次,无机器学习/推荐系统知识|算法功底无佐证,Java|数据结构,low,manual(A),仅有Java语言交集
+baseline-03,resume-03,jd-real-01,Python|机器学习|深度学习,推荐策略|个性化推荐|支付风控|Java|C++|数据结构与算法（深入理解）,评测描述无结果区间（不得虚构数字）|无推荐相关词汇,NLP/RAG方向而非推荐系统|Java/C++工程实现弱,Python|机器学习|深度学习|推荐系统,medium,manual(A),算法基础扎实但子方向不同
+baseline-04,resume-01,jd-real-03,SQL,C#|.NET Core|.NET Framework|SQL Server|MySQL|HTTP/HTTPS|RESTful API|后端开发|接口设计|单元测试|面向对象,技能行无数据库概念相关表述,无后端开发经历|未掌握C#/.NET技术栈,SQL,low,manual(A),仅SQL单点交集
+baseline-05,resume-02,jd-real-03,SQL|MySQL|Postman|单元测试|接口设计（接口开发经历）|后端开发,C#|.NET Core|.NET Framework|SQL Server|HTTP/HTTPS|RESTful API|面向对象（C# 语境）,未出现HTTP/RESTful协议词汇|缺性能/规模类结果,技术栈为Java系|仅MySQL经验,SQL|RESTful API|单元测试|接口文档|Postman,medium,manual(A),通用后端素养匹配主栈不同
+baseline-06,resume-03,jd-real-03,,C#|.NET Core|.NET Framework|SQL Server|MySQL|SQL|HTTP/HTTPS|RESTful API|后端开发|接口设计|单元测试|Postman|面向对象,,无后端工程经历方向不符,,low,manual(A),完全错配无显式技能交集
+baseline-07,resume-01,jd-real-04,,架构设计|后端研发|数据结构与算法|存储系统|中间件|高并发|性能优化|技术预研|方案选型,,无后端/服务端开发经历,,low,manual(A),完全错配；泛化描述不作匹配依据
+baseline-08,resume-02,jd-real-04,数据结构与算法（主修课程）|MySQL（对应存储系统）|接口设计|单元测试（编码、测试和文档编写）|后端研发,架构设计|中间件|高并发|性能优化|技术预研|方案选型,语言熟练度未分层|无高并发/性能量化描述,无中间件使用经验|无高并发实战,Java|MySQL|单元测试|接口文档|数据结构,medium,manual(A),校招Java岗与Java实习生背景同向
+baseline-09,resume-03,jd-real-04,,架构设计|后端研发|数据结构与算法（工程表述）|存储系统|中间件|高并发|性能优化|技术预研|方案选型,研究型用法缺工程化佐证,无业务系统研发经历,Python,low,manual(A),语言能力可迁移但方向不匹配
+baseline-10,resume-01,jd-real-05,,需求分析|数据建设方案|数据产品规划|项目管理|逻辑思维（显式表达）|研究分析|算法开发|自然语言处理,缺产品语言表达|学历本科JD要求硕士,缺产品规划与跨团队协调经验|硕士学历硬门槛,数据分析|指标体系|需求分析|SQL,low,manual(A),方向接近但产品表达缺失且有学历门槛
+baseline-11,resume-02,jd-real-05,,需求分析|数据建设方案|数据产品规划|项目管理|逻辑思维（显式表达）|研究分析|算法开发|自然语言处理,,纯后端背景|硕士学历硬门槛,,low,manual(A),完全错配
+baseline-12,resume-03,jd-real-05,算法开发|自然语言处理,需求分析|数据建设方案|数据产品规划|项目管理|逻辑思维（显式表达）|研究分析|文字写作能力（显式表达）,优先项命中未突出|缺产品侧词汇,无产品经理实践|学历需确认,自然语言处理|算法开发|研究分析|技术文档,medium,manual(A),优先项双命中但产品能力空白
+baseline-13,resume-01,jd-real-09,SQL|Python|业务数据分析（电商业务分析经历）|指标体系（指标看板经历）,异常监控|统计学（显式表达）,实习缺量化|异常监控经验未显式表达,无异常监控/告警体系经验|统计分析方法未体现,SQL|Python|业务数据分析|指标体系|异常监控,high,manual(A),电商数据分析实习与校招数据分析岗高度同向
+baseline-14,resume-02,jd-real-09,SQL（MySQL 经验）,Python|业务数据分析|异常监控|统计学,技能行写MySQL未写SQL能力本身,无业务数据分析经历与统计基础|无Python经验,SQL,low,manual(A),仅SQL单点可迁移
+baseline-15,resume-03,jd-real-09,Python,SQL|业务数据分析|异常监控|统计学,评测项目可用数据统计语言表达但偏算法视角,无SQL取数与业务指标分析经验,Python|数据统计,low,manual(A),语言交集为主
