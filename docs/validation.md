@@ -26,7 +26,16 @@ Windows 如遇 uv 缓存访问限制，可设置 UV_CACHE_DIR 为项目 .verific
 
 ## 本次结果
 
-2026-09-07，feat/core-a 工作区：
+### 2026-09-07（二）：数据资产建设
+
+- 新增 `scripts/validate_data.py`（stdlib 实现）：校验 JSON/CSV 合法、JD/简历必填字段与 source_type 一致性、简历敏感信息扫描（手机/邮箱/证件号）、baseline 引用完整性（5 JD × 3 简历 = 15 组）与新文档本地链接；运行结果：OK（30 JD，9 real）。
+- `uv run --locked pytest -q`：91 passed，4 errors。errors 全部位于工作区既有未提交的 `tests/resume/test_resume.py`（超长参数化字符串在 Windows 触发 32767 字符环境变量上限），与本次数据文件无关。
+- `uv run --locked ruff check scripts/validate_data.py` 与 format --check：通过。
+- 全仓 ruff check/format --check：`backend/api/routes.py`、`backend/modules/resume/public.py`、`tests/core/test_integration.py`、`tests/resume/test_resume.py` 存在未提交工作区改动引入的格式问题，本次不修改他人未提交文件，待该部分工作自行修复后复查。
+- `node scripts/check_frontend.mjs`：fail 0。
+- 新增数据文件：`data/`（README 规范、jd-real.json、jd-synthetic.json、resumes/resume-01..05.json、baselines/gap-baseline.json+csv、collection/collection-log.md）、`docs/competitor-analysis.md`、`docs/market-pain-points.md`、`docs/integration_requests/D-data-handoff.md`。
+
+### 2026-09-07（一）：feat/core-a 工作区
 
 - uv sync --locked：通过。
 - pytest：76 passed，2 项既有 Starlette HTTPX/AnyIO 弃用提示。

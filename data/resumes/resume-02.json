@@ -1,0 +1,37 @@
+{
+  "id": "resume-02",
+  "raw_text_anonymized": "姓名：（略）\n求职意向：Java 后端开发工程师\n教育经历：某高校 计算机科学与技术专业 本科 2022.09-2026.06，主修课程：数据结构、操作系统、计算机网络、数据库原理。\n实习经历：某软件公司 研发部 后端开发实习生 2025.06-2025.12\n- 使用 Spring Boot 参与订单服务接口开发，完成 5 个增删改查接口\n- 编写单元测试，参与代码评审与接口文档编写\n- 日常使用 MySQL 与 Linux，协助排查一次线上慢查询\n项目经历：校园活动报名管理系统（课程项目）2024.09-2025.01\n- 使用 Spring Boot + MyBatis + MySQL 实现报名、审核与统计模块\n- 使用 Postman 完成接口自测，编写接口文档\n技能：Java、Spring Boot、MyBatis、MySQL、Linux、Git、Postman\n语言：英语 CET-4\n证书：软考程序员（初级）",
+  "education": {
+    "degree": "本科",
+    "major": "计算机科学与技术",
+    "school_generalized": "某高校",
+    "period": "2022.09-2026.06"
+  },
+  "experiences": [
+    {
+      "role": "后端开发实习生",
+      "org_generalized": "某软件公司",
+      "period": "2025.06-2025.12",
+      "highlights": [
+        "使用 Spring Boot 参与订单服务接口开发，完成 5 个增删改查接口",
+        "编写单元测试，参与代码评审与接口文档编写",
+        "日常使用 MySQL 与 Linux，协助排查一次线上慢查询"
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "name_generalized": "校园活动报名管理系统",
+      "role": "课程项目",
+      "period": "2024.09-2025.01",
+      "description": "使用 Spring Boot + MyBatis + MySQL 实现报名、审核与统计模块，使用 Postman 完成接口自测，编写接口文档",
+      "tech": ["Java", "Spring Boot", "MyBatis", "MySQL", "Postman"]
+    }
+  ],
+  "skills": ["Java", "Spring Boot", "MyBatis", "MySQL", "Linux", "Git", "Postman", "单元测试", "接口文档"],
+  "languages": ["英语 CET-4"],
+  "certificates": ["软考程序员（初级）"],
+  "source_type": "synthetic",
+  "anonymized": true,
+  "notes": "合成演示简历，非真实学生。构造时即按脱敏规则处理：无姓名/电话/邮箱/学号，学校与公司均使用泛化名称。"
+}

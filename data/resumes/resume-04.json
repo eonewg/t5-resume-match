@@ -1,0 +1,36 @@
+{
+  "id": "resume-04",
+  "raw_text_anonymized": "姓名：（略）\n求职意向：数据科学 / 风控建模\n教育经历：某高校 数学与应用数学专业 本科 2022.09-2026.06，辅修计算机。主修课程：数理统计、随机过程、机器学习导论。\n实习经历：某金融科技公司 风控部 建模实习生 2025.08-2025.12\n- 协助整理贷前样本与特征表，使用 SQL 完成数据准备\n- 在导师指导下跑通 XGBoost 基线模型并整理实验记录\n项目经历：全国大学生统计建模大赛参赛项目（名称略）2025.03-2025.08\n- 使用 pandas 与 sklearn 完成特征工程与模型对比实验\n- 负责结果图表与报告排版\n技能：Python（pandas、sklearn、XGBoost）、SQL、统计学、机器学习\n语言：英语 CET-6\n证书：CET-6；数学建模竞赛省级二等奖（泛化描述）",
+  "education": {
+    "degree": "本科",
+    "major": "数学与应用数学",
+    "school_generalized": "某高校",
+    "period": "2022.09-2026.06"
+  },
+  "experiences": [
+    {
+      "role": "建模实习生",
+      "org_generalized": "某金融科技公司",
+      "period": "2025.08-2025.12",
+      "highlights": [
+        "协助整理贷前样本与特征表，使用 SQL 完成数据准备",
+        "在导师指导下跑通 XGBoost 基线模型并整理实验记录"
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "name_generalized": "统计建模大赛参赛项目",
+      "role": "竞赛项目",
+      "period": "2025.03-2025.08",
+      "description": "使用 pandas 与 sklearn 完成特征工程与模型对比实验，负责结果图表与报告排版",
+      "tech": ["Python", "pandas", "sklearn"]
+    }
+  ],
+  "skills": ["Python", "pandas", "sklearn", "XGBoost", "SQL", "统计学", "机器学习", "特征工程"],
+  "languages": ["英语 CET-6"],
+  "certificates": ["CET-6", "数学建模竞赛省级二等奖（泛化描述）"],
+  "source_type": "synthetic",
+  "anonymized": true,
+  "notes": "合成演示简历，非真实学生。构造时即按脱敏规则处理：无姓名/电话/邮箱/学号，学校与公司使用泛化名称，竞赛名称省略、奖项做泛化描述以避免可反查组合。"
+}
