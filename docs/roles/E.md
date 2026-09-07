@@ -1,13 +1,5 @@
-# E：数据分析与质量保障
+# E：历史角色（职责已迁移）
 
-固定分支：`feat/analytics-qa-e`。团队约定见 [team-rules.md](../team-rules.md)。本文件是共享分工资料，不替代个人本地 AGENTS.md。
+2026-09-07 起，analytics 与质量保障 由 **A** 负责。本文件只保留角色迁移指引，不再授权使用旧角色分支开展新开发；无需等待 E 单独交付。
 
-负责 JD 技能统计、就业市场分析和系统质量评估。允许修改 `backend/modules/analytics/`、`tests/analytics/`、`tests/quality/`、`docs/integration_requests/E-*.md`。看板组件在 `frontend/src/modules/analytics/`，按 [公共前端接入](../frontend-integration.md) 导出 mount 并预览。
-
-可在 `tests/quality/` 编写针对公开 API 的系统测试及合成样例；发现业务问题提交对应成员，不直接改其实现。公共测试配置与 CI 扩展提交 A。
-
-实现 `backend.modules.analytics.public:AnalyticsService`，无参构造，同步 `analyze(list[JD]) -> AnalysisResult`。当前契约只有 summary 与技能计数字典；薪资字段和图表数据先提交契约扩展请求。
-
-测试空数据、重复技能、不同岗位的统计口径，说明计数按岗位数还是出现次数。区分事实、合成样例和推断，不把演示数据当市场结论。交付样例、分析口径与测试命令，由 A 配置 `T5_ANALYTICS_PROVIDER`。
-
-提交前按 [成员开发与自检指南](../member-development.md) 运行本角色自检，使用 PR 模板交付复现步骤。
+当前职责与目录见 [A 角色说明](A.md)，流程见 [团队约定](../team-rules.md)，功能门槛见 [T5 对照表](../../T5_REQUIREMENTS_MATRIX.md)。已有提交与验收证据保留在 Git 历史和验收台账中，不回退或重做成果。

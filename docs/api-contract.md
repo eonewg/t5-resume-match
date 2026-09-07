@@ -26,7 +26,7 @@
 | `POST /api/v1/workflow` | PairInput | 201，`{"match": MatchRecord, "diagnosis": DiagnosisRecord}` |
 | `GET /api/v1/analytics` | 无 | AnalysisResponse，基于当前全部 JD |
 
-列表 limit 1–100，offset ≥ 0，按创建时间、ID 升序。当前为小型课程数据集，全量分析由 E 接口接收全部 JD；扩大数据量前需增加公共分页/聚合接口。POST 非幂等，每次创建新记录。
+列表 limit 1–100，offset ≥ 0，按创建时间、ID 升序。当前为小型课程数据集，全量分析由 A 的 analytics 接口接收全部 JD；扩大数据量前需增加公共分页/聚合接口。POST 非幂等，每次创建新记录。
 
 ## 数据结构
 
@@ -56,7 +56,7 @@ MatchResult 保持团队原约定：两个关联 ID、0–100 有限数值 `scor
 
 D 的公开方法收到 `{"resume_text":"原文","jd_text":"原文"}`，返回 `{"summary":"诊断摘要","suggestions":["建议"]}`。HTTP 接口通过 PairInput 读取公共记录后调用 D，返回 DiagnosisRecord（加 `id`、关联 ID、`is_mock`）。
 
-E 的公开方法接收 `list[JD]`，返回 `{"summary":"分析摘要","skills":{"Python":3}}`；HTTP 响应再加 `is_mock`。此结构是基础统计交接点，不是最终看板图表契约，薪资及图表字段需 E 提交集成请求后扩展。
+analytics 的公开方法接收 `list[JD]`，返回 `{"summary":"分析摘要","skills":{"Python":3}}`；HTTP 响应再加 `is_mock`。此结构是基础统计交接点，不是最终看板图表契约，薪资、来源、时间范围及图表字段仍待 A/D 对齐后由 A 扩展，当前 v1 不接受这些未知字段。
 
 文本去除首尾空白后必须非空且 ≤ 50,000 字符；title、技能及关联 ID 最多 200 字符；简历技能/经历及 JD 技能数组最多 500 项。name、education、company 是可选描述字段，暂未统一长度约束。
 
@@ -69,5 +69,15 @@ E 的公开方法接收 `list[JD]`，返回 `{"summary":"分析摘要","skills":
 ## 变更记录
 
 - 2026-09-07：增加同源公共前端壳与合成样例静态入口；根页面不再跳转 Swagger，`/docs` 保持可用。未改变现有业务 API 的输入输出。
-- 2026-09-07：公开 provider 启动时校验无参类与同步方法签名；可用布尔 `is_mock=True` 标识自定义示例，结果继续标注 Mock。E 的基础样例统计以“包含该技能的岗位数”为口径，详见 `examples/fixtures/team.json`；不要求匹配分数等于固定示例分数。未改动 v1 JSON 字段。
+- 2026-09-07：公开 provider 启动时校验无参类与同步方法签名；可用布尔 `is_mock=True` 标识自定义示例，结果继续标注 Mock。analytics 的基础样例统计以“包含该技能的岗位数”为口径，详见 `examples/fixtures/team.json`；不要求匹配分数等于固定示例分数。未改动 v1 JSON 字段。
 - 2026-09-07：建立 v1。保留团队建议字段，补充诊断/分析输出、持久化标识、Mock 来源及错误契约。当前未冻结为跨团队最终版；后续新增字段、适配说明在此记录，破坏性修改需新 API 版本。
+
+## 严格 T5 对齐待办（尚未发布新契约）
+
+本次仅修订分工与差距说明，不变更 v1 JSON 字段、路由或已有 provider 签名。
+
+- 简历编辑：现有 POST /resumes 接收编辑后的 ResumeData 并生成新 ID，GET 可重新读取。A 的编辑器须保留原文，显示编辑结果；不能把已有 API 当作 UI 已完成。
+- JD：D 提供薪资解析，A/D 确定薪资上下限、币种/周期、来源分类及采样时间等字段语义；无法解析允许空值。A 负责 Schema、持久化、兼容旧记录及迁移。
+- 分析：目前只有 summary/skills，尚不足以承载薪资分布、岗位技能分布和时间/来源口径。A 明确响应结构、同步前端和测试，不提前展示不存在的接口。
+- 向量：D 通过集成请求明确模型、维度、对象和距离；A 实施 PostgreSQL/pgvector 及公共查询 adapter。参数尚未确定，不猜测固定维度。
+- 保持现有调用兼容；新增可选字段应有默认/空值与旧数据验证，破坏性变更新建 API 版本。

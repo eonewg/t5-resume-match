@@ -7,18 +7,20 @@ import sys
 from pathlib import PurePosixPath
 
 from backend.core.config import ROOT
-from scripts.member_specs import MEMBERS
+from scripts.member_specs import BRANCHES, MODULES
 
 
 def allowed_path(role, path):
-    spec = MEMBERS[role]
     prefixes = [
-        f"backend/modules/{spec.key}/",
-        f"{spec.tests}/",
-        f"frontend/src/modules/{spec.key}/",
+        prefix
+        for spec in MODULES.values()
+        if spec.owner == role
+        for prefix in (
+            f"backend/modules/{spec.key}/",
+            f"{spec.tests}/",
+            f"frontend/src/modules/{spec.key}/",
+        )
     ]
-    if role == "E":
-        prefixes.append("tests/quality/")
     if any(path.startswith(prefix) for prefix in prefixes):
         return True
     return path.startswith(f"docs/integration_requests/{role}-") and path.endswith(".md")
@@ -40,20 +42,27 @@ def violations(role, paths):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("role", nargs="?", choices=MEMBERS)
+    parser.add_argument("role", nargs="?", choices=("D",))
     parser.add_argument("--base", default="origin/feat/core-a")
     parser.add_argument("--ci", action="store_true")
     args = parser.parse_args()
     role = args.role
     if args.ci:
         ref = os.environ.get("GITHUB_HEAD_REF") or os.environ.get("GITHUB_REF_NAME", "")
-        role = next((r for r, spec in MEMBERS.items() if spec.branch == ref), None)
-        if role is None:
-            print("A/main 的公共改动由 PR 审查；本项只检查成员目录边界。")
-            return 0
         target = os.environ.get("GITHUB_BASE_REF", "")
-        if target and target != "feat/core-a":
-            print("FAIL: 成员 PR 必须指向 feat/core-a，不直接指向 main。")
+        if ref == BRANCHES["D"]:
+            role = "D"
+            if target and target != BRANCHES["A"]:
+                print("FAIL: D PR 必须指向 feat/core-a。")
+                return 1
+        elif ref in ("main", BRANCHES["A"]):
+            if target and not (ref == BRANCHES["A"] and target == "main"):
+                print("FAIL: 最终 PR 只能从 feat/core-a 指向 main。")
+                return 1
+            print("A/main 的公共改动由 PR 审查；本项只检查 D 目录边界。")
+            return 0
+        else:
+            print("FAIL: 未知或历史成员分支；新开发使用 feat/intelligence-d。")
             return 1
     if role is None:
         parser.error("请指定角色或 --ci")

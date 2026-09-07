@@ -1,15 +1,15 @@
 # T5 AI 简历诊断与岗位匹配系统
 
-A（架构与集成）交付：FastAPI 主程序、公共数据库、v1 数据契约、B/C/D/E 四个模块接口、Mock 集成链路和自动化验证。业务模块尚未交付，目前不提供真实简历解析、匹配算法、AI 建议或市场分析；所有 Mock 输出均可识别。
+按 [T5 需求对照表](T5_REQUIREMENTS_MATRIX.md) 和 [两人分工](T5_TWO_PERSON_ALLOCATION_STRICT.md) 开发：A 负责公共平台、resume、analytics、数据库与最终交付；D 负责 jobs/matching、diagnosis。当前已有公共骨架及已集成的 diagnosis 实现，默认仍使用 Mock；真实简历编辑器、岗位匹配和市场分析尚待交付。完整状态见 [验收台账](docs/acceptance.md)。
 
 ## 一键运行
 
-文档对应当前查看的分支。若要在公共支持 PR 合入前获取本轮示例、自检和前端壳，请将下面的 clone 命令改为 `git clone --branch feat/core-a https://github.com/eonewg/t5-resume-match.git`；成员随后从这份基线建立各自分支，不在 A 分支提交业务。
+下列命令获取当前 A 集成基线；D 从最新 origin/feat/core-a 创建 feat/intelligence-d，具体见 [上手说明](docs/team-onboarding.md)。最终稳定交付仅通过 feat/core-a → main PR 完成。
 
-需要 Git、Python 3.11–3.13（已验证 3.13.5）和 [uv](https://docs.astral.sh/uv/getting-started/installation/)。首次安装需要联网，不需要数据库服务或 AI 密钥。
+需要 Git、Python 3.11–3.13（已验证 3.13.5）和 [uv](https://docs.astral.sh/uv/getting-started/installation/)。首次安装需要联网；当前 SQLite/Mock 演示不需要数据库服务或 AI 密钥，最终 PostgreSQL/pgvector 与真实诊断验证需要相应服务和配置。
 
 ```powershell
-git clone https://github.com/eonewg/t5-resume-match.git
+git clone --branch feat/core-a https://github.com/eonewg/t5-resume-match.git
 cd t5-resume-match
 powershell -ExecutionPolicy Bypass -File .\start.ps1
 ```
@@ -32,13 +32,14 @@ uv run --locked python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 ```powershell
 uv run --locked python scripts/smoke.py
 uv run --locked pytest -q
-uv run --locked ruff check backend tests scripts
-uv run --locked ruff format --check backend tests scripts
+uv run --locked ruff check backend tests scripts examples
+uv run --locked ruff format --check backend tests scripts examples
+node scripts/check_frontend.mjs
 ```
 
-成员开始开发请先看 [开发与自检指南](docs/member-development.md)：`uv run python -m scripts.check_member B --examples` 可直接跑 B 的接入示例（换成 C/D/E 亦可）；真实模块实现后去掉 `--examples` 自检。公共前端挂载、预览及 UI 分工见 [前端接入说明](docs/frontend-integration.md)。
+成员开始开发请先看 [开发与自检指南](docs/member-development.md)：`uv run --locked python -m scripts.check_member resume --examples` 可跑简历接入示例（也可选择 jobs、diagnosis、analytics）；真实模块实现后去掉 `--examples` 自检。公共前端挂载、预览及 UI 分工见 [前端接入说明](docs/frontend-integration.md)。
 
-本轮可复现检查与修改清单见 [开发支持验收记录](docs/dev-support-validation.md)。
+本轮规则迁移与验证见 [两人制迁移记录](docs/two-owner-migration.md)；早期公共壳验证见 [历史开发支持记录](docs/dev-support-validation.md)。
 
 smoke 会新建一份演示简历、一个岗位及匹配/诊断记录，然后读回验证。自动化测试使用独立临时数据库，不改演示数据库。
 
@@ -51,18 +52,18 @@ smoke 会新建一份演示简历、一个岗位及匹配/诊断记录，然后�
 | 环境变量 | 默认值 | 用途 |
 | --- | --- | --- |
 | `T5_DATABASE_URL` | `sqlite:///data/t5.db` | 公共数据库；相对路径按项目根目录解析 |
-| `T5_RESUME_PROVIDER` | `mock` | B，文本解析 |
-| `T5_JOBS_PROVIDER` | `mock` | C，JD 解析与匹配 |
+| `T5_RESUME_PROVIDER` | `mock` | A，文本解析 |
+| `T5_JOBS_PROVIDER` | `mock` | D，JD 解析与匹配 |
 | `T5_DIAGNOSIS_PROVIDER` | `mock` | D，诊断；真实实现 `backend.modules.diagnosis.public:DiagnosisService` |
 | `DEEPSEEK_API_KEY` | 空 | D 专用，启用真实诊断时设置；未设置时诊断明确失败而非降级 Mock |
 | `T5_DIAGNOSIS_MODEL` | `deepseek-v4-flash` | D 专用，模型名 |
-| `T5_ANALYTICS_PROVIDER` | `mock` | E，分析 |
+| `T5_ANALYTICS_PROVIDER` | `mock` | A，分析 |
 
 D 真实诊断的完整配置与行为说明见 [D 模块 README](backend/modules/diagnosis/README.md)。
 
-模块详细边界、接入示例和数据库说明见 [架构](docs/architecture.md)。业务成员的请求放入 `docs/integration_requests/`，由 A 实施公共变更。[团队通用约定](docs/team-rules.md) 与分工资料保存在 docs 中；每位成员使用自己的本地 `AGENTS.md`，该文件不纳入版本控制。分支分工及启动任务见 [团队上手说明](docs/team-onboarding.md)。A 按 [验收台账](docs/acceptance.md) 对成员逐个验收并集成，真实业务最终验收与当前 Mock 基线分开记录。
+模块详细边界、接入示例和数据库说明见 [架构](docs/architecture.md)。业务成员的请求放入 `docs/integration_requests/`，由 A 实施公共变更。[团队通用约定](docs/team-rules.md) 与分工资料保存在 docs 中；每位成员使用自己的本地 `AGENTS.md`，该文件不纳入版本控制。分支分工及启动任务见 [团队上手说明](docs/team-onboarding.md)。A 按 [验收台账](docs/acceptance.md) 对模块逐项验收并集成，真实业务最终验收与当前 Mock 基线分开记录。
 
-如使用 PostgreSQL，先创建空数据库，执行 `uv sync --locked --extra postgres`，配置 `T5_DATABASE_URL=postgresql+psycopg://...`，再直接执行上述 uvicorn 命令。当前验收使用 SQLite；PostgreSQL 未实机验证，pgvector 暂不引入，待 C 确认向量模型和维度后由 A 增加公共迁移。
+如使用 PostgreSQL，先创建空数据库，执行 `uv sync --locked --extra postgres`，配置 `T5_DATABASE_URL=postgresql+psycopg://...`，再直接执行上述 uvicorn 命令。这只是现有 PostgreSQL 连接入口，尚无真实验证证据。最终交付必须落地并真实验证 PostgreSQL + pgvector；D 明确 embedding 模型、维度和距离，A 实施依赖、扩展、字段、索引、向量 adapter 与迁移。当前 SQLite 演示不能作为最终数据库验收。
 
 ## 版本与故障处理
 

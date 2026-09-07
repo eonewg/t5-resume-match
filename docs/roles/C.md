@@ -1,13 +1,5 @@
-# C：JD 与匹配模块
+# C：历史角色（职责已迁移）
 
-固定分支：`feat/matching-c`。团队约定见 [team-rules.md](../team-rules.md)。本文件是共享分工资料，不替代个人本地 AGENTS.md。
+2026-09-07 起，jobs/matching 由 **D** 负责。本文件只保留角色迁移指引，不再授权使用旧角色分支开展新开发；无需等待 C 单独交付。
 
-负责 JD 解析、技能提取、匹配分数与差距清单。允许修改 `backend/modules/jobs/`、`tests/jobs/`、`docs/integration_requests/C-*.md`。前端组件在 `frontend/src/modules/jobs/`，按 [公共前端接入](../frontend-integration.md) 导出 mount 并预览。
-
-不修改公共 Schema、数据库、路由或全局依赖。向量模型、pgvector 维度和索引需求提交 A；先完成可解释的关键词匹配。
-
-实现 `backend.modules.jobs.public:JobsService`，无参构造，同步 `parse(JDInput) -> JDData` 和 `match(Resume, JD) -> MatchResult`。返回输入中的关联 ID；分数须为 0–100 有限值。
-
-测试全匹配、部分匹配、无匹配、大小写/重复技能、JD 未识别到技能等情况。记录分数计算方式及未识别技能时的策略；分数和差距清单应一致。交付样例及测试命令，由 A 配置 `T5_JOBS_PROVIDER`。
-
-提交前按 [成员开发与自检指南](../member-development.md) 运行本角色自检，使用 PR 模板交付复现步骤。
+当前职责与目录见 [D 角色说明](D.md)，流程见 [团队约定](../team-rules.md)，功能门槛见 [T5 对照表](../../T5_REQUIREMENTS_MATRIX.md)。已有提交与验收证据保留在 Git 历史和验收台账中，不回退或重做成果。

@@ -1,44 +1,30 @@
-"""One source for CLI entrypoints and CI branch-to-role mapping."""
+"""Module contracts and active owner branches used by CLI and CI."""
 
 from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
-class Member:
+class Module:
     key: str
-    branch: str
+    owner: str
     entrypoint: str
     example: str
     tests: str
 
 
-MEMBERS = {
-    "B": Member(
-        "resume",
-        "feat/resume-b",
-        "backend.modules.resume.public:ResumeService",
-        "examples.providers.resume:ResumeService",
-        "tests/resume",
-    ),
-    "C": Member(
-        "jobs",
-        "feat/matching-c",
-        "backend.modules.jobs.public:JobsService",
-        "examples.providers.jobs:JobsService",
-        "tests/jobs",
-    ),
-    "D": Member(
-        "diagnosis",
-        "feat/diagnosis-d",
-        "backend.modules.diagnosis.public:DiagnosisService",
-        "examples.providers.diagnosis:DiagnosisService",
-        "tests/diagnosis",
-    ),
-    "E": Member(
-        "analytics",
-        "feat/analytics-qa-e",
-        "backend.modules.analytics.public:AnalyticsService",
-        "examples.providers.analytics:AnalyticsService",
-        "tests/analytics",
-    ),
+BRANCHES = {"A": "feat/core-a", "D": "feat/intelligence-d"}
+MODULES = {
+    key: Module(
+        key,
+        owner,
+        f"backend.modules.{key}.public:{service}",
+        f"examples.providers.{key}:{service}",
+        f"tests/{key}",
+    )
+    for key, owner, service in (
+        ("resume", "A", "ResumeService"),
+        ("jobs", "D", "JobsService"),
+        ("diagnosis", "D", "DiagnosisService"),
+        ("analytics", "A", "AnalyticsService"),
+    )
 }

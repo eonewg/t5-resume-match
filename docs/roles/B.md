@@ -1,13 +1,5 @@
-# B：简历模块
+# B：历史角色（职责已迁移）
 
-固定分支：`feat/resume-b`。团队约定见 [team-rules.md](../team-rules.md)。本文件是共享分工资料，不替代个人本地 AGENTS.md。
+2026-09-07 起，resume 由 **A** 负责。本文件只保留角色迁移指引，不再授权使用旧角色分支开展新开发；无需等待 B 单独交付。
 
-负责简历文本解析、结构化内容编辑与校验。允许修改 `backend/modules/resume/`、`tests/resume/`、`docs/integration_requests/B-*.md`。前端组件在 `frontend/src/modules/resume/`，按 [公共前端接入](../frontend-integration.md) 导出 mount 并预览。
-
-不修改公共 Schema、数据库、路由挂载、全局依赖或其他成员模块。需要额外依赖或编辑保存接口时提交集成请求；现有公共 API 保存新简历记录，不原地更新旧记录。
-
-实现 `backend.modules.resume.public:ResumeService`，无参构造，同步 `parse(TextInput) -> ResumeData`，遵守 `backend/core/ports.py`。保留原文，解析不出的字段使用契约允许的空值，不虚构学历和经历。
-
-提供中文/英文、空白、缺失字段、重复技能等测试；用固定原文验证结构化输出及原文保留。交付公开入口、样例、测试命令和依赖请求，由 A 配置 `T5_RESUME_PROVIDER` 并验证集成。
-
-提交前按 [成员开发与自检指南](../member-development.md) 运行本角色自检，使用 PR 模板交付复现步骤。
+当前职责与目录见 [A 角色说明](A.md)，流程见 [团队约定](../team-rules.md)，功能门槛见 [T5 对照表](../../T5_REQUIREMENTS_MATRIX.md)。已有提交与验收证据保留在 Git 历史和验收台账中，不回退或重做成果。

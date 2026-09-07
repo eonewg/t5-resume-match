@@ -1,7 +1,7 @@
 name: Team integration
 on:
   push:
-    branches: [main, feat/core-a, feat/resume-b, feat/matching-c, feat/diagnosis-d, feat/analytics-qa-e]
+    branches: [main, feat/core-a, feat/intelligence-d]
   pull_request:
 permissions:
   contents: read
