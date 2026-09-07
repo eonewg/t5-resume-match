@@ -1,0 +1,21 @@
+name: Core integration
+on:
+  push:
+    branches: [feat/core-a]
+  pull_request:
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.11', '3.13']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python }}
+      - run: uv sync --locked
+      - run: uv run --locked ruff check backend tests scripts
+      - run: uv run --locked ruff format --check backend tests scripts
+      - run: uv run --locked pytest -q

@@ -1,192 +1,48 @@
-# A：架构与集成负责人
+# T5 团队协作规则
 
-固定 Git 分支：`feat/core-a`
+项目：AI 简历诊断与岗位匹配系统。此文件适用于所有角色，不默认将 Agent 指定为 A。
 
+## 先确定角色
 
-## Git 自动化规则（必须执行）
+优先沿用用户在当前任务明确分配的角色；没有明确分配时，可根据下表中当前分支识别角色。角色与分支不一致时，检查工作区后切换；处于 main 或未知分支且角色未指定时，只询问一次角色，不自行选择 A。
 
-你同时承担本角色分支的 Git 操作。使用者可能不熟悉 Git，因此除非遇到必须人工授权或判断的问题，不要把 Git 命令留给使用者执行。
+确定角色后必须读取对应角色说明，只执行该角色责任域。
 
-开始任务时：
+| 角色 | 固定分支 | 角色说明 | 主要责任目录 |
+| --- | --- | --- | --- |
+| A 架构、验收与集成 | `feat/core-a` | [A.md](docs/roles/A.md) | 公共 core、Schema、模型、路由、根配置、验收与集成 |
+| B 简历 | `feat/resume-b` | [B.md](docs/roles/B.md) | `backend/modules/resume/`、`tests/resume/` |
+| C JD 与匹配 | `feat/matching-c` | [C.md](docs/roles/C.md) | `backend/modules/jobs/`、`tests/jobs/` |
+| D AI 诊断 | `feat/diagnosis-d` | [D.md](docs/roles/D.md) | `backend/modules/diagnosis/`、`tests/diagnosis/` |
+| E 数据分析与质量保障 | `feat/analytics-qa-e` | [E.md](docs/roles/E.md) | `backend/modules/analytics/`、`tests/analytics/`、`tests/quality/` |
 
-1. 检查当前目录是否为 Git 仓库。
-   - 如果不是，只询问一次 GitHub 仓库 URL。
-   - 获得 URL 后自动 clone，并进入仓库。
-2. 检查 `origin` 是否存在；不存在则添加。
-3. 执行 `git status --porcelain`。
-   - 如果发现不属于本角色责任域的未提交修改，不得覆盖、删除、stash 或 reset，停止并说明。
-4. 执行 `git fetch origin`。
-5. 切换到本角色固定分支：
-   - 本地已存在：`git switch <branch>`
-   - 远端已存在：创建/切换到对应跟踪分支
-   - 均不存在：基于 `origin/main` 创建本角色分支
-6. 分支首次创建后立即执行 `git push -u origin <branch>`，确保 GitHub 上已存在。
-7. 每完成一个可独立验证的小任务：
-   - 仅 `git add` 本角色允许修改的文件
-   - 禁止 `git add .`
-   - 自动 commit
-   - 自动 push 到本角色分支
-8. 最后输出：
-   - 当前分支
-   - 最新 commit hash
-   - 修改文件列表
-   - 测试结果
-   - 尚未解决的问题
+各角色可修改自己的 `docs/integration_requests/<角色>-*.md`。前端目录是责任预留，公共前端技术栈尚未建立，不各自初始化不兼容的前端工程。
 
-禁止：
+## Git 自动化
 
-- `git push --force`
-- `git reset --hard`
-- 自动 merge 到 `main`
-- 修改其他成员分支
-- 删除其他成员代码来解决冲突
-- 未经允许重写仓库历史
+Agent 承担所分配角色的 Git 操作，不把普通 Git 命令留给用户。
 
-若遇到认证失败、权限不足、merge conflict，停止并明确说明原因，不要做破坏性处理。
+1. 检查是否为 Git 仓库；不是时获取仓库 URL 后克隆。本项目地址为 `https://github.com/eonewg/t5-resume-match.git`。检查 origin，缺失则添加，指向其他仓库时先核实，不直接覆盖。
+2. 执行 `git status --porcelain`。发现未知来源或不属于当前角色的未提交修改时，停止并说明；不得覆盖、删除、stash 或 reset。保护已知本角色修改。
+3. 执行 `git fetch origin`。切换到本角色固定分支：本地已有则 switch，只有远端存在则创建跟踪分支，均不存在则基于 `origin/main` 创建。
+4. 新分支基于 main 前，确认 main 已包含 `backend/core/ports.py` 和 `docs/api-contract.md`。尚未合入时遵循 [团队上手说明](docs/team-onboarding.md) 的临时基线办法，不从空 main 开始业务实现。
+5. 分支首次创建后立即 `git push -u origin <角色分支>`。每完成一个独立验证的小任务，只 add 本角色允许的文件，自动 commit 并 push；禁止 `git add .`。
+6. 交付时说明分支、最新 commit、修改文件、验证结果和未解决事项。
 
+禁止 force push、hard reset、未经允许重写历史、修改其他成员分支、删除其他成员代码来解决冲突。成员分支须经 A 验收 PASS 后逐个集成到 `feat/core-a`；完整系统合入 main 须满足 [A 的最终验收条件](docs/roles/A.md) 且在用户授权范围内。创建 PR 不等于获准合并；已有明确授权无需重复询问。认证失败、权限不足或无法安全处理的 Git 状态，停止相关操作并说明，保留工作区；冲突按 A 的职责边界处理。
 
-## 团队总边界
+## 公共边界与契约
 
-项目：T5「AI 简历诊断与岗位匹配系统」
+- 只通过公开接口和约定数据结构交互，不直接调用其他成员内部实现。
+- 以 [api-contract.md](docs/api-contract.md)、`backend/schemas/contracts.py` 和 `backend/core/ports.py` 为当前公共契约，不在角色文档复制另一套 Schema。
+- 全局依赖、根配置、公共前端壳、路由挂载、数据库和 Schema 统一由 A 修改。其他成员将需求写入 `docs/integration_requests/`，说明理由、接口样例和验证方法。
+- 不为代码统一重构他人模块。A 优先用 adapter 解决接口差异；公共接口变更记录到契约文档，保持兼容。
+- A 可检查所有成员代码；业务实现 Bug 退回成员修复，公共兼容问题由 A 适配。验收状态和集成提交记录在 [验收台账](docs/acceptance.md)，未通过不合并，当前集成失败不继续下一个模块。
+- 其他模块未交付时使用明确标注的 Mock 继续开发，不停工等待。禁止将 Mock 或固定分数描述为真实业务结果。
+- 成员提供可导入的公开类、依赖清单和测试样例。先检查当前代码与记录是否一致；不能把旧验收记录当成本次验证结果。
 
-固定责任域：
+## 验证与交付
 
-- A：架构与集成
-- B：简历模块
-- C：JD 与匹配
-- D：AI 诊断
-- E：数据分析与质量保障
+按改动范围执行有效测试；普通文档改动检查链接、规则一致性和差异，不机械新增业务测试。功能改动验证异常输入、失败回滚和边界条件。保护用户已有文件，清理本次无用途临时文件。
 
-基本原则：
-
-1. 每个人只修改自己的责任目录。
-2. 不直接调用其他成员模块内部实现，只通过公开接口或约定数据结构交互。
-3. 其他模块未完成时，使用 Mock 数据继续开发，不能停工等待。
-4. 若必须修改公共结构，除 A 外都不得直接改；应在 `docs/integration_requests/` 下新建自己的说明文件。
-5. 不为了“代码统一”重构别人模块。
-6. 任何全局依赖、公共路由、数据库公共结构、根目录配置的修改，统一交给 A。
-
-建议公共数据契约：
-
-### 标准化简历
-
-```json
-{
-  "id": "resume_xxx",
-  "name": "可选",
-  "education": "...",
-  "skills": ["Python", "SQL"],
-  "experience": ["项目经历1", "项目经历2"],
-  "raw_text": "完整简历文本"
-}
-```
-
-### JD
-
-```json
-{
-  "id": "jd_xxx",
-  "title": "岗位名称",
-  "company": "可选",
-  "jd_text": "岗位描述原文",
-  "skills": ["Python", "SQL"]
-}
-```
-
-### 匹配结果
-
-```json
-{
-  "resume_id": "resume_xxx",
-  "jd_id": "jd_xxx",
-  "score": 82,
-  "matched_skills": ["Python"],
-  "missing_skills": ["Docker"],
-  "gap_analysis": ["..."]
-}
-```
-
-### AI 诊断输入
-
-```json
-{
-  "resume_text": "简历原文",
-  "jd_text": "岗位描述原文"
-}
-```
-
-如果项目实际已有更明确的数据契约，优先遵守项目现有契约，不自行另起一套。
-
-
-## 你的定位
-
-你是项目唯一的公共架构与最终集成负责人。你的目标不是替其他成员写业务，而是把系统骨架、公共规范和最终集成做稳。
-
-## 允许修改
-
-优先允许：
-
-- `core/`
-- `backend/core/`
-- `backend/main.*`
-- `backend/api/` 中公共路由挂载
-- `backend/models/` 中公共数据库结构
-- `backend/schemas/` 中公共 Schema
-- 根目录必要的公共配置
-- `.env.example`
-- `README.md`
-- `docs/architecture.md`
-- `docs/api-contract.md`
-- `docs/integration_requests/`
-- 最终集成相关文件
-
-如果仓库实际目录不同，先识别现有结构，再将以上责任映射到对应目录。
-
-## 核心任务
-
-1. 建立或维护项目骨架。
-2. 维护数据库公共结构。
-3. 维护公共路由。
-4. 维护统一接口与 Schema 规范。
-5. 提供 B/C/D/E 可挂载的模块入口。
-6. 最终合并各模块并解决适配问题。
-7. 确保系统可以一键启动。
-8. 完成运行说明、环境变量说明、依赖版本说明。
-9. 最终做一次 clean clone / fresh install 验证。
-
-## 不负责
-
-- 简历解析细节
-- JD 匹配算法
-- AI Prompt 与模型诊断逻辑
-- Level 3 数据分析看板内部逻辑
-- 其他成员模块内部重构
-
-## 集成原则
-
-- 对其他模块做“适配”，不要直接进入对方目录修改业务代码。
-- 某模块接口不符合公共契约时，优先写 adapter。
-- 公共 Schema 一旦冻结，尽量不破坏兼容性。
-- 所有公共接口变更都记录在 `docs/api-contract.md`。
-- 读取 `docs/integration_requests/` 中 B/C/D/E 的请求并逐项处理。
-
-## 验收标准
-
-至少完成：
-
-- 项目主程序可启动
-- 公共数据库可初始化
-- 四个业务模块都有明确挂载入口
-- 根 README 可复现运行
-- `.env.example` 不含真实密钥
-- 最终集成后核心链路可跑通
-- 已 push 到 `feat/core-a`
-
-## 个人报告重点记录
-
-主动保存：
-- 模块接口不一致如何处理
-- 数据库公共结构如何定
-- AI 编程 Agent 修改公共代码造成的问题
-- 多分支集成冲突及解决过程
-- 不同电脑运行环境不一致的问题
+业务模块未接入时准确说明当前交付是模块本身或 Mock 集成。个人报告记录真实发生的接口适配、公共结构决策、Agent 误改问题、冲突及环境差异，不编造案例。
