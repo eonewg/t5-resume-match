@@ -10,7 +10,7 @@ uv run python -m scripts.check_member D --examples
 uv run python -m scripts.check_member E --examples
 ```
 
-示例从 [team.json](fixtures/team.json) 读取固定输出，没有真实解析、匹配算法、AI 调用或分析算法。打印 EXAMPLE_CHECK_PASS 只说明示例可接入，不表示成员完成交付。
+示例从 [team.json](fixtures/team.json) 读取固定输出，没有真实解析、匹配算法、AI 调用或分析算法。非固定样例返回明确标注的空占位结果，不推断技能或评分。打印 EXAMPLE_CHECK_PASS 只说明示例可接入，不表示成员完成交付。
 
 成员可以参考对应 `providers/*.py` 的类结构，在自己的 `backend/modules/<模块>/public.py` 实现；不要把读取黄金答案作为真实算法。开发替身保留 `is_mock=True`，真实实现完成后删除该标志或设为 False，并通过自己的测试。
 

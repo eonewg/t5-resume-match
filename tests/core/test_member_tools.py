@@ -48,6 +48,14 @@ def test_examples_stay_mock_in_real_http_pipeline():
         assert result.status_code == 201
         assert result.json()["match"]["is_mock"] is True
         assert result.json()["diagnosis"]["is_mock"] is True
+        analytics = client.get("/api/v1/analytics")
+        assert analytics.status_code == 200
+        assert analytics.json()["is_mock"] is True
+        # New arbitrary text should stay explicitly Mock, not break the demo pipeline.
+        other = client.post("/api/v1/resumes/parse", json={"raw_text": "Unstructured demo"}).json()
+        pair = client.post("/api/v1/workflow", json={"resume_id": other["id"], "jd_id": jd["id"]})
+        assert pair.status_code == 201
+        assert pair.json()["match"]["is_mock"] is True
 
 
 def module_with(monkeypatch, cls):

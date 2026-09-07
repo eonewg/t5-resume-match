@@ -22,9 +22,13 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: ${{ matrix.python }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - run: uv sync --locked
       - run: uv run --locked python -m scripts.check_scope --ci
       - run: uv run --locked ruff check backend tests scripts examples
       - run: uv run --locked ruff format --check backend tests scripts examples
       - run: uv run --locked pytest -q
       - run: uv run --locked python -m scripts.check_member --ci
+      - run: node scripts/check_frontend.mjs

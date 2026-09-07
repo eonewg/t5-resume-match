@@ -41,11 +41,12 @@ git fetch origin
 uv run python -m scripts.check_scope B
 uv run ruff check backend tests scripts examples
 uv run pytest -q
+node scripts/check_frontend.mjs
 ```
 
 范围检查比较 `origin/feat/core-a...HEAD` 中已提交的变化，不包含未提交内容。成员可改自己的 backend 模块、测试、前端模块及 `docs/integration_requests/<角色>-*.md`；根配置和公共文件需求提交 A。该检查是快速路径检查，不替代敏感信息扫描和人工验收。
 
-CI 对 main、A 和四成员分支的 push 以及 PR 执行 Windows/Ubuntu × Python 3.11/3.13 检查，pytest 会发现整个 `tests/`。成员分支缺少真实入口或测试时 CI 会失败；A/main 尚未集成成员时会明确提示缺失，不冒充完成。成员 PR 必须指向 `feat/core-a`。CI 的 `check_member --ci` 只补公开入口检查，完整 pytest 已在前一步执行。
+CI 对 main、A 和四成员分支的 push 以及 PR 执行 Windows/Ubuntu × Python 3.11/3.13 检查，pytest 会发现整个 `tests/`。成员分支缺少真实入口或测试时 CI 会失败；A/main 尚未集成成员时会明确提示缺失，不冒充完成。成员 PR 必须指向 `feat/core-a`。CI 的 `check_member --ci` 只补公开入口检查，完整 pytest 已在前一步执行。前端命令需要 Node 22+，会运行公共和成员的 `*.test.mjs`；仅运行系统不需要 Node。
 
 ## 小交付标准
 

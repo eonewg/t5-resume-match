@@ -12,7 +12,7 @@ cd t5-resume-match
 powershell -ExecutionPolicy Bypass -File .\start.ps1
 ```
 
-打开 http://127.0.0.1:8000/docs 使用交互式接口，Ctrl+C 停止。`start.ps1 -Port 8001` 可更换端口。脚本使用 `uv.lock` 安装准确版本，再启动服务；无需手动激活虚拟环境。Swagger 页面资源需浏览器联网，HTTP 接口和 smoke 脚本在依赖安装后可离线运行。
+打开 http://127.0.0.1:8000/ 使用公共工作台，可填入合成样例体验流程；交互式接口文档仍在 `/docs`。Ctrl+C 停止，`start.ps1 -Port 8001` 可更换端口。脚本使用 `uv.lock` 安装准确版本，无需激活虚拟环境或安装 Node。工作台无外部资源依赖，安装后可离线使用；Swagger 文档资源需要浏览器联网。
 
 其他系统或手动启动：
 
@@ -33,6 +33,8 @@ uv run --locked pytest -q
 uv run --locked ruff check backend tests scripts
 uv run --locked ruff format --check backend tests scripts
 ```
+
+成员开始开发请先看 [开发与自检指南](docs/member-development.md)：`uv run python -m scripts.check_member B --examples` 可直接跑 B 的接入示例（换成 C/D/E 亦可）；真实模块实现后去掉 `--examples` 自检。公共前端挂载、预览及 UI 分工见 [前端接入说明](docs/frontend-integration.md)。
 
 smoke 会新建一份演示简历、一个岗位及匹配/诊断记录，然后读回验证。自动化测试使用独立临时数据库，不改演示数据库。
 

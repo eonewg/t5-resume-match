@@ -24,4 +24,11 @@ class JobsService:
                     missing_skills=case["missing_skills"],
                     gap_analysis=["固定接入样例，未运行真实匹配算法。"],
                 )
-        raise ValueError("This fixture supports only the documented sample cases")
+        return MatchResult(
+            resume_id=resume.id,
+            jd_id=jd.id,
+            score=0,
+            matched_skills=[],
+            missing_skills=[],
+            gap_analysis=["输入不属于固定样例；示例未计算真实匹配。"],
+        )

@@ -12,7 +12,7 @@ class AnalyticsService:
             return AnalysisResult(summary="接入示例：没有岗位数据。", skills={})
         sample = load_cases()
         if [job.skills for job in jobs] != [job["skills"] for job in sample["jobs"]]:
-            raise ValueError("This fixture supports only the documented sample jobs")
+            return AnalysisResult(summary="当前不是完整固定样例集，示例未执行真实统计。", skills={})
         return AnalysisResult(
             summary="固定样例统计，不代表就业市场。", skills=sample["analytics_expected"]
         )
