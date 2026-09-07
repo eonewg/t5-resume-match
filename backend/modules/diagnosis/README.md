@@ -15,7 +15,7 @@ T5_DIAGNOSIS_MODEL=deepseek-v4-flash
 
 `DEEPSEEK_API_KEY` 填本人的模型服务密钥；GitHub 登录凭据不能用于 DeepSeek。
 支持进程环境变量或项目根 `.env`，环境变量优先，修改后重启。
-配置说明及 A 的待办见 [D 集成说明](../../../../docs/integration_requests/D.md)。
+配置说明及 A 的待办见 [D 集成说明](../../../../docs/integration_requests/D-integration.md)。
 
 ```python
 from backend.modules.diagnosis.public import DiagnosisService
@@ -36,7 +36,18 @@ print(result.model_dump())  # 只有 summary、suggestions，符合公共 v1 契
 公共 `diagnose` 将丰富结构转换为带中文类别标签的 `suggestions`，保留 STAR 原文、优化文和理由。
 公共 `/api/v1/diagnoses` 仍接收 `resume_id + jd_id` 并持久化，由 A 已有路由负责。
 
-## 独立页面与 API
+## 最新公共前端接入
+
+已同步 `origin/main` 的 `c209eb0` 公共开发支持。正式交付入口是
+`frontend/src/modules/diagnosis/index.js` 导出的 `mount(container, context)`。
+启动公共 `backend.main:app` 后访问 `/?preview=diagnosis#diagnosis`。
+先在工作台选择简历/JD，再进入 AI 诊断页，使用公共 `/api/v1/diagnoses` 生成和保存结果。
+组件只读公共状态、订阅选择变化、使用共享 API；不更改公共注册表、Schema 或路由。
+切换页面释放订阅，忽略取消或选择改变后的迟到响应；输入与模型结果均以纯文本显示。
+结果级 `is_mock` 与 API 的 Mock 标记合并显示，Provider 为真实实现不代表密钥已验证。
+由 A 验收后在公共注册表正式挂载；当前预览无需改公共代码即可运行。
+
+## 旧版独立页面与 API（保留兼容，非公共集成入口）
 
 在仓库根目录安装项目及已有开发依赖：
 
@@ -63,7 +74,7 @@ uv run --frozen uvicorn backend.modules.diagnosis.web:create_app --factory --hos
 `{"is_mock":false,"result":{...丰富诊断结构...}}`。
 缺密钥返回 503，模型调用或输出错误返回 502，非法输入返回 422。
 失败不会自动切换 Mock；页面清除旧结果、显示错误并恢复按钮。
-独立 API 不写公共数据库，页面整合到公共前端需由 A 安排。
+独立 API 不写公共数据库；最新公共页面已按上节接入共享壳，不依赖独立服务器。
 
 ## 配置
 
@@ -100,28 +111,33 @@ uv run --frozen uvicorn backend.modules.diagnosis.web:create_app --factory --hos
 ## 测试
 
 ```powershell
-uv run --frozen pytest backend/modules/diagnosis/tests tests/core -q
-uv run --frozen ruff check backend/modules/diagnosis
-uv run --frozen ruff format --check backend/modules/diagnosis
+uv run --locked python -m scripts.check_member D
+uv run --locked pytest -q
+uv run --locked ruff check backend tests scripts examples
+uv run --locked ruff format --check backend tests scripts examples
+node scripts/check_frontend.mjs
 ```
 
 测试强制封锁真实 urllib 网络调用。使用脚本化 LLM 和 HTTP 替身验证成功、
 鉴权/超时/截断/无效 JSON、缓存 TTL/淘汰/隔离/并发、公共 Provider 装载、
 诊断记录读取以及工作流失败不留下半成品记录。
-仓库默认 pytest 只收集 `tests/core`，因此请显式带上 D 的测试路径。
+模块测试已迁移到 `tests/diagnosis`，默认 pytest 和成员自检都会收集。
 
 可选页面测试：本机有 Playwright 和 Edge、Mock 服务已在 8766 启动时执行
-`node backend/modules/diagnosis/tests/browser-smoke.cjs`。
+`node tests/diagnosis/browser-smoke.cjs`。
 它验证示例流程、STAR 显示、HTML 作为文字显示、窄屏排版和失败恢复；截图写入系统临时目录。
 
 ## 已完成验证与真实限制（2026-09-07）
 
-- Python 3.12.14；D 与公共核心共 56 项测试通过，Ruff 检查通过。
-- Edge 无界面测试通过，已查看桌面与 390px 手机截图，无横向溢出。
+- Python 3.12.14；D 44 项、公共核心 25 项，合计 69 项测试通过，Ruff 检查通过。
+- 成员自检通过；统一前端检查 24 项通过，含 D 的生命周期、模式区分、失败重试测试。
+- 公共服务默认 Mock 在 8767 启动后，`node tests/diagnosis/shell-smoke.cjs` 通过：
+  缺失选择、公共 API、Mock、失败恢复、长文本/XSS、390px 和页面切换。截图写入系统临时目录。
 - 测试环境按已有 pyproject 约束安装依赖，并经 `uv sync --frozen` 核对锁文件；未修改根依赖和锁文件。
 - 新版 Starlette 测试工具出现 HTTPX / AnyIO 弃用提示，未影响测试；交给 A 统一处理依赖。
 - 未提供 DeepSeek 密钥，未进行真实付费模型调用；真实诊断质量、延迟和费用尚未实测。
-- 尚未合并 main，也未完成其他成员模块及整套系统验收。
+- 已合并最新 main 到 D 分支，未把 D 合入 main，也未完成真实 AI 及整套系统验收。
+- 用户指定 PR 目标 main，但当前公共 CI 的成员 PR 目标规则只允许 feat/core-a；保留规则，待 A 决定处理。
 
 ## 个人报告可使用的实际开发记录
 

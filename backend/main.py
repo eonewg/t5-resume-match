@@ -2,13 +2,14 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from backend.api.routes import router
-from backend.core.config import Settings
+from backend.core.config import ROOT, Settings
 from backend.core.database import build_engine
 from backend.core.providers import load_providers
 from backend.models.entities import Base
@@ -30,6 +31,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app = FastAPI(title="T5 AI 简历诊断与岗位匹配", version="0.1.0", lifespan=lifespan)
     app.include_router(router)
+    app.mount("/assets", StaticFiles(directory=ROOT / "frontend/src"), name="frontend-assets")
 
     @app.exception_handler(StarletteHTTPException)
     async def http_error(request: Request, error):
@@ -67,7 +69,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/", include_in_schema=False)
     def home():
-        return RedirectResponse("/docs")
+        return FileResponse(ROOT / "frontend/index.html")
+
+    @app.get("/demo/sample.json", include_in_schema=False)
+    def demo_sample():
+        # Only the explicitly synthetic public fixture is served, never the project root.
+        return FileResponse(ROOT / "examples/fixtures/team.json", media_type="application/json")
 
     @app.get("/health", tags=["core"])
     def health(request: Request):

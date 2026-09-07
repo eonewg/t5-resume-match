@@ -1,8 +1,12 @@
-name: Core integration
+name: Team integration
 on:
   push:
-    branches: [feat/core-a]
+    branches: [main, feat/core-a, feat/resume-b, feat/matching-c, feat/diagnosis-d, feat/analytics-qa-e]
   pull_request:
+permissions:
+  contents: read
+env:
+  PYTHONUTF8: '1'
 jobs:
   test:
     strategy:
@@ -10,12 +14,21 @@ jobs:
         os: [ubuntu-latest, windows-latest]
         python: ['3.11', '3.13']
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: ${{ matrix.python }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - run: uv sync --locked
-      - run: uv run --locked ruff check backend tests scripts
-      - run: uv run --locked ruff format --check backend tests scripts
+      - run: uv run --locked python -m scripts.check_scope --ci
+      - run: uv run --locked ruff check backend tests scripts examples
+      - run: uv run --locked ruff format --check backend tests scripts examples
       - run: uv run --locked pytest -q
+      - run: uv run --locked python -m scripts.check_member --ci
+      - run: node scripts/check_frontend.mjs

@@ -22,6 +22,7 @@ class DetailResponse(BaseModel):
 
 def create_app(service: DiagnosisService | None = None, *, is_mock: bool = False) -> FastAPI:
     service = service if service is not None else DiagnosisService()
+    is_mock = is_mock or service.is_mock
     app = FastAPI(title="D · 简历 AI 诊断", version="1.0.0")
     assets = Path(__file__).parent / "assets"
     app.mount("/assets", StaticFiles(directory=assets), name="assets")

@@ -68,6 +68,14 @@ def test_public_contract_and_star():
     assert any("岗位建议" in item for item in result.suggestions)
 
 
+def test_mock_client_marker_cannot_be_hidden_by_standalone_app():
+    instance = service(MockLLM())
+    assert instance.is_mock is True
+    assert DiagnosisService(settings=settings()).is_mock is False
+    with TestClient(create_app(instance)) as client:
+        assert client.get("/api/status").json()["is_mock"] is True
+
+
 @pytest.mark.parametrize(
     "bad",
     ["", " ", "not json", "{}", "[]", "null", "x" * 64001],

@@ -15,12 +15,16 @@
 | `backend/schemas/contracts.py` | A，共享输入输出；契约 v1 |
 | `backend/models/entities.py` | A，共享持久化结构 |
 | `tests/core/`、`scripts/smoke.py` | A，公共集成验证 |
+| `examples/`、`scripts/check_member.py`、`scripts/check_scope.py` | A，合成样例、成员接入自检与范围检查 |
+| `frontend/index.html`、`frontend/src/core/`、`frontend/src/app.js`、全局样式 | A，同源公共壳、API 客户端、导航、状态及流程编排 |
 | `backend/modules/resume/` | B，预留业务责任目录，尚未创建业务实现 |
 | `backend/modules/jobs/` | C，预留 JD 与匹配实现 |
 | `backend/modules/diagnosis/` | D，预留诊断实现 |
 | `backend/modules/analytics/` | E，预留分析实现 |
 
 业务目录由成员创建。业务模块可以导入公共 Schema/ports；A 只导入成员发布的公开入口，不导入内部函数。现有标准路由保持稳定，接入模块时替换 provider；需要额外路由时提交集成请求，由 A 挂载到 v1。
+
+前端使用原生 JavaScript ES modules，由 FastAPI 托管，无生产构建依赖；组件目录按业务成员分工，导出 `mount(container, context)`，A 审阅后挂载。成员可用显式 preview URL 独立调试。详见 [前端接入](frontend-integration.md)。成员自检与 CI 会发现整个 tests 目录，但不自动判定业务验收 PASS。
 
 ## 四个公开接口
 

@@ -4,6 +4,8 @@ import json
 
 
 class MockLLM:
+    is_mock = True
+
     def complete(self, messages: list[dict]) -> str:
         data = json.loads(messages[1]["content"])
         original = data["resume_text"].strip()[:500]

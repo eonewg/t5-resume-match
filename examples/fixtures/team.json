@@ -1,0 +1,45 @@
+{
+  "notice": "全部为合成教学样例，不含真实个人信息或招聘数据。",
+  "resume": {
+    "id": "resume_demo",
+    "name": "示例同学",
+    "education": "本科，信息管理专业",
+    "skills": ["Python"],
+    "experience": ["使用 Python 整理课程项目的销售样例数据。"],
+    "raw_text": "姓名：示例同学\n学历：本科，信息管理专业\n技能：Python\n项目经历：使用 Python 整理课程项目的销售样例数据。"
+  },
+  "jobs": [
+    {
+      "id": "jd_demo_1",
+      "title": "数据分析实习生",
+      "company": "虚构样例公司",
+      "jd_text": "技能要求：Python、SQL。负责清洗样例数据，编写分析报告。",
+      "skills": ["Python", "SQL"]
+    },
+    {
+      "id": "jd_demo_2",
+      "title": "数据开发实习生",
+      "company": "虚构样例公司",
+      "jd_text": "技能要求：Python、SQL、Docker。维护课程演示数据流程。",
+      "skills": ["Python", "SQL", "Docker"]
+    },
+    {
+      "id": "jd_demo_3",
+      "title": "项目助理",
+      "company": null,
+      "jd_text": "协助整理项目资料，未列明技术技能。",
+      "skills": []
+    }
+  ],
+  "match_cases": [
+    {"name": "partial", "resume_skills": ["Python"], "job_skills": ["Python", "SQL"], "matched_skills": ["Python"], "missing_skills": ["SQL"], "example_score": 50},
+    {"name": "full", "resume_skills": ["Python", "SQL"], "job_skills": ["Python", "SQL"], "matched_skills": ["Python", "SQL"], "missing_skills": [], "example_score": 100},
+    {"name": "none", "resume_skills": ["Excel"], "job_skills": ["Python", "SQL"], "matched_skills": [], "missing_skills": ["Python", "SQL"], "example_score": 0},
+    {"name": "no_requirements", "resume_skills": ["Python"], "job_skills": [], "matched_skills": [], "missing_skills": [], "example_score": 0}
+  ],
+  "diagnosis_example": {
+    "summary": "接入示例：这是固定样例，不是真实 AI 诊断。",
+    "suggestions": ["示例建议：补充项目中实际承担的任务和验证方式，不编造成果数字。"]
+  },
+  "analytics_expected": {"Python": 2, "SQL": 2, "Docker": 1}
+}

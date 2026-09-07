@@ -24,6 +24,7 @@ class DiagnosisService:
     ):
         self.settings = settings if settings is not None else DiagnosisSettings()
         self.client = client if client is not None else DeepSeekClient(self.settings)
+        self.is_mock = getattr(self.client, "is_mock", False) is True
         self._clock, self._sleep = clock, sleep
         self._cache: OrderedDict[str, tuple[float, DiagnosisDetail]] = OrderedDict()
         self._cache_lock = threading.Lock()
