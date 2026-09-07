@@ -7,12 +7,18 @@
 | 内容 | 路径 | 格式 |
 |---|---|---|
 | JD 数据集（30 份：9 real + 21 synthetic） | `data/jd/jd-real.json`、`data/jd/jd-synthetic.json` | JSON 数组 |
-| 简历数据集（5 份，全部 synthetic） | `data/resumes/resume-01.json` … `resume-05.json` | JSON 对象 |
-| 人工 gap baseline（5 JD × 3 简历 = 15 组） | `data/baselines/gap-baseline.json`（机读）、`gap-baseline.csv`（速览） | JSON + CSV |
-| 字段规范、口径、脱敏规则 | `data/README.md` | — |
+| 简历数据集（10 份，全部 synthetic） | `data/resumes/resume-01.json` … `resume-10.json` | JSON 对象 |
+| 人工 gap baseline 第一轮（5 JD × 3 简历 = 15 组） | `data/baselines/gap-baseline.json`（机读）、`gap-baseline.csv`（速览） | JSON + CSV |
+| 人工 gap baseline 第二轮（5 JD × 5 简历 = 25 组） | `data/baselines/gap-baseline-round2.json`（机读）、`gap-baseline-round2.csv`（速览） | JSON + CSV |
+| 字段规范、口径、脱敏规则、简历样本构成 | `data/README.md` | — |
 | 采集日志（来源/请求次数/失败与被拦记录） | `data/collection/collection-log.md` | — |
 
-核心 ID：核心 JD 为 `jd-real-01/03/04/05/09`，核心简历为 `resume-01/02/03`（与 baseline 覆盖一致）。
+核心 ID：
+
+- 第一轮：核心 JD `jd-real-01/03/04/05/09`，核心简历 `resume-01/02/03`。
+- 第二轮：核心 JD `jd-real-01/04/05/07/09`，核心简历 `resume-06/07/08/09/10`。
+
+两轮同时有效、互不替代，各文件顶层的 `core_jd_ids` / `core_resume_ids` 为权威声明，`scripts/validate_data.py` 会校验组数等于两者乘积。`pair_id` 第一轮为 `baseline-NN`，第二轮为 `baseline-r2-NN`。
 
 ## 字段与口径（详见 data/README.md）
 
@@ -27,12 +33,17 @@
 按 T5 验收顺序：
 
 1. **JD parsing / skills·tools extraction**：对 9 份 real JD（尤其 jd-real-06~09 的转写压缩版）与 21 份 synthetic JD 跑解析，对比系统输出与 `skills_manual/tools_manual` 的一致率；泛化描述（jd-real-04 的存储系统）应能"不确定"而不是硬拆。
-2. **Keyword matching / matched skills / missing skills**：对 15 组 baseline 计算系统 matched/missing，与 `matched_skills_manual/missing_skills_manual` 对照，观察同义词场景（baseline-08 的 MySQL↔存储系统、baseline-13 的指标看板↔指标体系、baseline-14 的 MySQL↔SQL）。
-3. **Score consistency**：0–100 分数与 matched/missing 数量、`match_level_manual`（low 10 / medium 4 / high 1）的相对排序是否一致；解释文案应能引用具体命中/缺失词。
-4. **Diagnosis（Level 2）**：对 baseline 中含表达 gap 的组（12/15 组有 `expression_gaps_manual`）验证 STAR 与 JD 定向优化：
-   - 缺量化场景（组 01/03/05/08/13）应提示补充量化，而不是生成数字；
-   - 同义词不命中场景（组 08/13/14）应给出关键词强化建议；
-   - low 组（如组 04/06）应如实提示能力差距与学习方向，不粉饰。
+2. **Keyword matching / matched skills / missing skills**：对两轮共 40 组 baseline 计算系统 matched/missing，与 `matched_skills_manual/missing_skills_manual` 对照。同义词场景：第一轮 baseline-08 的 MySQL↔存储系统、baseline-13 的指标看板↔指标体系、baseline-14 的 MySQL↔SQL；第二轮 baseline-r2-07 的 Redis/RabbitMQ/MySQL↔存储系统/中间件、baseline-r2-04 的 用户分层↔RFM模型/用户规划、baseline-r2-11 的 用户画像↔用户数据分析/研究用户行为。空集校验：baseline-r2-05 的 `missing_skills_manual` 与 baseline-r2-22 的 `matched_skills_manual` 故意为空，系统不应填充不存在的内容。
+3. **Score consistency**：0–100 分数与 matched/missing 数量、`match_level_manual` 的相对排序是否一致；解释文案应能引用具体命中/缺失词。人工档位分布：第一轮 low 10 / medium 4 / high 1，第二轮 low 19 / medium 5 / high 1（合计 low 29 / medium 9 / high 2）。重点校验 baseline-r2-04：JD 关键词命中最多，但有“3 年以上新零售经验”硬门槛，人工只给 medium，系统若判 high 即为误判。
+4. **Diagnosis（Level 2）**：第一轮 12/15 组、第二轮 24/25 组含 `expression_gaps_manual`，用于验证 STAR 与 JD 定向优化：
+   - 缺量化场景（第一轮组 01/03/05/08/13；第二轮 baseline-r2-07 的 Redis 缓存无命中率与 QPS、baseline-r2-14 的“新增 15 个特征”无业务结果、baseline-r2-20 的“500 万条日志”只写输入不写结论）应提示补充量化，而不是生成数字；
+   - 空泛条目场景（baseline-r2-17/18/20 的 resume-09“负责数据处理相关工作”“完成领导交办的其他任务”、baseline-r2-23 的 resume-10“协助老师完成宣传工作”）应指出该条无法支撑岗位能力，并给出可核查的改写方向；
+   - 同义词不命中场景（第一轮组 08/13/14；第二轮 baseline-r2-04/07/11）应给出关键词强化建议；
+   - 优质简历不应过度挑刺（baseline-r2-05，high）：应保留少数真实可优化点，而不是整篇重写或编造缺失；
+   - 彻底错配不应编造建议（baseline-r2-22）：`matched_skills_manual` 与 `expression_gaps_manual` 均为空，应如实说明方向不符；
+   - 资格门槛类差距（baseline-r2-15/25 的届别不符、baseline-r2-03/08/18 的硕士学历要求、baseline-r2-04/14/19/24 的 3 年新零售经验）应如实告知，不得通过改写简历规避；
+   - 技能有但项目未体现（baseline-r2-05 的 Tableau、baseline-r2-07 的 JVM/多线程、baseline-r2-16/20 的“Python（基础）”无佐证）应提示补证据或下调熟练度表述；
+   - low 组（如第一轮组 04/06）应如实提示能力差距与学习方向，不粉饰。
 5. **Embedding/pgvector 需求回传**：向量化的对象、模型、维度、距离方式由 D 明确后按集成请求提出，A 在公共库实现。当前数据层**未预置任何向量维度**。
 
 ## 使用约束
@@ -44,3 +55,5 @@
 ## A 处理记录
 
 数据集、规范、baseline 与本文档由 A 于 2026-09-07 建（commit 见验收台账）；D 使用中发现口径问题的，回写本文件或在集成请求中提出。
+
+2026-09-07 补入第二批：`resume-06`~`resume-10`（5 份 synthetic，档位 1 高 / 2 中 / 2 低）与第二轮 baseline（`gap-baseline-round2.json` + `.csv`，5 核心真实 JD × 5 新简历 = 25 组）。第一批文件的字段语义与内容**未改动**，`scripts/validate_data.py` 的校验改为按各文件声明的 `core_jd_ids` / `core_resume_ids` 计算网格，两轮同时校验。

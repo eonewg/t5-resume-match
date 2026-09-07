@@ -44,6 +44,14 @@ BASELINE_REQUIRED = (
     "suggested_keywords_manual",
     "match_level_manual",
 )
+BASELINE_FIELDS = ("pair_id", *BASELINE_REQUIRED, "notes")
+BASELINE_FILES = (
+    "data/baselines/gap-baseline.json",
+    "data/baselines/gap-baseline-round2.json",
+)
+MIN_RESUMES = 10
+MIN_PAIRS_PER_BASELINE = 15
+MIN_RESUME_RAW_CHARS = 300
 
 PHONE_RE = re.compile(r"1[3-9]\d{9}")
 EMAIL_RE = re.compile(r"[\w.+-]+@[\w-]+\.[\w.\-]+")
@@ -145,8 +153,18 @@ def validate_resume(rel: str, seen_ids: set[str]) -> None:
     check(bool(data.get("notes")), f"{tag}: missing anonymization notes")
     rid = data.get("id")
     check(rid not in seen_ids, f"{tag}: duplicate resume id {rid!r}")
+    check(rid == Path(rel).stem, f"{tag}: id {rid!r} does not match filename {Path(rel).stem!r}")
     if isinstance(rid, str):
         seen_ids.add(rid)
+    check(
+        bool(data.get("experiences")) or bool(data.get("projects")),
+        f"{tag}: needs at least one experience or project entry",
+    )
+    raw_text = str(data.get("raw_text_anonymized", ""))
+    check(
+        len(raw_text) >= MIN_RESUME_RAW_CHARS,
+        f"{tag}: raw_text_anonymized {len(raw_text)} chars below {MIN_RESUME_RAW_CHARS}",
+    )
     texts: list[str] = []
     iter_text(data, texts)
     blob = "\n".join(texts)
@@ -155,20 +173,38 @@ def validate_resume(rel: str, seen_ids: set[str]) -> None:
     check(ID_RE.search(blob) is None, f"{tag}: possible national ID found")
 
 
-def validate_baseline(jd_ids: set[str], resume_ids: set[str]) -> None:
-    data = load_json("data/baselines/gap-baseline.json")
+def validate_baseline(rel: str, jd_ids: set[str], resume_ids: set[str]) -> int:
+    data = load_json(rel)
     if not isinstance(data, dict):
-        return
+        return 0
+    label = Path(rel).name
     pairs = data.get("pairs", [])
-    check(data.get("reviewer") == "manual(A)", "baseline: top-level reviewer must be manual(A)")
-    check(len(pairs) >= 15, f"baseline: expected >=15 pairs, got {len(pairs)}")
+    core_jd = data.get("core_jd_ids", [])
+    core_resume = data.get("core_resume_ids", [])
+    check(data.get("reviewer") == "manual(A)", f"{label}: top-level reviewer must be manual(A)")
+    check(
+        len(pairs) >= MIN_PAIRS_PER_BASELINE,
+        f"{label}: expected >={MIN_PAIRS_PER_BASELINE} pairs, got {len(pairs)}",
+    )
+    check(
+        len(pairs) == len(core_jd) * len(core_resume),
+        f"{label}: {len(pairs)} pairs != {len(core_jd)} core JDs x {len(core_resume)} core resumes",
+    )
+    unknown_jd = sorted(set(core_jd) - jd_ids)
+    check(not unknown_jd, f"{label}: core_jd_ids absent from data/jd: {unknown_jd}")
+    unknown_resume = sorted(set(core_resume) - resume_ids)
+    check(
+        not unknown_resume, f"{label}: core_resume_ids absent from data/resumes: {unknown_resume}"
+    )
     seen_pairs: set[str] = set()
     used_jd: set[str] = set()
     used_resume: set[str] = set()
     for i, pair in enumerate(pairs):
-        tag = f"baseline pairs[{i}]"
-        for field in BASELINE_REQUIRED:
-            check(field in pair, f"{tag}: missing field {field}")
+        tag = f"{label} pairs[{i}]"
+        extra = sorted(set(pair) - set(BASELINE_FIELDS))
+        missing = sorted(set(BASELINE_REQUIRED) - set(pair))
+        check(not extra, f"{tag}: unexpected field(s) {extra}")
+        check(not missing, f"{tag}: missing field(s) {missing}")
         pid = pair.get("pair_id")
         check(pid not in seen_pairs, f"{tag}: duplicate pair_id {pid!r}")
         if isinstance(pid, str):
@@ -189,28 +225,35 @@ def validate_baseline(jd_ids: set[str], resume_ids: set[str]) -> None:
         check(bool(pair.get("notes")), f"{tag}: missing notes")
         used_jd.add(pair.get("jd_id"))
         used_resume.add(pair.get("resume_id"))
-    check(len(used_jd) == 5, f"baseline: expected 5 core JDs, got {len(used_jd)}")
-    check(len(used_resume) == 3, f"baseline: expected 3 core resumes, got {len(used_resume)}")
+    check(
+        used_jd == set(core_jd),
+        f"{label}: JDs used {sorted(used_jd)} != declared core_jd_ids {sorted(core_jd)}",
+    )
+    check(
+        used_resume == set(core_resume),
+        f"{label}: resumes used {sorted(used_resume)} != declared core_resume_ids {sorted(core_resume)}",
+    )
 
-    csv_path = ROOT / "data/baselines/gap-baseline.csv"
+    csv_path = ROOT / rel.replace(".json", ".csv")
     try:
         with csv_path.open(encoding="utf-8", newline="") as handle:
             rows = list(csv.DictReader(handle))
     except OSError as exc:
-        errors.append(f"gap-baseline.csv: unreadable ({exc})")
-        return
+        errors.append(f"{csv_path.name}: unreadable ({exc})")
+        return len(pairs)
     check(
         len(rows) == len(pairs),
-        f"gap-baseline.csv: row count {len(rows)} != JSON pairs {len(pairs)}",
+        f"{csv_path.name}: row count {len(rows)} != JSON pairs {len(pairs)}",
     )
     check(
         {row.get("pair_id") for row in rows} == seen_pairs,
-        "gap-baseline.csv: pair_id mismatch vs JSON",
+        f"{csv_path.name}: pair_id mismatch vs JSON",
     )
     check(
         all(row.get("reviewer") == "manual(A)" for row in rows),
-        "gap-baseline.csv: reviewer not manual(A)",
+        f"{csv_path.name}: reviewer not manual(A)",
     )
+    return len(pairs)
 
 
 def validate_doc_links() -> None:
@@ -238,11 +281,16 @@ def main() -> int:
     check(len(real) >= 5, f"real JD count {len(real)} below course minimum 5")
     check(len(real) + len(syn) >= 20, f"total JD count {len(real) + len(syn)} below recommended 20")
 
+    resume_paths = sorted((ROOT / "data" / "resumes").glob("resume-*.json"))
+    check(
+        len(resume_paths) >= MIN_RESUMES,
+        f"resume count {len(resume_paths)} below expected {MIN_RESUMES}",
+    )
     resume_ids: set[str] = set()
-    for index in range(1, 6):
-        validate_resume(f"data/resumes/resume-{index:02d}.json", resume_ids)
+    for path in resume_paths:
+        validate_resume(f"data/resumes/{path.name}", resume_ids)
 
-    validate_baseline(jd_ids, resume_ids)
+    total_pairs = sum(validate_baseline(rel, jd_ids, resume_ids) for rel in BASELINE_FILES)
     validate_doc_links()
 
     if errors:
@@ -251,7 +299,8 @@ def main() -> int:
             print(f"  - {err}")
         return 1
     print(
-        f"OK: {len(real) + len(syn)} JDs ({len(real)} real), 5 resumes, baseline pairs checked, docs linked"
+        f"OK: {len(real) + len(syn)} JDs ({len(real)} real), {len(resume_ids)} resumes, "
+        f"{total_pairs} baseline pairs across {len(BASELINE_FILES)} files, docs linked"
     )
     return 0
 

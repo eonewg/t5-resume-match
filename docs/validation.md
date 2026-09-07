@@ -26,6 +26,23 @@ Windows 如遇 uv 缓存访问限制，可设置 UV_CACHE_DIR 为项目 .verific
 
 ## 本次结果
 
+### 2026-09-07（三）：第二批简历样本与第二轮人工 baseline
+
+- 新增 `data/resumes/resume-06.json` … `resume-10.json`：5 份 `synthetic` 简历，覆盖数据分析、Java 后端、AI 算法、大数据、数据产品五个方向，质量档位 1 高 / 2 中 / 2 低。全部 `anonymized: true`，无姓名、电话、邮箱、学号，学校与公司泛化；每份 `notes` 写明档位与刻意保留的诊断点。
+- 新增 `data/baselines/gap-baseline-round2.json` + `.csv`：5 份核心真实 JD（`jd-real-01/04/05/07/09`）× 5 份新简历 = 25 组人工标注（`reviewer: manual(A)`），档位 low 19 / medium 5 / high 1。第一轮 `gap-baseline.json` 的内容与字段语义未改动，两轮共 40 组同时有效。
+- `scripts/validate_data.py`：简历改为按 `data/resumes/resume-*.json` 发现并要求 ≥10 份；新增三项检查（id 与文件名一致、经历或项目至少一条、`raw_text_anonymized` ≥300 字）；baseline 校验改为读取各文件声明的 `core_jd_ids` / `core_resume_ids` 计算网格（组数须等于两者乘积、实际用到的 ID 集合须与声明一致），并校验 pair 字段集合与同名 CSV 的行数、pair_id、reviewer。
+- 文档更新：`data/README.md`（目录结构、简历样本构成表、两轮 baseline 规范与失效模式对照样本、数据缺口）、`docs/integration_requests/D-data-handoff.md`（10 份简历、两轮核心 ID、按失效模式列出的验证重点）、`docs/market-pain-points.md`（样本构成、新增 3.2 节第二轮观察、常见问题清单扩至 8 类）。
+- `uv run python scripts/validate_data.py`：`OK: 30 JDs (9 real), 10 resumes, 40 baseline pairs across 2 files, docs linked`。
+- `uv run --locked pytest -q --ignore=tests/resume`：76 passed，2 项既有 Starlette HTTPX/AnyIO 弃用提示。
+- `uv run --locked pytest -q`（全量）：91 passed，4 errors。4 errors 仍全部来自工作区既有未提交的 `tests/resume/test_resume.py`（超长参数化触发 Windows 32767 字符环境变量上限），与本次改动无关，本次未修改该文件。
+- `uv run --locked ruff check scripts` 与 `ruff format --check scripts`：通过（6 files already formatted）。全仓 format 仍存在既有未提交文件（`backend/api/routes.py`、`backend/modules/resume/public.py`、`tests/core/test_integration.py`、`tests/resume/test_resume.py`）的格式问题，本次不修改他人未提交文件。
+- `node scripts/check_frontend.mjs`：24 passed，fail 0。
+- `GITHUB_REF_NAME=feat/core-a uv run python -m scripts.check_scope --ci`：通过（A/main 公共改动由 PR 审查，本项只检查 D 目录边界）。不带 CI 环境变量时该命令取不到分支名会 FAIL，属预期，不代表分支有问题。
+- `GITHUB_REF_NAME=feat/core-a uv run python -m scripts.check_member --ci`：`PUBLIC_CONTRACT_CHECK_PASS`，diagnosis 为 OFFLINE。`check_member` 的位置参数是模块名（resume/jobs/diagnosis/analytics），不是角色字母。
+- 未修改 Jobs/Matching/Diagnosis 业务代码；本次改动仅涉及 `data/`、`docs/` 与 `scripts/validate_data.py`。
+- 数据缺口未消除：真实学生简历仍为 **0 份**（本批全部 synthetic，不得当作真实样本引用），真实大数据方向 JD 仍为 **0 份**，故 resume-09 只能与跨方向真实 JD 配对，其 5 组 low 不能用于评估大数据岗匹配质量。
+- 本轮不调用真实 AI，不涉及 PostgreSQL/pgvector 入库与浏览器端验证。
+
 ### 2026-09-07（二）：数据资产建设
 
 - 新增 `scripts/validate_data.py`（stdlib 实现）：校验 JSON/CSV 合法、JD/简历必填字段与 source_type 一致性、简历敏感信息扫描（手机/邮箱/证件号）、baseline 引用完整性（5 JD × 3 简历 = 15 组）与新文档本地链接；运行结果：OK（30 JD，9 real）。
