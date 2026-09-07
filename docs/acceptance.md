@@ -2,13 +2,13 @@
 
 ## 当前状态
 
-2026-09-07 检查远端：main、feat/core-a、feat/diagnosis-d。D 分支已完成首轮验收（PASS，见验收记录）；B/C/E 尚未提交远端分支。PR #4（feat/diagnosis-d → feat/core-a）已按规则修正 base 分支。
+2026-09-07 检查远端：main、feat/core-a、feat/diagnosis-d。D 分支已验收（PASS）并完成集成；B/C/E 尚未提交远端分支。PR #4（feat/diagnosis-d → feat/core-a）已按规则修正 base 分支。
 
 | 成员 | 分支 | 待验收提交 | 结论 | 集成提交 | 下一步 |
 | --- | --- | --- | --- | --- | --- |
 | B | `feat/resume-b` | — | 待提交 | — | 实现公开简历入口并提交模块测试 |
 | C | `feat/matching-c` | — | 待提交 | — | 实现 JD 与匹配公开入口 |
-| D | `feat/diagnosis-d` | `16802ad` | PASS | 待集成 | 集成时 A 补公共配置与前端正式挂载 |
+| D | `feat/diagnosis-d` | `16802ad` | PASS | `80d4f55`（合并）/ `93e1b12`（适配） | 待真实 Key 联调 |
 | E | `feat/analytics-qa-e` | — | 待提交 | — | 实现分析公开入口及质量验证 |
 
 现有 Mock 验证记录见 [validation.md](validation.md)，不能替代真实成员模块验收。PR #1 为用户明确授权的公共基线合并，最终系统交付仍须完成四成员验收及联调。
@@ -37,3 +37,12 @@
 - 已知非阻塞事项：Starlette `httpx`/`anyio` 弃用 warning ×2，属根依赖层，由 A 在公共层处理（成员请求第 5 点）。
 - 结论：**PASS**，允许集成。
 - 集成时 A 待办：① `.env.example` 增补 `T5_DIAGNOSIS_PROVIDER`、`DEEPSEEK_API_KEY`（留空）、`T5_DIAGNOSIS_MODEL`；② 前端公共注册表将 diagnosis 从 preview 转正式挂载；③ 真实联调前统一公共 API 客户端 45s 超时与诊断重试上限（30s×最多 5 次）的匹配；④ 处理 Starlette 弃用依赖提示后复验。
+
+### 2026-09-07 · A 集成 D — 完成
+
+- 合并：PR #4 以 merge commit `80d4f55` 合入 `feat/core-a`；合并前将 PR 从 draft 转为 ready。
+- 集成回归：pytest 69 passed、`ruff check` 通过、`check_frontend.mjs` 24 passed / 0 failed。
+- 公共层适配（`93e1b12`）：`.env.example` 增补 D 真实诊断配置示例（密钥留空）；`frontend/src/core/modules.js` 将 diagnosis 槽位从 preview 转正式挂载；README 环境变量表补充 `DEEPSEEK_API_KEY`、`T5_DIAGNOSIS_MODEL` 及 D 模块 README 链接。
+- 浏览器实测（本地 uvicorn + 公共壳）：`#diagnosis` 正式加载 D 模块（无占位页）；工作台创建演示简历与岗位后，D 页面正确读取关联 ID 并执行诊断；Mock 标签、Provider 状态显示正常，控制台无错误。
+- 待办 ①② 已完成；③ 留待真实 Key 联调时处理；④（Starlette 弃用提示）由 A 另行处理根依赖。
+- 未验证：真实 DeepSeek 模型输出质量与延迟（需配置密钥）。
