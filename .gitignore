@@ -1,0 +1,9 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+.env
+data/
+.verification/
+# Local course materials remain on disk; not application source.
+doc/
