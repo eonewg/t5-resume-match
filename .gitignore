@@ -7,3 +7,5 @@ data/
 .verification/
 # Local course materials remain on disk; not application source.
 doc/
+# Each member keeps their own role instructions locally.
+/AGENTS.md

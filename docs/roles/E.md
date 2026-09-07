@@ -1,6 +1,6 @@
 # E：数据分析与质量保障
 
-固定分支：`feat/analytics-qa-e`。先读取根 [AGENTS.md](../../AGENTS.md)。
+固定分支：`feat/analytics-qa-e`。团队约定见 [team-rules.md](../team-rules.md)。本文件是共享分工资料，不替代个人本地 AGENTS.md。
 
 负责 JD 技能统计、就业市场分析和系统质量评估。允许修改 `backend/modules/analytics/`、`tests/analytics/`、`tests/quality/`、`docs/integration_requests/E-*.md`。看板组件预留 `frontend/src/modules/analytics/`，需先与 A 确认共享前端工程。
 

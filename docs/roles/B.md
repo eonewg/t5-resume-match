@@ -1,6 +1,6 @@
 # B：简历模块
 
-固定分支：`feat/resume-b`。先读取根 [AGENTS.md](../../AGENTS.md)。
+固定分支：`feat/resume-b`。团队约定见 [team-rules.md](../team-rules.md)。本文件是共享分工资料，不替代个人本地 AGENTS.md。
 
 负责简历文本解析、结构化内容编辑与校验。允许修改 `backend/modules/resume/`、`tests/resume/`、`docs/integration_requests/B-*.md`。前端组件预留 `frontend/src/modules/resume/`；先与 A 确认公共前端技术栈，再在共享工程中开发组件。
 

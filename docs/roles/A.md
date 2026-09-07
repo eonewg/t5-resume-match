@@ -1,6 +1,6 @@
 # A：架构、验收与集成负责人
 
-固定分支：`feat/core-a`。先遵守根 [AGENTS.md](../../AGENTS.md) 的共用规则，本文件补充 A 的验收和集成职责，不重复维护公共 Schema。
+固定分支：`feat/core-a`。团队约定见 [team-rules.md](../team-rules.md)。本文件是共享职责与验收说明，不替代个人本地 AGENTS.md，不重复维护公共 Schema。
 
 ## 定位与修改边界
 

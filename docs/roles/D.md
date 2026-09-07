@@ -1,6 +1,6 @@
 # D：AI 诊断模块
 
-固定分支：`feat/diagnosis-d`。先读取根 [AGENTS.md](../../AGENTS.md)。
+固定分支：`feat/diagnosis-d`。团队约定见 [team-rules.md](../team-rules.md)。本文件是共享分工资料，不替代个人本地 AGENTS.md。
 
 负责 AI 调用、Prompt、STAR 内容增强和面向 JD 的定向建议。允许修改 `backend/modules/diagnosis/`、`tests/diagnosis/`、`docs/integration_requests/D-*.md`。前端组件预留 `frontend/src/modules/diagnosis/`，需先与 A 确认共享前端工程。
 
