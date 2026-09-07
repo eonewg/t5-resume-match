@@ -4,6 +4,8 @@ A（架构与集成）交付：FastAPI 主程序、公共数据库、v1 数据�
 
 ## 一键运行
 
+文档对应当前查看的分支。若要在公共支持 PR 合入前获取本轮示例、自检和前端壳，请将下面的 clone 命令改为 `git clone --branch feat/core-a https://github.com/eonewg/t5-resume-match.git`；成员随后从这份基线建立各自分支，不在 A 分支提交业务。
+
 需要 Git、Python 3.11–3.13（已验证 3.13.5）和 [uv](https://docs.astral.sh/uv/getting-started/installation/)。首次安装需要联网，不需要数据库服务或 AI 密钥。
 
 ```powershell
@@ -35,6 +37,8 @@ uv run --locked ruff format --check backend tests scripts
 ```
 
 成员开始开发请先看 [开发与自检指南](docs/member-development.md)：`uv run python -m scripts.check_member B --examples` 可直接跑 B 的接入示例（换成 C/D/E 亦可）；真实模块实现后去掉 `--examples` 自检。公共前端挂载、预览及 UI 分工见 [前端接入说明](docs/frontend-integration.md)。
+
+本轮可复现检查与修改清单见 [开发支持验收记录](docs/dev-support-validation.md)。
 
 smoke 会新建一份演示简历、一个岗位及匹配/诊断记录，然后读回验证。自动化测试使用独立临时数据库，不改演示数据库。
 

@@ -2,6 +2,8 @@
 
 先把接入链路跑通，再实现业务。个人 `AGENTS.md` 仍只留本地，不被本工具改写。
 
+本轮支持工具先交付在 `feat/core-a`。如果 main 尚没有 `scripts/check_member.py`，请从 `origin/feat/core-a` 这份已验证基线建立自己的角色分支，不从旧 main 复制零散文件，也不要直接在 A 分支提交业务。公共支持 PR 合入后，新成员即可直接从 main 开始。
+
 ## 从能运行的示例开始
 
 ```powershell
