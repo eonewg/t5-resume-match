@@ -17,8 +17,9 @@ dev = ["pytest>=8,<10", "httpx>=0.28,<1", "ruff>=0.11,<1"]
 postgres = ["psycopg[binary]>=3.2,<4"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests/core"]
+testpaths = ["tests"]
 pythonpath = ["."]
+addopts = "--import-mode=importlib"
 
 [tool.ruff]
 target-version = "py311"

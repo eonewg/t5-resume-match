@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="T5 简历诊断与岗位匹配工作台">
+  <title>T5 · 简历与岗位</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%231c6258'/%3E%3Ctext x='7' y='27' font-family='sans-serif' font-size='22' fill='white'%3ET5%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/assets/styles.css">
+  <script type="module" src="/assets/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">跳到主要内容</a>
+  <aside class="sidebar">
+    <a class="brand" href="#workspace"><span class="brand-mark">T5</span><span>简历与岗位<small>让下一步更清晰</small></span></a>
+    <p class="nav-caption">工作空间</p>
+    <nav aria-label="主要导航">
+      <a href="#workspace" data-view="workspace" aria-current="page"><span class="nav-icon">◈</span>诊断工作台</a>
+      <a href="#resume" data-view="resume"><span class="nav-icon">▤</span>简历编辑</a>
+      <a href="#jobs" data-view="jobs"><span class="nav-icon">⌕</span>岗位匹配</a>
+      <a href="#diagnosis" data-view="diagnosis"><span class="nav-icon">✧</span>AI 诊断</a>
+      <a href="#analytics" data-view="analytics"><span class="nav-icon">▥</span>市场分析</a>
+    </nav>
+    <div class="sidebar-footer"><span class="tiny-dot"></span>本地工作空间<small>内容保存在当前服务中</small></div>
+  </aside>
+  <div class="app-frame">
+    <header class="topbar"><span>工作空间 <span class="separator">/</span> <strong id="page-label">诊断工作台</strong></span><span id="connection-status" class="status-pill" role="status">正在连接…</span></header>
+    <main id="main-content">
+      <div id="mode-banner" class="notice" role="status" hidden></div>
+      <section id="workspace-view" aria-labelledby="workspace-title">
+        <div class="hero"><div><p class="eyebrow">RESUME WORKSPACE</p><h1 id="workspace-title">让经历，贴近下一份机会。</h1><p>从一份简历和一个目标岗位开始，看看你的优势与下一步。</p></div><span class="hero-symbol" aria-hidden="true">↗</span></div>
+        <form id="workflow-form">
+          <div class="section-heading"><h2>开始一次诊断</h2><button id="load-demo" class="button secondary" type="button">填入演示内容 <span aria-hidden="true">↙</span></button></div>
+          <div class="input-grid">
+            <section class="card input-card"><div class="card-heading"><span class="step-icon">01</span><div><h3>你的简历</h3><p>保留真实经历，粘贴完整文本</p></div></div>
+              <label for="resume-text">简历内容 <span class="required">*</span></label>
+              <textarea id="resume-text" name="resume" required maxlength="50000" placeholder="粘贴教育背景、技能与项目经历…" rows="11"></textarea>
+              <div class="field-note"><span>支持中文与英文文本</span><span id="resume-count">0 / 50000</span></div>
+            </section>
+            <section class="card input-card"><div class="card-heading"><span class="step-icon">02</span><div><h3>目标岗位</h3><p>让匹配和建议有一个具体方向</p></div></div>
+              <div class="field-row"><div><label for="job-title">岗位名称 <span class="required">*</span></label><input id="job-title" name="title" required maxlength="200" placeholder="例如：数据分析实习生"></div><div><label for="job-company">公司 <span class="optional">选填</span></label><input id="job-company" name="company" placeholder="公司名称"></div></div>
+              <label for="job-text">岗位描述 <span class="required">*</span></label>
+              <textarea id="job-text" name="jd" required maxlength="50000" placeholder="粘贴职责、技能要求与任职条件…" rows="7"></textarea>
+              <div class="field-note"><span>建议保留完整任职要求</span><span id="job-count">0 / 50000</span></div>
+            </section>
+          </div>
+          <div class="action-bar"><div><span class="action-label">简历 → 岗位 → 匹配与诊断</span><p id="form-status" role="status" aria-live="polite">填写内容，或先用演示样例体验流程。</p></div><button id="run-workflow" class="button primary" type="submit">开始诊断 <span aria-hidden="true">→</span></button></div>
+        </form>
+        <div id="workflow-error" class="error-banner" role="alert" hidden></div>
+        <section id="results" class="results" aria-labelledby="results-title" hidden>
+          <div class="section-heading"><h2 id="results-title" tabindex="-1">本次诊断</h2><span id="result-mode" class="badge"></span></div>
+          <div class="result-grid"><article class="card score-card"><p class="eyebrow">岗位匹配</p><strong id="match-score" class="score">—</strong><p id="score-caption"></p></article>
+            <article class="card detail-card"><h3>技能与差距</h3><p class="small-label">已匹配技能</p><div id="matched-skills" class="tags"></div><p class="small-label">待补充技能</p><div id="missing-skills" class="tags subdued"></div><ul id="gap-analysis" class="text-list"></ul></article>
+            <article class="card detail-card"><h3>诊断建议</h3><p id="diagnosis-summary" class="summary"></p><ul id="diagnosis-suggestions" class="text-list"></ul></article>
+          </div>
+        </section>
+        <div id="empty-results" class="empty-results"><span aria-hidden="true">✧</span><div><h3>每一次准备，都更有方向</h3><p>提交后，匹配结果与诊断建议会显示在这里。</p></div></div>
+      </section>
+      <section id="module-view" hidden aria-label="模块页面"></section>
+      <footer class="page-footer">T5 · AI 简历诊断与岗位匹配<span>真实表达，具体改进。</span></footer>
+    </main>
+  </div>
+  <noscript>请启用 JavaScript 使用工作台；也可以访问 <a href="/docs">接口文档</a>。</noscript>
+</body>
+</html>
