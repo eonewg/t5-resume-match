@@ -1,44 +1,39 @@
-# A 交付验收记录
+# 开发验证
 
-> 历史阶段记录：下文保留当时的分工、命令和验证结果。当前两人制状态及最终门槛见 [验收台账](acceptance.md)，不要将旧命令作为现行开发指引。
+## 运行检查
 
-验证日期：2026-09-07。功能提交：`65080e6`，分支 `feat/core-a`。仓库为私有仓库 `eonewg/t5-resume-match`。
+从 feat/core-a 使用锁定依赖运行：
 
-## 已验证
+```powershell
+uv sync --locked
+uv run --locked pytest -q
+uv run --locked ruff check backend tests scripts examples
+uv run --locked ruff format --check backend tests scripts examples
+node scripts/check_frontend.mjs
+```
 
-- 本地 Windows / Python 3.13.5：13 项 pytest 测试通过；Ruff 检查及 17 个 Python 文件格式检查通过。
-- 从 GitHub 全新 clone `feat/core-a`，不复制原工作区虚拟环境；`uv --no-cache sync --locked` 成功重新下载并安装 27 个包，独立运行同样的测试与静态检查全部通过。
-- 在全新 clone 中实际调用 `start.ps1 -Port 18765`：`/health` 正常；smoke 创建简历、JD、匹配及诊断并读回一致；分析接口及 OpenAPI 正常。临时 HTTP 服务验证完成后已停止。
-- [GitHub CI 34076719814](https://github.com/eonewg/t5-resume-match/actions/runs/34076719814)：Windows / Ubuntu × Python 3.11 / 3.13 共四个 job 全部 success。
-- `.env.example` 仅示例值；受跟踪内容未检出常见 GitHub/OpenAI token 或私钥标记。数据库、虚拟环境、原始教学资料不提交。
-- 未改动 main 的初始基线、未修改其他成员分支、未进入其他成员业务目录。
+自检以 resume、jobs、diagnosis、analytics 为参数。带 --examples 时验证共享合成样例；真实模块自检去掉该参数。diagnosis 默认离线，不构造模型客户端。
 
-## 测试覆盖
+CI 运行 Windows/Ubuntu × Python 3.11/3.13，D 分支要求 Jobs/Matching 和 Diagnosis 两个模块；A/main 检查当前已存在模块，不能把未实现模块视为 PASS。分支、目录和模块映射统一来自 scripts/member_specs.py。
 
-完整 Mock 流程及重启持久化；四种无效输入及无原文回显；404 和分页边界；诊断异常时事务回滚；超范围评分和错误关联 ID 拒绝；通过公开模块路径替换四个入口；错误配置启动失败；SQLite 外键实际生效；结构化简历保存及独立匹配、诊断路由。
+## 验证边界
 
-## 当前限制
+现有测试覆盖公共 API、Mock 流程、持久化、关联 ID、事务回滚、provider 契约、前端调用与生命周期、Diagnosis 离线故障处理及 A/D 工作流限制。共享 examples/providers/ 四个示例用于当前模块契约和公共 Mock 演示，不是独立 owner 交付。
 
-B/C/D/E 尚未提供真实实现，本次只验收 A 的可运行架构和 Mock 集成链路。真实业务最终集成、AI 效果、前端编辑器/看板、PostgreSQL 与 pgvector 尚未验收。`/ready` 默认 503 是明确的 Mock 状态；`/health` 正常。pytest 输出两项上游弃用提示，未隐藏。
+PostgreSQL/pgvector、真实模型质量与延迟、完整 T5 浏览器演示、最终版本的 clean clone / fresh install 仍需独立验证。模块完整状态见 [验收台账](acceptance.md)。自动测试通过不代表这些项目已完成。
 
-## 本次修改文件
+Windows 如遇 uv 缓存访问限制，可设置 UV_CACHE_DIR 为项目 .verification/uv-cache。pytest 临时目录或 Node 子进程权限受限时，需要在允许相应本地操作的执行环境运行，不能通过删测试规避失败。
 
-初始化基线：`.gitignore`、原始 `AGENTS.md`（内容未改写）。
+## 本次结果
 
-公共代码：
+2026-09-07，feat/core-a 工作区：
 
-- `backend/main.py`
-- `backend/api/routes.py`
-- `backend/core/config.py`
-- `backend/core/database.py`
-- `backend/core/mocks.py`
-- `backend/core/ports.py`
-- `backend/core/providers.py`
-- `backend/core/services.py`
-- `backend/models/entities.py`
-- `backend/schemas/contracts.py`
-- 包入口：`backend/__init__.py`、`backend/api/__init__.py`、`backend/core/__init__.py`、`backend/models/__init__.py`、`backend/schemas/__init__.py`
+- uv sync --locked：通过。
+- pytest：76 passed，2 项既有 Starlette HTTPX/AnyIO 弃用提示。
+- Ruff check：通过；format --check：42 个文件通过。
+- 前端检查：24 passed。
+- 四模块样例和 A 分支 CLI/CI 模式检查通过（Diagnosis 为 OFFLINE）。
+- 当前文件职责扫描、65 个本地 Markdown 链接、git diff --check 通过。
+- 当前 A/D 映射、D 双模块要求、未知分支拒绝、PR 方向及目录边界均有回归覆盖。
 
-运行与验证：`.env.example`、`pyproject.toml`、`uv.lock`、`start.ps1`、`scripts/smoke.py`、`tests/core/test_integration.py`、`.github/workflows/core.yml`。
-
-文档：`README.md`、`docs/architecture.md`、`docs/api-contract.md`、`docs/integration_requests/README.md`、`docs/validation.md`。
+本轮不调用真实 AI，不执行数据库功能升级或模块集成；上表结果只覆盖自动化开发检查。

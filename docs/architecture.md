@@ -59,14 +59,9 @@
 
 简历/JD 来源为 Mock 时，后续结果继续标记 Mock，即使计算 provider 已换为真实实现。解析记录通过响应头暴露 Mock 状态；结果直接带 `is_mock`。
 
-## 集成过程与个人报告素材（历史）
 
-2026-09-07：原目录不是 Git 仓库，用户授权使用 gh 新建。初始化 main 后建立 feat/core-a；按用户修正将仓库改名为 t5-resume-match，同步修改 origin。main 只含初始基线，不自动合并 A 开发。
+## 运行与验证依据
 
-公共契约优先沿用 AGENTS.md 的简历、JD、匹配、诊断输入字段，再补充诊断输出、分析输出和持久化 ID。初始骨架阶段四成员接口尚不存在，当时没有真实接口冲突或多分支合并冲突，不能将预防方案写成已发生事件。
+依赖由 uv.lock 固定。数据库提交在 HTTP 成功响应前完成，错误回滚；公共测试验证事务、外键与输出契约。当前测试和环境限制见 [验证记录](validation.md)，完整模块验收见 [台账](acceptance.md)。
 
-AI 辅助生成的首轮代码需要补充事务提交时点约束：数据库提交必须早于成功响应。现采用 function scope 的 session dependency，回滚、外键、输出校验均有集成测试。未进入成员目录修改算法。
-
-Windows 执行器对全局 uv 缓存及 pytest 临时目录限制导致首次检查失败；uv 改用项目内缓存，pytest 在允许本地文件操作的执行上下文运行。依赖通过 uv.lock 固定，避免不同机器重新解析出不同版本。测试依赖目前有两项上游弃用提示，测试通过，不隐藏警告。
-
-技术参考：[FastAPI lifespan](https://fastapi.tiangolo.com/advanced/events/)、[SQLAlchemy SQLite](https://docs.sqlalchemy.org/en/20/dialects/sqlite.html)。
+D 负责 jobs 内的 Matching/Embedding 和 Diagnosis；A 负责公共数据存取与适配，避免模块直接依赖对方内部实现。

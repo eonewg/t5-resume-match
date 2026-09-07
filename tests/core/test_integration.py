@@ -104,7 +104,7 @@ def test_invalid_module_contract(client, app, score, wrong_id):
 
 
 def test_public_plugin_loading_and_real_mode(tmp_path, monkeypatch):
-    # Real import boundary, no dependency on B/C/D/E internal implementations.
+    # Real import boundary, no dependency on business module internals.
     plugin = tmp_path / "public_plugin.py"
     plugin.write_text("""
 from backend.core.mocks import MockResume, MockJobs, MockDiagnosis, MockAnalytics

@@ -1,6 +1,6 @@
 # T5 AI 简历诊断与岗位匹配系统
 
-按 [T5 需求对照表](T5_REQUIREMENTS_MATRIX.md) 和 [两人分工](T5_TWO_PERSON_ALLOCATION_STRICT.md) 开发：A 负责公共平台、resume、analytics、数据库与最终交付；D 负责 jobs/matching、diagnosis。当前已有公共骨架及已集成的 diagnosis 实现，默认仍使用 Mock；真实简历编辑器、岗位匹配和市场分析尚待交付。完整状态见 [验收台账](docs/acceptance.md)。
+按 [T5 需求对照表](T5_REQUIREMENTS_MATRIX.md) 和 [两人分工](T5_TWO_PERSON_ALLOCATION_STRICT.md) 开发：A 负责公共平台、resume、analytics、数据库与最终交付；D 负责 jobs/matching、embedding、diagnosis。当前已有公共骨架及已集成的 diagnosis 实现，默认仍使用 Mock；真实简历编辑器、岗位匹配和市场分析尚待交付。完整状态见 [验收台账](docs/acceptance.md)。
 
 ## 一键运行
 
@@ -39,7 +39,7 @@ node scripts/check_frontend.mjs
 
 成员开始开发请先看 [开发与自检指南](docs/member-development.md)：`uv run --locked python -m scripts.check_member resume --examples` 可跑简历接入示例（也可选择 jobs、diagnosis、analytics）；真实模块实现后去掉 `--examples` 自检。公共前端挂载、预览及 UI 分工见 [前端接入说明](docs/frontend-integration.md)。
 
-本轮规则迁移与验证见 [两人制迁移记录](docs/two-owner-migration.md)；早期公共壳验证见 [历史开发支持记录](docs/dev-support-validation.md)。
+开发检查与当前验证结果见 [验证记录](docs/validation.md)。
 
 smoke 会新建一份演示简历、一个岗位及匹配/诊断记录，然后读回验证。自动化测试使用独立临时数据库，不改演示数据库。
 

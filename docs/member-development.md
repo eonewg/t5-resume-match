@@ -1,6 +1,6 @@
 # 模块开发与交付
 
-先阅读 [团队约定](team-rules.md)。A/D 分支及基线见 [上手说明](team-onboarding.md)，个人 AGENTS.md 仍只留本地。验收和公开自检按模块命名，旧 B/C/D/E 命令不再使用。
+先阅读 [团队约定](team-rules.md)。A/D 分支及基线见 [上手说明](team-onboarding.md)，个人 AGENTS.md 仍只留本地。验收和公开自检按 Resume、Jobs/Matching、Diagnosis、Analytics 四模块命名。
 
 ## 公开入口
 
@@ -29,7 +29,7 @@ uv run --locked python -m scripts.check_member analytics --examples
 
 diagnosis 默认只检查入口与同步签名，不构造服务、不调用 AI；输出需离线替身测试验证。只有明确要做真实验证时使用 `--live`，CI 不传此参数。其他模块不得在默认自检时依赖收费服务；向量网络能力用离线替身测试，并单独记录真实验证。临时入口可用 `--provider module:Class`，不改变正式契约。
 
-MEMBER_CHECK_PASS 仅表示自动自检通过，不替代 T5 功能、效果与人工验收。测试覆盖空白、重复、大小写、缺字段、失败和边界，不能只复制固定样例输出。
+MODULE_CHECK_PASS 仅表示自动自检通过，不替代 T5 功能、效果与人工验收。测试覆盖空白、重复、大小写、缺字段、失败和边界，不能只复制固定样例输出。
 
 ## 范围与 CI
 
@@ -51,7 +51,7 @@ uv run --locked ruff format --check backend tests scripts examples
 node scripts/check_frontend.mjs
 ```
 
-CI 监听 main、feat/core-a、feat/intelligence-d 的 push 和所有 PR，运行 Windows/Ubuntu × Python 3.11/3.13。D 分支必须同时有 jobs/diagnosis 入口和测试；缺一个就失败。A/main 检查已存在模块，缺失模块仍需台账记录，不能视为最终完成。旧成员分支或未知分支 PR 被拒绝；D PR base 必须是 feat/core-a，最终 PR 只能由 A 指向 main。
+CI 监听 main、feat/core-a、feat/intelligence-d 的 push 和所有 PR，运行 Windows/Ubuntu × Python 3.11/3.13。D 分支必须同时有 jobs/diagnosis 入口和测试；缺一个就失败。A/main 检查已存在模块，缺失模块仍需台账记录，不能视为最终完成。不符合 A/D 分支约定的 PR 被拒绝；D PR base 必须是 feat/core-a，最终 PR 只能由 A 指向 main。
 
 Node 22+ 仅用于前端检查，自动发现公共与模块的 `*.test.mjs`；运行系统无需 Node。UI 见 [前端接入](frontend-integration.md)。
 

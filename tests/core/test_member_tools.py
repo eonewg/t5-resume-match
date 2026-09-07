@@ -8,17 +8,17 @@ from backend.core.config import Settings
 from backend.core.providers import load_provider, provider_class
 from backend.main import create_app
 from examples.fixtures import load_cases
-from scripts.check_member import CheckFailure, ci_roles, module_tests_exist, probe
+from scripts.check_member import CheckFailure, ci_modules, module_tests_exist, probe
 from scripts.check_scope import allowed_path, violations
 from scripts.member_specs import MODULES
 
 
-@pytest.mark.parametrize("role", MODULES)
-def test_runnable_examples(role):
-    result = probe(role, MODULES[role].example, examples=True)
+@pytest.mark.parametrize("module", MODULES)
+def test_runnable_examples(module):
+    result = probe(module, MODULES[module].example, examples=True)
     assert result.startswith("EXAMPLE_CHECK_PASS")
     with pytest.raises(CheckFailure, match="示例入口"):
-        probe(role, MODULES[role].example)
+        probe(module, MODULES[module].example)
 
 
 def test_examples_stay_mock_in_real_http_pipeline():
@@ -106,12 +106,12 @@ def test_d_offline_probe_never_constructs_or_calls_service(monkeypatch):
 
 
 def test_ci_requires_target_member_even_when_missing(tmp_path):
-    assert ci_roles("feat/intelligence-d", tmp_path) == ["jobs", "diagnosis"]
-    assert ci_roles("feat/core-a", tmp_path) == []
+    assert ci_modules("feat/intelligence-d", tmp_path) == ["jobs", "diagnosis"]
+    assert ci_modules("feat/core-a", tmp_path) == []
     with pytest.raises(CheckFailure, match="缺少"):
         module_tests_exist("resume", tmp_path)
-    with pytest.raises(CheckFailure, match="未知成员分支"):
-        ci_roles("feat/typo", tmp_path)
+    with pytest.raises(CheckFailure, match="未知 owner 分支"):
+        ci_modules("feat/typo", tmp_path)
 
 
 def test_scope_rejects_cross_module_and_root_changes():
@@ -126,19 +126,15 @@ def test_scope_rejects_cross_module_and_root_changes():
     assert violations("D", ["backend/modules/jobs/.env"])
 
 
-@pytest.mark.parametrize(
-    "branch", ["feat/resume-b", "feat/matching-c", "feat/diagnosis-d", "feat/analytics-qa-e"]
-)
-def test_historical_branches_cannot_pass_current_ci(branch, tmp_path):
-    with pytest.raises(CheckFailure, match="未知成员分支"):
-        ci_roles(branch, tmp_path)
+def test_unassigned_branch_cannot_pass_ci(tmp_path):
+    with pytest.raises(CheckFailure, match="未知 owner 分支"):
+        ci_modules("feat/unassigned", tmp_path)
 
 
 @pytest.mark.parametrize(
     ("source", "target", "expected"),
     [
         ("feat/intelligence-d", "main", 1),
-        ("feat/diagnosis-d", "feat/core-a", 1),
         ("feat/typo", "feat/core-a", 1),
         ("feat/core-a", "main", 0),
         ("main", "feat/core-a", 1),
@@ -155,5 +151,16 @@ def test_ci_pr_direction(monkeypatch, source, target, expected):
 
 def test_d_ci_checks_both_modules_even_if_only_diagnosis_exists(tmp_path):
     (tmp_path / "backend/modules/diagnosis").mkdir(parents=True)
-    assert ci_roles("feat/intelligence-d", tmp_path) == ["jobs", "diagnosis"]
-    assert ci_roles("feat/core-a", tmp_path) == ["diagnosis"]
+    assert ci_modules("feat/intelligence-d", tmp_path) == ["jobs", "diagnosis"]
+    assert ci_modules("feat/core-a", tmp_path) == ["diagnosis"]
+
+
+def test_owner_mapping_covers_current_modules():
+    from scripts.member_specs import BRANCHES, OWNER_MODULES
+
+    assert BRANCHES == {"A": "feat/core-a", "D": "feat/intelligence-d"}
+    assert OWNER_MODULES == {
+        "A": ("resume", "analytics"),
+        "D": ("jobs", "diagnosis"),
+    }
+    assert set(MODULES) == {"resume", "jobs", "diagnosis", "analytics"}

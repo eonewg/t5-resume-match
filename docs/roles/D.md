@@ -1,22 +1,34 @@
-# D：JD、岗位匹配与 AI 简历诊断
+# D：Jobs、Matching、Embedding 与 AI Diagnosis
 
-新开发分支 `feat/intelligence-d`，首次从最新 `origin/feat/core-a` 创建，PR base 固定 `feat/core-a`。遵守 [团队约定](../team-rules.md) 和 [T5 对照表](../../T5_REQUIREMENTS_MATRIX.md)。历史 `feat/diagnosis-d` 已交付并集成，继续复用，不回退或重做。
+固定分支：`feat/intelligence-d`，首次从最新 `origin/feat/core-a` 创建。
+固定 PR：`feat/intelligence-d -> feat/core-a`。
+遵守 [协作规则](../team-rules.md) 和 [T5 需求](../../T5_REQUIREMENTS_MATRIX.md)。
 
-## 修改边界
+## 责任范围
 
-负责 `backend/modules/jobs/`、`backend/modules/diagnosis/`、对应 `frontend/src/modules/` 目录、`tests/jobs/`、`tests/diagnosis/` 及 `docs/integration_requests/D-*.md`。公共数据库、Schema、API、根依赖、公共前端注册由 A 实施。
+D 负责 JD 输入与解析、技能/工具/薪资提取、关键词匹配、gap、embedding 和组合评分，以及 STAR 与 JD 定向 AI 诊断。
 
-## 功能与公开入口
+允许修改 backend/modules/jobs/、backend/modules/diagnosis/、对应 frontend/src/modules/ 目录、tests/jobs/、tests/diagnosis/ 和 docs/integration_requests/D-*.md。Matching 与 Embedding 属于 jobs 模块；不另建跨 owner 依赖。
 
-- jobs：JD 输入页面、技能/工具与薪资解析（无法解析可为空）、关键词匹配基线、0–100 分数、已匹配技能、缺失技能/gap 与评分解释。持久化和公共 API 由 A 提供。实现 `backend.modules.jobs.public:JobsService` 的 `parse(JDInput) -> JDData`、`match(Resume, JD) -> MatchResult`。
-- 向量增强：决定 embedding 对象、模型/接口、维度、距离和关键词+向量评分逻辑，向 A 提出明确数据库需求；向量不能替代关键词基线。
-- diagnosis：复用 `backend.modules.diagnosis.public:DiagnosisService`，同步 `diagnose(DiagnosisInput) -> DiagnosisResult`，无参构造。提供 STAR 内容增强、JD 定向关键词/经历建议及量化成果补充提示；保留事实，不生成虚假数字。
-- 支持问题定义报告的表达 gap、技能 gap 分析；真实采样与演示数据分开，不编造分析证据。
+公共 API、Schema、数据库、根依赖/配置和公共前端由 A 维护。D 提交明确字段、向量参数、索引或接口请求，不能自行修改公共层。
 
-接口以 [API 契约](../api-contract.md) 为准；薪资、向量等尚未支持的公共字段先提请求，不私自修改模型。前端导出 mount，按 [前端接入](../frontend-integration.md) 预览。
+## 公开入口与功能
 
-## 验证与交付
+| 模块 | 入口 | 方法 |
+| --- | --- | --- |
+| Jobs/Matching | backend.modules.jobs.public:JobsService | parse(JDInput) → JDData；match(Resume, JD) → MatchResult |
+| Diagnosis | backend.modules.diagnosis.public:DiagnosisService | diagnose(DiagnosisInput) → DiagnosisResult |
 
-运行 [模块自检](../member-development.md) 中 jobs 和 diagnosis 两项。网络超时、重试必须有界；响应异常、缺密钥、真实调用失败不得自动降级成 Mock 成功。离线测试覆盖成功、超时、无效响应和事实边界，替换外部客户端，避免误调用收费 API。真实验证单独记录，Mock 必须显式标记。
+公开类无参构造，同步方法；遵守 [API 契约](../api-contract.md) 和公共 ports。
 
-PR 列出两个模块各自完成项、准确 SHA、测试和未完成项。缺少 jobs 时不能以 diagnosis 通过代替整分支验收；A 按模块记 PASS/BLOCKED/ADAPT。
+- Jobs：JD 文本输入与复用，技能/工具和薪资解析；无法解析的字段允许为空，原文、标题、公司保持不变。持久化由公共 API 完成。
+- Matching：先实现关键词基线，输出 0–100 分数、已匹配/缺失技能、gap 与一致解释；覆盖空技能、重复、大小写、无匹配等边界，不原地修改输入。
+- Embedding：决定对象、模型/接口、维度、距离及关键词+向量组合评分，明确向 A 提交数据库需求。向量相似度是增强，不能替代关键词基线。
+- Diagnosis：平淡经历 STAR 增强、JD 定向关键词/经历建议、量化成果补充提示；保留事实，不生成虚假数字，不把建议作为已确认事实。
+- 问题定义：为真实脱敏样本提供表达/技能 gap 分析，支持 A 汇总报告。
+
+## 测试和交付
+
+按 [开发指南](../member-development.md) 分别自检 jobs、diagnosis。使用离线替身测试网络成功、超时、无效响应和失败路径；网络超时/重试有界，真实失败不能自动降级为 Mock 成功。真实模型质量与延迟单独验证，不能用离线结果代替。
+
+UI 在自己的模块导出 mount，通过 [公共前端](../frontend-integration.md) 接入。PR 提供两个模块各自的功能、准确 SHA、契约/测试证据、复现和未完成项。A 按模块记录 PASS/BLOCKED/ADAPT，一个模块通过不代表另一个完成。

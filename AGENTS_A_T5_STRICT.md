@@ -13,9 +13,9 @@
 
 你固定在 `feat/core-a` 开发。
 
-D 后续使用 `feat/intelligence-d`，从最新 `origin/feat/core-a` 创建，并向 `feat/core-a` 提 PR。
+D 固定使用 `feat/intelligence-d`，从最新 `origin/feat/core-a` 创建，并向 `feat/core-a` 提 PR。
 
-`feat/diagnosis-d` 是已经完成 diagnosis 交付的历史分支，不要回退或重做其已有成果。
+D 负责 Jobs、Matching、Embedding 和 Diagnosis；A 负责公共平台、Resume、Analytics、QA、数据库及最终交付。
 
 每次任务开始：
 
@@ -181,14 +181,13 @@ D 若需要：
 - 不把失败伪装成 Mock 成功
 - 真实/Mock 明确标记
 
-## 7. 两人制仓库迁移
+## 7. 两 owner 协作配置
 
-现有仓库如果仍写死 B/C/D/E 四成员，你负责一次性更新：
+A 维护以下当前协作规则和工具，确保 owner、分支、模块验收一致：
 
 - `docs/team-rules.md`
 - `docs/roles/A.md`
 - `docs/roles/D.md`
-- B/C/E 历史角色文档标注职责迁移
 - `docs/acceptance.md`
 - README / onboarding / PR template
 - `scripts/member_specs.py`
@@ -196,7 +195,7 @@ D 若需要：
 - `scripts/check_member.py`
 - 相关 CI
 
-新的验收单位是模块，不是原四名成员：
+验收单位固定为以下模块：
 
 - resume
 - jobs/matching

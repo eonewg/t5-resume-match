@@ -1,4 +1,4 @@
-"""Known-input fixtures only. This is not C's matching algorithm."""
+"""Jobs contract example owned by D; fixed fixtures are not a matching algorithm."""
 
 from backend.schemas.contracts import JD, JDData, JDInput, MatchResult, Resume
 from examples.fixtures import load_cases

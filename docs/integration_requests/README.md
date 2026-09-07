@@ -8,6 +8,6 @@ A 追加处理结论与验证证据，接口变化同步 [API 契约](../api-con
 
 ## 已有请求
 
-[D-integration.md](D-integration.md) 是历史 diagnosis 交付请求。按 [验收台账](../acceptance.md) 记录，provider 配置与前端注册已完成；超时预算联调、依赖弃用提示仍有待办，不能写成“无待处理请求”。保留该历史记录，新工作使用新请求文件。
+[Diagnosis 公共集成事项](D-integration.md) 记录当前接口和待办：超时预算联调、依赖弃用提示及真实模型验证。A/D 按职责处理，完成后记录准确提交与证据。
 
 可复制 [TEMPLATE.md](TEMPLATE.md)；模板本身不是待办。

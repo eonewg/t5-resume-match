@@ -1,4 +1,4 @@
-name: Team integration
+name: A-D module integration
 on:
   push:
     branches: [main, feat/core-a, feat/intelligence-d]
@@ -26,9 +26,11 @@ jobs:
         with:
           node-version: '22'
       - run: uv sync --locked
-      - run: uv run --locked python -m scripts.check_scope --ci
+      - name: Check owner branch and scope
+        run: uv run --locked python -m scripts.check_scope --ci
       - run: uv run --locked ruff check backend tests scripts examples
       - run: uv run --locked ruff format --check backend tests scripts examples
       - run: uv run --locked pytest -q
-      - run: uv run --locked python -m scripts.check_member --ci
+      - name: Check required module contracts
+        run: uv run --locked python -m scripts.check_member --ci
       - run: node scripts/check_frontend.mjs
