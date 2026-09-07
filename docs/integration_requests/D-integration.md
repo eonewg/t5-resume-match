@@ -1,5 +1,9 @@
 # D 模块交接与集成请求
 
+> 历史交付记录：PR #4 已由 A 合入 core-a。A 已在 `93e1b12` 注册 diagnosis 页面并补充配置说明。
+> 以下验证数字及旧 PR 目标限制为当时记录，不代表新两人开发的状态。
+> 当前分支/责任/待办以 [D 严格版计划](D-strict-plan.md) 为准：新开发用 `feat/intelligence-d`，PR 目标 `feat/core-a`。
+
 分支：`feat/diagnosis-d`。核心实现提交：`d1e030a`；文档及页面验证见本分支后续提交。
 完整使用说明：[D README](../../backend/modules/diagnosis/README.md)。
 
