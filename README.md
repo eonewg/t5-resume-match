@@ -1,6 +1,6 @@
 # T5 AI 简历诊断与岗位匹配系统
 
-按 [T5 需求对照表](T5_REQUIREMENTS_MATRIX.md) 和 [两人分工](T5_TWO_PERSON_ALLOCATION_STRICT.md) 开发：A 负责公共平台、resume、analytics、数据库与最终交付；D 负责 jobs/matching、embedding、diagnosis。Resume 结构化编辑器、Jobs 关键词匹配与可选 pgvector 缓存、来源明确的 Analytics 已接入并验证。语义增强默认 off，Diagnosis 新协议已随 PR #7 集成，custom/openai_chat 真实调用已验证，最终 UI 与独立 AI 评估已汇总、最终质量复核仍待完成；完整状态见 [验收台账](docs/acceptance.md)。
+按 [T5 需求对照表](T5_REQUIREMENTS_MATRIX.md) 和 [两人分工](T5_TWO_PERSON_ALLOCATION_STRICT.md) 开发：A 负责公共平台、resume、analytics、数据库与最终交付；D 负责 jobs/matching、embedding、diagnosis。Resume 结构化编辑器、Jobs 关键词匹配与可选 pgvector 缓存、来源明确的 Analytics 已接入并验证。语义增强默认 off，Diagnosis 新协议已随 PR #7 集成，custom/openai_chat 真实调用已验证，PR #8 五页 UI 已合入并复验；独立 AI 评估已汇总，质量证据仍有限；完整状态见 [验收台账](docs/acceptance.md)。
 
 ## 一键运行
 
@@ -14,7 +14,7 @@ cd t5-resume-match
 powershell -ExecutionPolicy Bypass -File .\start.ps1
 ```
 
-打开 http://127.0.0.1:8000/ 使用公共工作台，可填入合成样例体验流程；交互式接口文档仍在 `/docs`。Ctrl+C 停止，`start.ps1 -Port 8001` 可更换端口。脚本使用 `uv.lock` 安装准确版本，无需激活虚拟环境或安装 Node。工作台无外部资源依赖，安装后可离线使用；Swagger 文档资源需要浏览器联网。
+打开 http://127.0.0.1:8000/ 默认进入“我的简历”，页脚“快捷原文分析”可填入合成样例；交互式接口文档仍在 `/docs`。Ctrl+C 停止，`start.ps1 -Port 8001` 可更换端口。脚本使用 `uv.lock` 安装准确版本，无需激活虚拟环境或安装 Node。工作台无外部资源依赖，安装后可离线使用；Swagger 文档资源需要浏览器联网。
 
 其他系统或手动启动：
 
@@ -27,12 +27,12 @@ uv run --locked python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 
 ## 产品主流程
 
-1. 普通导航进入 **简历编辑**（`/#resume`），粘贴原文并解析。姓名、教育、技能和各段经历均可修改；每行一个技能。手动修改或确认的字段会被保护，重解析只自动填充未保护字段，也可逐项主动采用新建议。
-2. 勾选核对后保存，系统重新读取并比较全部字段，成功后选择该版本进入 **岗位匹配**。编辑另存新版本，旧版本不变；保存后刷新页面可在历史列表重新载入。页内切换保留草稿，刷新浏览器前应保存。
-3. 保存/选择 JD，计算关键词匹配与 gap。缺失技能不从旧原文自动补回；语义增强默认关闭。首页快捷原文诊断另建记录，使用已确认字段时走上述编辑器流程。
-4. 进入 **市场分析**（`/#analytics`），按来源和采集日期筛选。可主动导入 5 份已归档真实 JD；导入可重复执行，不增加相同快照数量。技能频率、词云、逐岗技能、薪资区间和来源明细来自已入库记录。
+1. 普通导航进入 **我的简历**（`/#resume`），粘贴原文并解析。姓名、教育、技能和各段经历均可修改；每行一个技能。手动修改或确认的字段会被保护，重解析只自动填充未保护字段，也可逐项主动采用新建议。
+2. 勾选核对后保存，系统重新读取并比较全部字段，成功后选择该版本进入 **目标岗位**。编辑另存新版本，旧版本不变；保存后刷新页面可在历史列表重新载入。页内切换保留草稿，刷新浏览器前应保存。
+3. 在“目标岗位”展开“添加目标岗位”，整理并保存岗位要求，或选择已有记录。运行分析后进入 **匹配分析**，显示后端分数和能力缺口。缺失技能不从旧原文补回；语义增强默认关闭。选择“优化这份简历”进入 **简历优化**，生成 STAR/JD 建议，逐项核实后复制或返回修改。失败时清除旧结果并允许重试；不自动采用生成内容。
+4. 进入 **市场洞察**（`/#analytics`），按来源和采集日期筛选。可主动导入 5 份已归档真实 JD；导入可重复执行，不增加相同快照数量。技能频率、词云、逐岗技能、薪资区间和来源明细来自已入库记录。
 
-真实快照均来自 Canonical、采集于 2026-09-08，薪资未知；不把福利预算当薪资。薪资区间只有在上下界、币种和周期明确时进入对应组，不混币种、不折算、不以零补未知值。实际五岗位分析见 [样本报告](docs/analytics-sample-analysis.md)。手动 JD 未提供来源时为 unknown，可在“全部来源”或“来源未确认”筛选中查看；带来源的录入契约见 [API](docs/api-contract.md)。
+真实快照均来自 Canonical、采集于 2026-09-08，薪资未知；不把福利预算当薪资。薪资区间只有在上下界、币种和周期明确时进入对应组，不混币种、不折算、不以零补未知值。实际五岗位分析见 [样本报告](docs/analytics-sample-analysis.md)。手动 JD 未提供来源时为 unknown，可在“全部来源”或“来源暂未提供”筛选中查看；带来源的录入契约见 [API](docs/api-contract.md)。
 
 ## 验证核心链路
 
@@ -92,4 +92,4 @@ PostgreSQL/pgvector 依赖已进入默认锁定依赖。启动、迁移、原生
 
 ## 最终交付准备
 
-当前不合 main；D 正在准备 UI 专项，最终 fresh install 等 UI PR 集成后执行。见 [交付状态与已知限制](docs/final/delivery-status.md)、[独立 AI 盲评](docs/final/ai-evaluation.md)、[新增真实 JD / 薪资说明](data/market/2026-09-08/README.md)。新增五份摘要通过 `uv run --locked python -m scripts.import_final_samples --apply` 导入，和默认五份 Canonical 快照合计十条、六家雇主。
+PR #8 已合入 feat/core-a，merge 为 `a41a31d22dac3b31cb7cac8303f63cdd799ecab4`。安装、完整回归与真实调用结果见 [最终安装记录](docs/final/fresh-install.md)，五页演示见 [演示脚本](docs/final/demo-script.md)。当前尚不具备宣称全部质量门槛通过的证据，不自动合 main。见 [交付状态与已知限制](docs/final/delivery-status.md)、[独立 AI 盲评](docs/final/ai-evaluation.md)、[新增真实 JD / 薪资说明](data/market/2026-09-08/README.md)。新增五份摘要通过 `uv run --locked python -m scripts.import_final_samples --apply` 导入，和默认五份 Canonical 快照合计十条、六家雇主。

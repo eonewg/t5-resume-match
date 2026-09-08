@@ -1,0 +1,11 @@
+{
+  "status": "passed",
+  "checks": [
+    "confirmed SQL-only resume persisted and matched; raw Python did not return",
+    "live browser Diagnosis produced STAR/JD output from confirmed facts, not archived raw text",
+    "controlled failure clears result; explicit retry returns cached real output, no Mock fallback",
+    "10 real jobs / 6 companies / 4 USD-year ranges; 5 missing ranges and 1 unknown period excluded; mobile and reread pass"
+  ],
+  "is_mock": false,
+  "latency_seconds": 53.757
+}

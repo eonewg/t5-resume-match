@@ -13,7 +13,7 @@ D 准确源 SHA `35b1301c9389b7a68dbbaefe28292870113d645d`，合入 A 为 `0b175
 
 ## 固定评估调用
 
-[operator-record](../../data/evaluation/2026-09-08/operator-record.json) 保留输入 SHA、当时代码 SHA、3 份解析、15 个匹配预测、3 次真实生成及 A/B 映射。两次成功、一次 TemporaryLLMError，均保留，不用重跑挑选成功结果。评审任务正在独立进行，A 不代填分数；返回后原样归档再汇总。
+[operator-record](../../data/evaluation/2026-09-08/operator-record.json) 保留输入 SHA、当时代码 SHA、3 份解析、15 个匹配预测、3 次真实生成及 A/B 映射。两次成功、一次 TemporaryLLMError，均保留，不用重跑挑选成功结果。独立 AI 评审已返回，原件保留并重新汇总核对，见 ai-evaluation-results.md；不是人工金标准。
 
 ## 本轮检查
 
@@ -30,6 +30,15 @@ uv run --locked python -m scripts.smoke_postgres
 node scripts/check_frontend.mjs
 ```
 
-CI 普通矩阵未配置 PostgreSQL 时会跳过 PG 专项；CI postgres job 和本地实际 PG 全量结果单独判断。测试不自动调用付费模型，真实调用需明确 live 选项。最终 fresh install 与 UI 后 E2E 刻意留到 D UI PR 集成后，不将旧安装日志写成本轮结果。
+CI 普通矩阵未配置 PostgreSQL 时会跳过 PG 专项；CI postgres job 和本地实际 PG 全量结果单独判断。测试不自动调用付费模型，真实调用需明确 live 选项。PR #8 合并后 fresh install 与 UI E2E 已执行，新增记录见下文；旧日志仅作为历史证据。
 
 评估补充核对：固定 D1/D2 的第一条解析经历只有标题/时间，真实响应虽成功但 `star_rewrites=[]`，只有 JD 建议。D3 是调用失败。三个原始记录和盲评输入不变；汇总分别报告请求完成 2、空改写 2、可评改写 0、失败 1，改写提升应为 null，不以空文本计算提升。早前另一次合成验收的 STAR 成功不替代本批结果。
+
+
+## PR #8 与 fresh install
+
+准确 UI head `828dc948767e64d28c2b6dc9450bd11162331910`：Python 396 passed/0 skipped、frontend 57 passed，真实 PG/pgvector、Ruff、scope 和十项 GitHub 检查通过；旧 A 脚本只适配定位与文案。Review 见 [PR #8](pr8-review.md)。
+
+merge `a41a31d22dac3b31cb7cac8303f63cdd799ecab4`：全新 clone/venv/空依赖缓存安装 32 包，新数据库两次迁移通过。完整 Python 396 passed/0 skipped（23.32 秒）、frontend 57 passed、Ruff（全仓库格式 147 文件）、scope/公开契约与 PG/pgvector smoke 通过。GitHub [合并 CI](https://github.com/eonewg/t5-resume-match/actions/runs/34237691949)成功。
+
+真实浏览器首次 502（服务端 TemporaryLLMError），第二次 53.757 秒真实 STAR/JD 输出成功；两个尝试都保留。普通应用重启后 18 条 API 记录逐项不变，浏览器刷新载入、Desktop/390px 五页与演示/失败回归通过。完整边界、命令和机器可读摘要见 [fresh install](fresh-install.md)。不以合成浏览器成功代替固定评估改写质量。

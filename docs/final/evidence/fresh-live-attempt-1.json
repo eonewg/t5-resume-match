@@ -1,0 +1,8 @@
+{
+  "status": "failed",
+  "checks": [
+    "confirmed SQL-only resume persisted and matched; raw Python did not return"
+  ],
+  "is_mock": null,
+  "error": "Expected values to be strictly equal:\n\n502 !== 201\n"
+}

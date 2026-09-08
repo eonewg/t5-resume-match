@@ -144,3 +144,8 @@ node tests/core/jobs-default-smoke.cjs
 新增整组片段保存点、hash/空间隔离、重连、并发、级联、迁移升级和请求事务回滚证据；旧向量 API 回归通过。
 本地首次沙箱权限失败后在授权正常环境复验，不是业务测试失败。远端 CI 待该提交推送后核实，结果及 SHA 记录于 PR #6 交接评论。
 未合并 D PR #6，未处理 embedding/长文档算法，也不代表 T5 最终验收完成。
+
+
+## 2026-09-08：PR #8 与最终安装复验
+
+PR #8 head 828dc948767e64d28c2b6dc9450bd11162331910 已 review PASS，合入 A 为 a41a31d22dac3b31cb7cac8303f63cdd799ecab4。准确源及 clean clone 均为 Python 396 passed/0 skipped、frontend 57 passed、真实 PG/pgvector、Ruff、scope/契约通过。五页 Desktop/390px、真实/演示及失败/重试、18 条记录重启持久化、刷新读取通过。fresh 实际模型首次临时失败、重试 53.757 秒成功，失败保留。详见 [安装记录](final/fresh-install.md)与[审查](final/pr8-review.md)。最终质量/竞品门槛仍未全通过，不合 main。

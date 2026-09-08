@@ -6,10 +6,10 @@
 
 | 模块 | Owner | 当前实现 | 验收状态与待办 |
 | --- | --- | --- | --- |
-| Resume | A | 保守解析、受保护结构化编辑、确认保存/重读、历史版本及原文保留 | 本阶段 PASS；student-03 章节遗漏已修复，自动解析仍需人工核对 |
+| Resume | A | 保守解析、受保护结构化编辑、确认保存/重读、历史版本及原文保留 | 功能 PASS；PR #8 与 fresh install 复验通过，自动解析仍需用户核对，独立 AI 评估有漏项 |
 | Jobs / Matching | D | PR #6 已集成；关键词基线、tools/薪资解析、可选语义增强及事务片段缓存 | 本阶段 PASS；semantic 默认 off，独立 AI 盲评 / LLM-as-a-Judge 已返回并汇总，不作为人工金标准 |
-| Diagnosis | D | PR #7 三协议适配已集成，custom/openai_chat 真实调用通过 | 集成范围 PASS；评估批次 2 请求完成但 STAR 为空、1 调用失败，最终质量未验收 |
-| Analytics | A | 真实统计、来源/日期筛选、词云/技能分布、分币种/周期薪资图与五份真实快照 | 本阶段 PASS；两批合计 10 条/6 雇主，4 条 USD 年薪可比较、5 无区间、1 周期未知；独立 AI 评价已汇总，最终复核未完成 |
+| Diagnosis | D | PR #7 三协议适配已集成，custom/openai_chat 真实调用通过 | 功能/集成 PASS；fresh install 首次上游失败、重试成功；固定评估两空 STAR/一失败，质量证据不足 |
+| Analytics | A | 真实统计、来源/日期筛选、词云/技能分布、分币种/周期薪资图与五份真实快照 | 本阶段 PASS；两批合计 10 条/6 雇主，4 条 USD 年薪可比较、5 无区间、1 周期未知；独立 AI 评价已汇总，PR #8 与 fresh install 技术复核通过 |
 
 当前自动化检查见 [验证记录](validation.md)。功能目标与当前实现分别记录，不能把已接入、Mock 或测试通过等同于完整 T5 验收。
 
@@ -19,15 +19,15 @@
 
 | 门槛 | Owner | 当前差距 / 所需证据 |
 | --- | --- | --- |
-| 问题定义 | A 汇总、D 分析 | 至少 2 款招聘 APP 对比、5 份真实 JD、3 份学生简历，脱敏、来源与表达/技能 gap；痛点报告待提交验收 |
+| 问题定义 | A 汇总、D 分析 | 至少 2 款招聘 APP 对比、5 份真实 JD、3 份学生简历，脱敏、来源与表达/技能 gap；痛点报告已更新；两款登录后实际体验未完成，不虚构竞品结论 |
 | Level 1 resume | A | 本阶段 PASS：原文粘贴→解析→结构化编辑→保存→重新读取；保护用户确认值，缺失字段留空 |
 | Level 1 jobs/matching | D，A 提供持久化 | JD 输入保存复用、技能/工具提取、关键词基线、0–100 分数、matched/missing/gap 及一致解释；只有向量评分不通过 |
 | Level 2 | D，A 串联 | 平淡经历 STAR、JD 定向关键词/经历建议、量化补充提示、不虚构事实；真实/Mock 与失败行为区分；真实 custom/openai_chat 已验证；固定评估输出质量仍待复核 |
-| Level 3 | A，D 解析 JD | 本阶段 PASS：词云/技能分布、分组薪资图、观察与来源口径；真实来源十条与薪资证据已补齐，口径见 final/delivery-status.md |
-| PostgreSQL + pgvector | A，D 提供参数 | 公共设施及 PR #6 事务片段缓存已真实复验 PASS；最终部署复现仍待完成 |
+| Level 3 | A，D 解析 JD | 本阶段 PASS：词云/技能分布、分组薪资图、观察与来源口径；真实来源十条与薪资证据已补齐，PR #8/fresh install 图表复验通过，口径见 final/delivery-status.md |
+| PostgreSQL + pgvector | A，D 提供参数 | 公共设施及 PR #6 事务片段缓存已真实复验 PASS；独立空库迁移与 clean clone 启动复现 PASS，见 final/fresh-install.md |
 | NLP 与向量 | D | 固定 MiniLM revision、384 维 cosine 与关键词组合已集成；默认 off，质量金标准与独立效果评估待完成 |
-| 全链路演示与 E2E | A/D | 按 T5 对照表十步演示，包括原始/优化简历对比、全部图表；无未解释关键失败 |
-| 可复现运行 | A | 主程序、数据库初始化、完整依赖安装、README、无密钥 .env.example；等 D UI PR 集成后，对最终提交执行一次 clean clone / fresh install；本轮暂缓 |
+| 全链路演示与 E2E | A/D | 五页十步浏览器主流程、原文/建议与全部图表 PASS；模型首次临时失败、显式重试成功，失败已记录 |
+| 可复现运行 | A | PASS：合并 a41a31d 的独立 GitHub clone、新 venv/空依赖缓存、新数据库迁移、正式启动与刷新/重启持久化；见 final/fresh-install.md |
 | AI 过程与设计材料 | A/D | 真实需求拆解、架构/Schema/API、编码、测试审查、文档/演示复盘；原型工具采用情况如实说明 |
 | 最终合并 | A | 四模块完整 PASS、全部集成、完整测试通过且 A 已 push；仅 feat/core-a → main PR，合并后复核启动/核心链路 |
 
@@ -98,3 +98,13 @@ A 自有模块执行相同门槛；新增提交重新检查，集成失败保留
 - 评估状态：独立 AI 盲评 / LLM-as-a-Judge 已返回，不是人工盲评；reviewer-ai.json 已返回并原样保存，汇总见 final/ai-evaluation-results.md。真实三组调用中 2 响应成功但 STAR 为空、1 失败；D1/D2 输入仅首条标题/时间，不能概括整段项目诊断质量。保持原材料与失败，不重跑挑选结果。
 - 竞品：两款产品登录后体验未完成，原因与实际访问结果已记录，不阻塞材料提交。fresh install 按用户指示延后至 D UI PR 集成后。
 - 结论：本轮集成准备与权限回归 PASS；最终系统仍待 UI、评估复核、竞品证据和最终安装/E2E。等待 D UI PR，不合 main。
+
+
+## 2026-09-08：PR #8 最终 UI 集成与 fresh install
+
+- A 基线 `41ab5ce8d4a23544a79e601bcacd6aa10d1369b9`，D head `828dc948767e64d28c2b6dc9450bd11162331910`；A 脚本适配/审查提交 `5a50ca408cdf721e073564c0094ccd22a7d29a24`。PR #8 merge **a41a31d22dac3b31cb7cac8303f63cdd799ecab4**，只合入 feat/core-a，未合 main。
+- Review **PASS（UI 范围）**：17 文件符合权限；五页真实流程、保护/重解析/保存重读、后端真实分数及状态、诊断失败/重试/事实提醒、市场来源/样本/未知薪资、固定文案及 Desktop/390px 已检查。模型输出原文不因术语清理被改写。详见 [审查](final/pr8-review.md)。
+- A 旧 live 脚本只适配定位/折叠入口/文案，业务断言保持。准确 D head：Python 396 passed、frontend 57 passed，真实 PG/pgvector 与 scope 通过；GitHub 10 项 SUCCESS。真实浏览器 53.155 秒成功。
+- 合并提交 GitHub CI SUCCESS。干净安装创建新 venv/空下载缓存、新空数据库；Python 396 passed、0 skipped（23.32 秒）、frontend 57 passed、Ruff、PG/pgvector、四模块契约与 scope 通过。真实链路首次 TemporaryLLMError/502，保留失败；第二次 53.757 秒成功，未降级为 Mock。18 条记录重启前后逐项一致；刷新/390px 读取、桌面/移动五页及演示/失败回归通过。见 [安装记录](final/fresh-install.md)。
+- 本次收尾更新 README、验收台账、AI 评估结论、竞品/痛点报告、演示脚本、测试与限制记录。评审原件 hash 不变；原三次模型评估不重跑、不覆盖。
+- **技术交付 PASS；完整课程/质量验收尚不具备全 PASS 条件**：固定质量评估没有非空 STAR 可评样本，解析漏项及匹配效果只能作为有限证据；两款竞品登录后核心体验未完成。故不创建宣称验收通过的 feat/core-a → main PR，不合 main。待补齐这些证据后再准备最终 PR。
