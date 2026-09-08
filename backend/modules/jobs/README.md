@@ -1,6 +1,7 @@
 # Jobs / 关键词匹配（D）
 
-Level 1 实现，不调用 AI 或 embedding。公共接口接入及验收见
+默认 Level 1 关键词匹配；可选本地 Embedding 增强见
+[Level 2 方案和公共请求](../../../docs/integration_requests/D-embedding-contract.md)。公共接口接入及 Level 1 验收见
 [D 集成记录](../../../docs/integration_requests/D-jobs-integration.md)。
 
 ## 接入
@@ -31,7 +32,8 @@ MySQL 不隐含 SQL；原文不反向覆盖用户编辑过的结构化技能，�
 ## 模式与验证
 
 规则服务 `is_mock=False` 表示真实规则计算，不表示真实 AI；上游 Mock 来源由公共层传播，页面明确标识。
-失败显示错误与重试，不回退伪装成功。没有 API Key、收费网络调用或向量数据库依赖。
+关键词请求失败显示错误与重试，不回退伪装成功。可选 embedding 不可用则保留关键词结果并明确标注语义降级。
+没有 API Key、收费网络调用或向量数据库依赖。默认关闭语义增强时结果与 Level 1 完全相同。
 
 ```powershell
 uv run --locked pytest tests/jobs -q

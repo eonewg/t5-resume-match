@@ -1,8 +1,11 @@
+import os
 from dataclasses import dataclass
 
 from backend.schemas.contracts import JD, JDData, JDInput, MatchResult, Resume
 
+from .embedding import LocalMiniLM
 from .keywords import TOOLS, canonicalize, extract, normalized
+from .semantic import enhance
 
 
 @dataclass(frozen=True)
@@ -15,6 +18,17 @@ class JDDetails:
 
 class JobsService:
     is_mock = False
+
+    def __init__(self, embedding=None, semantic_weight=None):
+        mode = os.environ.get("T5_JOBS_EMBEDDING", "off")
+        self.embedding = (
+            embedding if embedding is not None else LocalMiniLM() if mode == "local" else None
+        )
+        self.semantic_weight = (
+            float(os.environ.get("T5_JOBS_SEMANTIC_WEIGHT", "0.2"))
+            if semantic_weight is None
+            else semantic_weight
+        )
 
     def parse(self, data: JDInput) -> JDData:
         original = data.model_dump(warnings=False) if isinstance(data, JDInput) else data
@@ -37,6 +51,16 @@ class JobsService:
         )
 
     def match(self, resume: Resume, jd: JD) -> MatchResult:
+        return self.match_detail(resume, jd).result
+
+    def match_detail(self, resume: Resume, jd: JD):
+        resume = Resume.model_validate(resume.model_dump(warnings=False))
+        jd = JD.model_validate(jd.model_dump(warnings=False))
+        return enhance(
+            self.keyword_match(resume, jd), resume, jd, self.embedding, self.semantic_weight
+        )
+
+    def keyword_match(self, resume: Resume, jd: JD) -> MatchResult:
         resume = Resume.model_validate(resume.model_dump(warnings=False))
         jd = JD.model_validate(jd.model_dump(warnings=False))
         # Structured fields are authoritative (possibly edited by the user).

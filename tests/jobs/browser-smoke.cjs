@@ -12,7 +12,7 @@ const path = require('node:path');
     const resume=await saved.json();assert.equal(saved.status(),201);
     await page.goto('http://127.0.0.1:8768/?preview=jobs#jobs');
     await page.locator('#jobs-status').filter({hasText:'已加载'}).waitFor();
-    const match=page.getByRole('button',{name:'计算关键词匹配'});
+    const match=page.getByRole('button',{name:'计算匹配',exact:true});
     await match.click();await page.locator('#jobs-status').filter({hasText:'请选择'}).waitFor();
     await page.locator('#jobs-title').fill('数据实习生');
     await page.locator('#jobs-text').fill('要求 Python、SQL、Docker。');
@@ -21,8 +21,13 @@ const path = require('node:path');
     assert.match(await page.locator('#jobs-keywords').innerText(),/Docker.*Python.*SQL/);
     await page.locator('#jobs-resume').selectOption(resume.id);
     await match.click();await page.locator('#jobs-result:not([hidden])').waitFor();
-    assert.match(await page.locator('#jobs-result').innerText(),/33.33%/);
-    assert.match(await page.locator('#jobs-result').innerText(),/1\/3/);
+    if (process.env.T5_SMOKE_SEMANTIC === '1') {
+      assert.match(await page.locator('#jobs-result').innerText(),/语义增强：关键词分 33.33/);
+      assert.match(await page.locator('#jobs-result').innerText(),/cosine=/);
+    } else {
+      assert.match(await page.locator('#jobs-result').innerText(),/33.33%/);
+      assert.match(await page.locator('#jobs-result').innerText(),/1\/3/);
+    }
     await page.route('**/api/v1/matches',r=>r.fulfill({status:502,contentType:'application/json',body:JSON.stringify({error:{message:'测试服务失败'}})}));
     await match.click();await page.locator('#jobs-status').filter({hasText:'测试服务失败'}).waitFor();
     assert.equal(await page.locator('#jobs-result').isVisible(),false);assert.equal(await match.isEnabled(),true);
@@ -48,6 +53,6 @@ const path = require('node:path');
     let posts=0;page.on('request',r=>{if(r.url().endsWith('/api/v1/matches')&&r.method()==='POST')posts++;});
     await match.click();await page.locator('#jobs-result:not([hidden])').waitFor();assert.equal(posts,1);
     assert.deepEqual(errors,[]);console.log(JSON.stringify({status:'PASS',desktop,mobile,
-      checks:['empty','JD save/parse','selection','33.33 score/gap','failure/retry','Mock','XSS/long text','390px','navigation cleanup']}));
+      checks:['empty','JD save/parse','selection',process.env.T5_SMOKE_SEMANTIC === '1' ? 'real semantic blend/evidence' : '33.33 keyword score/gap','failure/retry','Mock','XSS/long text','390px','navigation cleanup']}));
   }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

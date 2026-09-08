@@ -21,7 +21,7 @@ export function mount(container, context) {
   const parsed = node('p'); parsed.id = 'jobs-keywords';
   const original = node('details'); original.append(node('summary','查看 JD 原文'));
   const originalText = node('p'); originalText.id = 'jobs-original'; original.append(originalText);
-  const run = node('button','计算关键词匹配'); run.className = 'button primary';
+  const run = node('button','计算匹配'); run.className = 'button primary';
   selectPanel.append(parsed, original, run);
   const mode = node('p'); mode.id = 'jobs-mode';
   const status = node('p'); status.id = 'jobs-status'; status.setAttribute('role','status'); status.setAttribute('aria-live','polite');
@@ -40,7 +40,7 @@ export function mount(container, context) {
     for (const field of [save,refresh,run,resume,jobs]) field.disabled = state.busy;
     for (const field of [title,company,raw]) field.readOnly = state.busy;
     mode.textContent = state.jobMock === true ? 'Mock 演示模式：不代表真实解析或评分。' : state.jobMock === false
-      ? '关键词规则模式 · 未启用 embedding' : '服务模式尚未确认。';
+      ? '保留关键词基线；语义增强或降级状态见评分依据。' : '服务模式尚未确认。';
     status.textContent = state.error || (state.busy ? '正在处理…' : state.notice);
     status.dataset.error = String(Boolean(state.error));
     const job = state.jobs.find(x => x.id === state.jdId);
@@ -49,8 +49,8 @@ export function mount(container, context) {
     results.replaceChildren(); results.hidden = !state.result;
     if (!state.result) return;
     const r = state.result;
-    const assessed = r.matched_skills.length + r.missing_skills.length > 0;
-    results.append(node('h2',r.is_mock ? '— · Mock 匹配结果' : assessed ? `${r.score}% · 关键词覆盖率` : '— · 无法有效评估'));
+    const assessed = r.matched_skills.length + r.missing_skills.length > 0 || r.score > 0;
+    results.append(node('h2',r.is_mock ? '— · Mock 匹配结果' : assessed ? `${r.score}% · 匹配分（详见评分依据）` : '— · 无法有效评估'));
     for (const [label, values] of [['已匹配技能/工具',r.matched_skills],['缺失技能 / gap',r.missing_skills],['评分依据',r.gap_analysis]]) {
       results.append(node('h3',label)); const list = node('ul');
       for (const value of values.length ? values : ['无']) list.append(node('li',value)); results.append(list);
