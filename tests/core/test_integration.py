@@ -165,3 +165,49 @@ def test_structured_resume_and_individual_routes(client):
         assert result.status_code == 201
         assert result.json()["is_mock"] is True
     assert client.get("/openapi.json").status_code == 200
+
+
+def test_diagnosis_uses_confirmed_fields_and_never_restores_removed_raw_facts(client, app):
+    captured = []
+
+    class Capture:
+        def diagnose(self, data):
+            captured.append(data)
+            return {"summary": "仅基于确认内容", "suggestions": ["请核实事实"]}
+
+    app.state.providers["diagnosis"] = Provider(Capture(), False)
+    original = "姓名：旧姓名\n技能：Python\n经历：曾带领团队增长 99%。"
+    job = client.post("/api/v1/jobs", json={"title": "分析", "jd_text": "SQL"}).json()
+    for fields in ({"name": "新姓名", "skills": ["SQL"], "experience": ["整理课程记录"]}, {}):
+        resume = client.post("/api/v1/resumes", json={"raw_text": original, **fields}).json()
+        for endpoint in ("diagnoses", "workflow"):
+            result = client.post(
+                "/api/v1/" + endpoint, json={"resume_id": resume["id"], "jd_id": job["id"]}
+            )
+            assert result.status_code == 201
+            assert "Python" not in captured[-1].resume_text
+            assert "99%" not in captured[-1].resume_text
+            assert "旧姓名" not in captured[-1].resume_text
+            if fields:
+                assert (
+                    "SQL" in captured[-1].resume_text and "整理课程记录" in captured[-1].resume_text
+                )
+            else:
+                assert "未提供" in captured[-1].resume_text
+        assert client.get("/api/v1/resumes/" + resume["id"]).json()["raw_text"] == original
+
+
+def test_diagnosis_rejects_oversized_confirmed_text_without_truncating(client, app):
+    class NeverCalled:
+        def diagnose(self, data):
+            pytest.fail("oversized input must fail before the provider")
+
+    app.state.providers["diagnosis"] = Provider(NeverCalled(), False)
+    resume = client.post(
+        "/api/v1/resumes", json={"raw_text": "原文", "experience": ["经" * 30000, "历" * 30000]}
+    ).json()
+    job = client.post("/api/v1/jobs", json={"title": "分析", "jd_text": "SQL"}).json()
+    result = client.post("/api/v1/diagnoses", json={"resume_id": resume["id"], "jd_id": job["id"]})
+    assert result.status_code == 422
+    assert "精简" in result.text
+    assert len(client.get("/api/v1/resumes/" + resume["id"]).json()["experience"]) == 2

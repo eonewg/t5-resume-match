@@ -6,13 +6,14 @@ export class ApiError extends Error {
   }
 }
 
-export function createApi({ fetchImpl = globalThis.fetch, timeoutMs = 45000 } = {}) {
+export function createApi({ fetchImpl = globalThis.fetch, timeoutMs = 45000, diagnosisTimeoutMs = 120000 } = {}) {
   async function request(path, { method = "GET", body } = {}) {
     if (!path.startsWith("/") || path.startsWith("//") || path.includes("\\")) {
       throw new ApiError("仅支持当前服务内的请求。");
     }
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const isDiagnosis = method === "POST" && ["/api/v1/diagnoses", "/api/v1/workflow"].includes(path);
+    const timer = setTimeout(() => controller.abort(), isDiagnosis ? diagnosisTimeoutMs : timeoutMs);
     try {
       const response = await fetchImpl(path, {
         method, signal: controller.signal,
