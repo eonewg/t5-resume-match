@@ -4,11 +4,13 @@ import threading
 import time
 from collections import OrderedDict
 
+from pydantic import ValidationError
+
 from backend.schemas.contracts import DiagnosisInput, DiagnosisResult
 
-from .client import DeepSeekClient, LLMClient
+from .client import LLMClient, create_client
 from .config import DiagnosisSettings
-from .errors import InvalidOutputError, TemporaryLLMError
+from .errors import ConfigurationError, InvalidOutputError, TemporaryLLMError
 from .prompts import PROMPT_VERSION, build_messages
 from .schema import DiagnosisDetail, parse_detail
 
@@ -22,8 +24,11 @@ class DiagnosisService:
         clock=time.monotonic,
         sleep=time.sleep,
     ):
-        self.settings = settings if settings is not None else DiagnosisSettings()
-        self.client = client if client is not None else DeepSeekClient(self.settings)
+        try:
+            self.settings = settings if settings is not None else DiagnosisSettings()
+        except ValidationError:
+            raise ConfigurationError("Diagnosis 模型配置无效，请检查本机配置") from None
+        self.client = client if client is not None else create_client(self.settings)
         self.is_mock = getattr(self.client, "is_mock", False) is True
         self._clock, self._sleep = clock, sleep
         self._cache: OrderedDict[str, tuple[float, DiagnosisDetail]] = OrderedDict()
@@ -51,6 +56,10 @@ class DiagnosisService:
             PROMPT_VERSION,
             self.settings.model,
             self.settings.base_url,
+            self.settings.llm_vendor,
+            self.settings.api_style,
+            self.settings.endpoint,
+            self.settings.reasoning_effort,
             data.resume_text,
             data.jd_text,
         ]
