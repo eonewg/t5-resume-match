@@ -1,13 +1,8 @@
 # Diagnosis 模块
 
-当前按两人开发分工执行：D 同时负责 jobs 与 diagnosis，新分支为 `feat/intelligence-d`，
-从最新 core-a 开发并向 core-a 提交 PR。完整约定与待办见
-[D 严格版计划](../../../docs/integration_requests/D-strict-plan.md)。
-本 README 的早期验证段落保留为历史记录；A 已在 `93e1b12` 正式挂载 diagnosis 页面。
-新 jobs/embedding 尚未实现，不能用 diagnosis 的离线结果代替新功能验收。
+本阶段分支 `feat/diagnosis-llm-d`，PR 指向 `feat/core-a`。D 维护三协议 LLM 层、STAR/JD 诊断、事实边界校验、重试和缓存；公共契约与数据库保持不变。
 
-负责 DeepSeek 调用、STAR 经历改写、面向 JD 的建议、关键词强化、结构校验、有限重试及内存缓存。
-Owner 为 D，开发分支 feat/intelligence-d，PR 指向 feat/core-a。公共接口与数据库由 A 维护。
+完整配置、能力表和真实验收见 [多协议验收记录](../../../docs/integration_requests/D-diagnosis-llm.md)。
 
 ## 接入公共系统
 
@@ -86,8 +81,13 @@ uv run --frozen uvicorn backend.modules.diagnosis.web:create_app --factory --hos
 
 | 环境变量 | 默认值 | 作用 |
 | --- | --- | --- |
-| `DEEPSEEK_API_KEY` | 空 | 真实调用必填，只在服务端读取 |
-| `T5_DIAGNOSIS_BASE_URL` | `https://api.deepseek.com` | HTTPS 的 Chat Completions 兼容服务根地址 |
+| `T5_DIAGNOSIS_LLM_VENDOR` | deepseek | openai / anthropic / deepseek / qwen / custom |
+| `T5_DIAGNOSIS_API_STYLE` | preset 决定 | openai_chat / openai_responses / anthropic_messages |
+| `T5_DIAGNOSIS_API_KEY` | 空 | 推荐密钥变量，仅服务端读取 |
+| `DEEPSEEK_API_KEY` | 空 | 仅 DeepSeek preset 的旧密钥兼容；新变量优先 |
+| `T5_DIAGNOSIS_ENDPOINT_PATH` | 未设置 | 根相对路径覆盖，例如 /v2/messages |
+| `T5_DIAGNOSIS_REASONING_EFFORT` | 未设置 | 仅已确认模型能力允许设置，否则配置错误 |
+| `T5_DIAGNOSIS_BASE_URL` | `https://api.deepseek.com` | HTTPS 地址；默认由 preset 决定，custom 必填 |
 | `T5_DIAGNOSIS_MODEL` | `deepseek-v4-flash` | 模型可替换 |
 | `T5_DIAGNOSIS_TIMEOUT_SECONDS` | 30 | 每次网络操作超时，范围 (0,120] 秒 |
 | `T5_DIAGNOSIS_MAX_ATTEMPTS` | 3 | 包含首次调用，总尝试次数 1–5 |
@@ -96,8 +96,8 @@ uv run --frozen uvicorn backend.modules.diagnosis.web:create_app --factory --hos
 | `T5_DIAGNOSIS_CACHE_TTL_SECONDS` | 600 | 缓存有效秒数；0 关闭，上限 3600 |
 
 除模型响应字段外，网络层使用 Python 标准库，不新增 OpenAI SDK 或 HTTPX 运行依赖。
-切换到非兼容模型可实现 `LLMClient.complete(messages) -> str` 并注入 `DiagnosisService(client=...)`。
-仅向官方 DeepSeek 地址发送 `thinking=disabled` 参数，兼容服务不带该扩展。
+三种 adapter 统一实现 `LLMClient.complete(messages) -> str` 并注入 `DiagnosisService(client=...)`。
+默认保留官方 DeepSeek 非思考策略；其他 reasoning 映射由 adapter 与能力白名单控制，custom 默认不发送扩展参数。
 
 ## 校验与恢复
 
@@ -137,7 +137,7 @@ node scripts/check_frontend.mjs
 
 离线测试覆盖公开 provider、持久化、工作流回滚及模型失败处理；最新实际结果见 [验证记录](../../../docs/validation.md)。
 
-真实模型的质量、延迟和费用尚待配置有效凭证实测。公共超时预算和依赖弃用提示由 A/D 按 [集成事项](../../../docs/integration_requests/D-integration.md) 处理。离线通过不代表真实模型或整套 T5 已验收。
+2026-09-08 已完成 custom / openai_chat / glm-5.2 的真实完整工作流验收，51.063 秒、1 次重试；详见多协议验收记录。其余协议只有离线验证，不能据此声称全部供应商线上验收。
 
 ## 个人报告可使用的实际开发记录
 
