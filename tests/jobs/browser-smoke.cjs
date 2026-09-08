@@ -15,10 +15,12 @@ const path = require('node:path');
     const match=page.getByRole('button',{name:'计算匹配',exact:true});
     await match.click();await page.locator('#jobs-status').filter({hasText:'请选择'}).waitFor();
     await page.locator('#jobs-title').fill('数据实习生');
-    await page.locator('#jobs-text').fill('要求 Python、SQL、Docker。');
+    await page.locator('#jobs-text').fill('要求 Python、SQL、Docker。\n薪资：CNY 10-15K/月');
     await page.getByRole('button',{name:'解析并保存 JD'}).click();
     await page.locator('#jobs-status').filter({hasText:'JD 已解析并保存'}).waitFor();
     assert.match(await page.locator('#jobs-keywords').innerText(),/Docker.*Python.*SQL/);
+    assert.match(await page.locator('#jobs-tools').innerText(),/Docker.*Python.*SQL/);
+    assert.match(await page.locator('#jobs-salary').innerText(),/10000–15000 CNY \/ month/);
     await page.locator('#jobs-resume').selectOption(resume.id);
     await match.click();await page.locator('#jobs-result:not([hidden])').waitFor();
     if (process.env.T5_SMOKE_SEMANTIC === '1') {

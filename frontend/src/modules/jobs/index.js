@@ -19,10 +19,12 @@ export function mount(container, context) {
     const label = node('label',text); label.htmlFor = field.id; selectPanel.append(label, field);
   }
   const parsed = node('p'); parsed.id = 'jobs-keywords';
+  const tools = node('p'); tools.id = 'jobs-tools';
+  const salary = node('p'); salary.id = 'jobs-salary';
   const original = node('details'); original.append(node('summary','查看 JD 原文'));
   const originalText = node('p'); originalText.id = 'jobs-original'; original.append(originalText);
   const run = node('button','计算匹配'); run.className = 'button primary';
-  selectPanel.append(parsed, original, run);
+  selectPanel.append(parsed, tools, salary, original, run);
   const mode = node('p'); mode.id = 'jobs-mode';
   const status = node('p'); status.id = 'jobs-status'; status.setAttribute('role','status'); status.setAttribute('aria-live','polite');
   const results = node('section'); results.id = 'jobs-result'; results.hidden = true;
@@ -45,6 +47,9 @@ export function mount(container, context) {
     status.dataset.error = String(Boolean(state.error));
     const job = state.jobs.find(x => x.id === state.jdId);
     parsed.textContent = job ? '技能/工具关键词：' + (job.skills.join('、') || '无可识别关键词') : '选择 JD 后显示解析结果。';
+    tools.textContent = job ? '工具：' + (job.tools?.join('、') || '未识别或未确认') : '';
+    salary.textContent = job ? '薪资原文：' + (job.salary || '未披露或无法明确解析') +
+      (job.salary_min != null && job.salary_max != null ? `；范围 ${job.salary_min}–${job.salary_max} ${job.currency || '币种未确认'} / ${job.salary_period || '周期未确认'}` : '') : '';
     originalText.textContent = job?.jd_text || '';
     results.replaceChildren(); results.hidden = !state.result;
     if (!state.result) return;

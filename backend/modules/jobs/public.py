@@ -6,6 +6,7 @@ from backend.schemas.contracts import JD, JDData, JDInput, MatchResult, Resume
 from .embedding import LocalMiniLM
 from .evidence_filter import filter_clauses
 from .keywords import TOOLS, canonicalize, extract, normalized
+from .salary import parse_salary
 from .semantic import enhance
 
 
@@ -36,7 +37,13 @@ class JobsService:
         checked = JDInput.model_validate(original)
         # Public validation trims for validity; preserve the caller's original text values.
         accepted = filter_clauses([checked.jd_text], jd=True)
-        result = JDData(**checked.model_dump(), skills=extract("\n".join(accepted.kept)))
+        skills = extract("\n".join(accepted.kept))
+        result = JDData(
+            **checked.model_dump(),
+            skills=skills,
+            tools=[word for word in skills if word in TOOLS],
+            **parse_salary(checked.jd_text),
+        )
         for field in ("jd_text", "title", "company"):
             setattr(
                 result, field, original[field] if field in original else getattr(checked, field)
