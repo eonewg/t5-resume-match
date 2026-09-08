@@ -17,6 +17,7 @@ class Module:
 
 
 BRANCHES = {"A": "feat/core-a", "D": "feat/intelligence-d"}
+D_BRANCHES = (BRANCHES["D"], "feat/diagnosis-llm-d")
 MODULES = {
     key: Module(
         key,
