@@ -1,0 +1,33 @@
+.resume-editor h1 { font-size: 28px; margin: 0; }
+.resume-editor h2 { font-size: 16px; margin: 0 0 22px; }
+.resume-lead { color: var(--muted); max-width: 760px; margin-bottom: 24px; }
+.resume-history { padding: 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+.resume-history label { margin: 0; }
+.resume-history select { flex: 1; min-width: 190px; max-width: 370px; border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: var(--surface); font: inherit; }
+.resume-history .button { padding: 8px 12px; font-size: 12px; }
+.resume-grid { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.15fr); gap: 22px; align-items: start; }
+.resume-source, .resume-fields { min-width: 0; padding: 26px; }
+.resume-source { position: sticky; top: 20px; }
+.resume-source textarea { min-height: 420px; line-height: 1.7; }
+.resume-help { color: var(--muted); font-size: 12px; line-height: 1.8; margin: 8px 0 14px; }
+.resume-field { margin-top: 20px; }
+.resume-label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 8px; }
+.resume-label-row label, .resume-label-row h3 { margin: 0; font-size: 13px; font-weight: 550; }
+.resume-field-badge { border: 1px solid var(--border); border-radius: 5px; padding: 2px 7px; color: var(--muted); font-size: 10px; white-space: nowrap; }
+.resume-field-badge[data-protected="true"] { color: var(--accent); background: var(--accent-soft); border-color: transparent; }
+.resume-fields textarea { min-height: 92px; }
+.resume-experience { border-left: 2px solid var(--border); padding-left: 12px; margin-bottom: 18px; }
+.resume-experience .button { margin-top: 8px; font-size: 11px; padding: 5px 10px; }
+.resume-experience textarea { min-height: 150px; }
+.resume-suggestion { margin-top: 10px; background: #f6f8f4; border-radius: 8px; padding: 10px 12px; }
+.resume-suggestion summary { font-size: 12px; color: var(--accent); cursor: pointer; }
+.resume-suggestion pre { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; font-size: 12px; max-height: 240px; overflow-y: auto; }
+.resume-suggestion .button { font-size: 11px; padding: 6px 10px; }
+.resume-save-panel { margin-top: 22px; padding: 24px 26px; }
+.resume-confirm { display: flex; gap: 10px; align-items: center; color: var(--ink); font-size: 13px; cursor: pointer; }
+.resume-confirm input { width: 18px; height: 18px; accent-color: var(--accent); flex-shrink: 0; }
+.resume-status { color: var(--accent); font-size: 13px; overflow-wrap: anywhere; }
+.resume-status[data-error="true"] { color: var(--danger); }
+.resume-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 18px; }
+@media (max-width: 1000px) { .resume-grid { grid-template-columns: minmax(0, 1fr); } .resume-source { position: static; } .resume-source textarea { min-height: 240px; } }
+@media (max-width: 520px) { .resume-source, .resume-fields, .resume-save-panel { padding: 18px; } .resume-actions > * { width: 100%; text-align: center; } .resume-history select { max-width: 100%; } }

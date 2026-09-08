@@ -38,7 +38,11 @@ def validate(directory: Path):
                 assert row["source_type"] == "real_web"
                 assert row["source_url"] not in old_urls and sha(value) not in old_texts
                 JDCreate.model_validate(
-                    {k: v for k, v in row.items() if k in JDCreate.model_fields}
+                    {
+                        **{k: v for k, v in row.items() if k in JDCreate.model_fields},
+                        # Preserve frozen provenance; translate the archive label to the API enum.
+                        "source_type": "real",
+                    }
                 )
             else:
                 assert row["source_type"] == "public_student_resume"

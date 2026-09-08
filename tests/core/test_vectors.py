@@ -140,7 +140,7 @@ def test_migration_idempotence_and_space_and_kind_isolation(pg_engine):
         assert len(repo.nearest("test", [1, 0, 0], kind="jd")) == 2
         assert len(repo.nearest("other", [1, 0], kind="jd")) == 1
         assert len(repo.nearest("test", [1, 0, 0], kind="resume")) == 1
-        assert sorted(session.scalars(select(versions.c.version))) == [1, 2, 3, 4]
+        assert sorted(session.scalars(select(versions.c.version))) == [1, 2, 3, 4, 5]
         with pytest.raises(ValueError, match="different model"):
             repo.register_space(
                 VectorSpace(id="test", model="wrong", dimensions=3, metric="cosine")

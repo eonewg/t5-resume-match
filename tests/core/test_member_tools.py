@@ -107,6 +107,7 @@ def test_d_offline_probe_never_constructs_or_calls_service(monkeypatch):
 
 def test_ci_requires_target_member_even_when_missing(tmp_path):
     assert ci_modules("feat/intelligence-d", tmp_path) == ["jobs", "diagnosis"]
+    assert ci_modules("feat/diagnosis-llm-d", tmp_path) == ["jobs", "diagnosis"]
     assert ci_modules("feat/core-a", tmp_path) == []
     with pytest.raises(CheckFailure, match="缺少"):
         module_tests_exist("resume", tmp_path)
@@ -135,6 +136,9 @@ def test_unassigned_branch_cannot_pass_ci(tmp_path):
     ("source", "target", "expected"),
     [
         ("feat/intelligence-d", "main", 1),
+        ("feat/diagnosis-llm-d", "main", 1),
+        ("feat/diagnosis-llm-d", "feat/intelligence-d", 1),
+        ("feat/diagnosis-llm-d-typo", "feat/core-a", 1),
         ("feat/typo", "feat/core-a", 1),
         ("feat/core-a", "main", 0),
         ("main", "feat/core-a", 1),
@@ -152,6 +156,7 @@ def test_ci_pr_direction(monkeypatch, source, target, expected):
 def test_d_ci_checks_both_modules_even_if_only_diagnosis_exists(tmp_path):
     (tmp_path / "backend/modules/diagnosis").mkdir(parents=True)
     assert ci_modules("feat/intelligence-d", tmp_path) == ["jobs", "diagnosis"]
+    assert ci_modules("feat/diagnosis-llm-d", tmp_path) == ["jobs", "diagnosis"]
     assert ci_modules("feat/core-a", tmp_path) == ["diagnosis"]
 
 
@@ -164,6 +169,24 @@ def test_owner_mapping_covers_current_modules():
         "D": ("jobs", "diagnosis"),
     }
     assert set(MODULES) == {"resume", "jobs", "diagnosis", "analytics"}
+
+
+@pytest.mark.parametrize("source", ["feat/intelligence-d", "feat/diagnosis-llm-d"])
+@pytest.mark.parametrize(
+    "path, expected", [("backend/modules/diagnosis/client.py", 0), ("backend/core/config.py", 1)]
+)
+def test_d_branches_keep_same_scope(monkeypatch, source, path, expected):
+    from scripts import check_scope
+
+    monkeypatch.setenv("GITHUB_HEAD_REF", source)
+    monkeypatch.setenv("GITHUB_BASE_REF", "feat/core-a")
+    monkeypatch.setattr(sys, "argv", ["check_scope", "--ci"])
+    monkeypatch.setattr(
+        check_scope.subprocess,
+        "run",
+        lambda *args, **kwargs: types.SimpleNamespace(returncode=0, stdout=(path + "\0").encode()),
+    )
+    assert check_scope.main() == expected
 
 
 @pytest.mark.parametrize("invalid", ["async", "signature", "noncallable"])

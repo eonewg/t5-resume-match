@@ -7,7 +7,7 @@ import sys
 from pathlib import PurePosixPath
 
 from backend.core.config import ROOT
-from scripts.member_specs import BRANCHES, MODULES
+from scripts.member_specs import BRANCHES, D_BRANCHES, MODULES
 
 
 def allowed_path(owner, path):
@@ -50,7 +50,7 @@ def main():
     if args.ci:
         ref = os.environ.get("GITHUB_HEAD_REF") or os.environ.get("GITHUB_REF_NAME", "")
         target = os.environ.get("GITHUB_BASE_REF", "")
-        if ref == BRANCHES["D"]:
+        if ref in D_BRANCHES:
             owner = "D"
             if target and target != BRANCHES["A"]:
                 print("FAIL: D PR 必须指向 feat/core-a。")
@@ -62,7 +62,7 @@ def main():
             print("A/main 的公共改动由 PR 审查；本项只检查 D 目录边界。")
             return 0
         else:
-            print("FAIL: 分支不符合 A/D 约定；D 开发使用 feat/intelligence-d。")
+            print(f"FAIL: 分支不符合 A/D 约定；D 开发使用 {' / '.join(D_BRANCHES)}。")
             return 1
     if owner is None:
         parser.error("请指定 owner D 或 --ci")

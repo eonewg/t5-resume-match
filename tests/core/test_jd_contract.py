@@ -83,9 +83,12 @@ def test_existing_jd_migration_is_additive_and_repeatable(tmp_path):
         assert row.is_mock is True
         assert all(row.payload[k] == v for k, v in old.items())
         assert row.payload["tools"] == [] and row.payload["salary"] is None
+        assert row.payload["source_type"] == "unknown"
+        assert row.payload["source_url"] is None and row.payload["collected_at"] is None
         assert list(session.scalars(select(versions.c.version).order_by(versions.c.version))) == [
             1,
             2,
+            5,
         ]
     engine.dispose()
 

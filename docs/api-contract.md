@@ -25,9 +25,10 @@
 | `POST /api/v1/diagnoses` | PairInput | 201，DiagnosisRecord |
 | `GET /api/v1/diagnoses/{id}` | 无 | DiagnosisRecord |
 | `POST /api/v1/workflow` | PairInput | 201，`{"match": MatchRecord, "diagnosis": DiagnosisRecord}` |
-| `GET /api/v1/analytics` | 无 | AnalysisResponse，基于当前全部 JD |
+| `GET /api/v1/analytics` | 可选 source_type、date_from、date_to | AnalysisResponse，基于筛选后的已录入 JD |
+| `POST /api/v1/analytics/sample-jobs` | 无 | 200，`{created, existing, jd_ids}`；主动导入 5 份固定真实快照 |
 
-列表 limit 1–100，offset ≥ 0，按创建时间、ID 升序。当前为小型课程数据集，全量分析由 A 的 analytics 接口接收全部 JD；扩大数据量前需增加公共分页/聚合接口。POST 非幂等，每次创建新记录。
+列表 limit 1–100，offset ≥ 0，按创建时间、ID 升序。当前为小型课程数据集，analytics 公共层读取全部 JD 后统一筛选，再传入 provider；扩大数据量前需增加数据库筛选/聚合。普通创建 POST 非幂等，每次创建新记录；固定 sample-jobs 导入按来源/采集日期/原文去重，使用确定性 ID 与事务，不覆盖已有快照。
 
 ## 数据结构
 
@@ -38,6 +39,8 @@ ResumeData：
 ```
 
 `raw_text` 必填且逐字保留（含首尾空白和换行），纯空白拒绝；其余字段有默认值，未知 name 为 null。Resume 在其上增加服务端 `id=resume_<uuid>`。结构化保存不进行技能推断。preview 用于编辑前草稿，POST /resumes 保存确认后的新版本；不覆盖历史记录。
+
+Resume 编辑器已实现：首次解析仅填充未保护字段；用户手动修改或确认的字段（包括空值/空数组）不再被重解析自动替换。主动逐项“采用建议”可以替换对应字段。保存后 GET 比较全部字段，验证一致才更新共享 resumeId；读取失败只重试读取已保存 ID，不重复 POST。解析器识别明确的 Relevant/Other/Research/Professional Experience 标题；Markdown 同级未知标题结束当前章节，子标题作为经历/学校内容。不会根据标题猜技能。
 
 JDInput 是 D 的旧 parse port，保持 title/company/jd_text 三字段；HTTP JDCreate 与返回的 JDData/JD 增加可选字段：
 
@@ -55,11 +58,14 @@ JDInput 是 D 的旧 parse port，保持 title/company/jd_text 三字段；HTTP 
 | `salary_min / salary_max` | `null`；非负有限数值，二者都存在时 min ≤ max；以 currency/period 对应的实际金额为单位，不默认是 K/月 |
 | `currency` | `null`；已确认币种标签，如 CNY、USD、EUR，不推断币种 |
 | `salary_period` | `null`；已确认周期标签，如 hour、day、month、year，不做跨周期换算 |
+| `source_type` | `unknown`；real / course / synthetic / unknown，分别为真实采样、课程样本、合成演示、来源未确认 |
+| `source_url` | `null`；最多 2000 字符的 HTTP(S) 来源链接，拒绝凭据型 URL；不由服务自动抓取 |
+| `source_name` | `null`；可选来源名称，最多 200 字符 |
+| `collected_at` | `null`；ISO 日期 YYYY-MM-DD，表示资料采集日期，不代表职位发布日期 |
 
 HTTP 层只向旧 provider 传 JDInput；provider 可返回完整 JDData。客户端显式给出的确认字段覆盖解析结果（包括 skills=[]、salary=null），省略的字段保留 provider 结果。
 真实 Jobs 的 tools 输出采用 D 已有工具标签规则，`Python SQL Docker` 返回 `["Docker", "Python", "SQL"]`。PR #6 已集成保守薪资解析与可选语义缓存；仅解析明确薪资表达，不猜测币种/周期。A 不另写关键词算法。
-所有可选字段写入 jobs.payload JSON，列表/按 ID 读取完整返回；旧 JSON 缺失字段按默认值兼容，并通过 migration 2 非破坏性补齐，保留已有值、ID、时间和 Mock 来源。
-来源时间、URL、采样标签仍保存在验收数据文件中，不作为未定义的 API 输入。
+所有可选字段写入 jobs.payload JSON，列表/按 ID 读取完整返回；旧 JSON 缺失字段按默认值兼容。migration 2 补技能/薪资，migration 5 补来源默认字段，保留已有值、ID、时间和 Mock 来源。source_type=real 必须同时提供 source_url 和 collected_at；该标签表示录入方提供了可追溯资料，不等于平台独立核验，也不表示岗位现在仍开放。旧记录不自动推断为 real。
 
 PairInput：
 
@@ -71,7 +77,29 @@ MatchResult 保持团队原约定：两个关联 ID、0–100 有限数值 `scor
 
 D 的公开方法收到 `{"resume_text":"原文","jd_text":"原文"}`，返回 `{"summary":"诊断摘要","suggestions":["建议"]}`。HTTP 接口通过 PairInput 读取公共记录后调用 D，返回 DiagnosisRecord（加 `id`、关联 ID、`is_mock`）。
 
-analytics 的公开方法接收 `list[JD]`，返回 `{"summary":"分析摘要","skills":{"Python":3}}`；HTTP 响应再加 `is_mock`。此结构是基础统计交接点，不是最终看板图表契约，薪资、来源、时间范围及图表字段仍待 A/D 对齐后由 A 扩展，当前 v1 不接受这些未知字段。
+analytics 的公开方法仍为 `analyze(list[JD]) -> AnalysisResult`，兼容旧的 summary/skills 返回；新增可选 market，旧 provider 默认 market=null。HTTP 响应增加 is_mock 和 scope。默认真实入口为 `backend.modules.analytics.public:AnalyticsService`。
+
+### Analytics 口径与响应
+
+`GET /analytics?source_type=real&date_from=2026-09-01&date_to=2026-09-08`：来源可省略表示全部；日期边界闭区间，起点晚于终点返回 422。指定日期边界时排除无采集日期记录，绝不以录入日期填补。real 筛选额外排除 Mock 输入；不筛来源时保持旧 Mock 传播行为。前端默认选择 real，普通手动输入未标来源的 JD 在 unknown/全部筛选中可见。
+
+| 响应字段 | 内容 |
+| --- | --- |
+| summary / skills | 摘要 / 以技能展示名为键、包含该技能的 JD 数量为值的字典，兼容旧字段 |
+| scope | source_type、date_from/date_to、available_count（全库记录数）、selected_count、mock_count、excluded_mock_count |
+| market.sample_size / company_count / unknown_company_count | 当前筛选 JD 数、已知雇主数、雇主未知记录数 |
+| market.source_counts / collected_from / collected_to / undated_count | 当前筛选的来源组成、实际采集日期范围及无日期数 |
+| market.skill_frequency | `{skill, job_count, share_percent}` 数组，按数量降序，同数量按规范化名称排序；词云与频率条形图使用同一数据 |
+| market.jobs | 逐岗 jd_id、title、company、skills、来源字段、salary 原文、salary_status；不回传大段 JD 原文 |
+| market.salary_coverage | comparable_count、missing_range_count、missing_unit_count，三者之和为 sample_size |
+| market.salary_groups | `{currency, period, sample_size, ranges:[{jd_id,title,lower,upper}]}`；每个币种/周期独立分组 |
+| market.observations | 数据口径、样本内观察、缺失值与偏差说明，不外推整个市场 |
+
+技能统计仅消费已保存 skills；NFKC/大小写/空白规范化后每条 JD 同一关键词只计一次，不重新解析原文、不额外叠加 tools、不推断同义词。比例分母为当前筛选全部 JD，多个技能可以重叠。逐岗列表保留完整技能，页面词云前 30、条形图前 15，标注展示范围并提供全部频率表。
+
+薪资缺任一上下界计 missing_range；有上下界但币种不是明确三字母标签（或为 XXX），或周期不在 hour/day/month/year，计 missing_unit。只有其余记录进入 comparable 分组；币种大小写统一为大写、周期为小写，除此之外不折汇、不跨周期换算。unknown 不填零，明确输入的 0 元区间则保留为真实数值。图中画原区间，不用区间中点冒充实际工资。不同组使用独立刻度。
+
+`POST /analytics/sample-jobs` 只读仓库固定的 2026-09-08 五份 Canonical 来源快照，通过当前 Jobs provider 解析并保存来源与原文；不联网采样，不把福利预算转成薪资。重复调用返回 existing，不覆盖用户确认字段。需要真实 Jobs provider；Mock 时 409。导入与整批保存同事务，真实 PG 并发导入不会重复计数。返回 ID 可能为 `jd_market_<hash>`，客户端始终把 ID 当不透明值。
 
 简历原文必须非纯空白且 ≤ 50,000 字符，保留原始空白；JD 原文等其他 Text 字段仍沿用 v1 首尾去空白规则。title、技能/工具、币种/周期及关联 ID 最多 200 字符；简历技能/经历及 JD 技能/工具数组最多 500 项。name、education、company 是可选描述字段，暂未统一长度约束。
 
@@ -83,6 +111,8 @@ analytics 的公开方法接收 `list[JD]`，返回 `{"summary":"分析摘要","
 
 ## 变更记录
 
+- 2026-09-08（A 产品阶段）：Resume 编辑器与保守章节修复；JD 来源字段及迁移 5；默认真实 Analytics、来源/日期筛选、market/scope 可选扩展及固定快照导入。JDInput、PairInput、MatchResult 与 Diagnosis 协议保持不变。
+
 - 2026-09-08：发布兼容的 JDCreate、tools/薪资公共字段与旧记录迁移；JDInput provider port 不变。默认接入 ResumeService / JobsService；新增 Resume preview 与可选倒序列表。向量接口见 [PostgreSQL 与向量契约](postgres.md)。
 
 - 2026-09-07：增加同源公共前端壳与合成样例静态入口；根页面不再跳转 Swagger，`/docs` 保持可用。未改变现有业务 API 的输入输出。
@@ -91,11 +121,10 @@ analytics 的公开方法接收 `list[JD]`，返回 `{"summary":"分析摘要","
 
 ## 严格 T5 后续契约
 
-以上 2026-09-08 字段已实现并验证；以下仍为待办，不能按已完成验收。
+以上字段已实现并验证；后续仍须完成最终系统与真实效果验收。
 
-- 简历编辑：现有 POST /resumes 接收编辑后的 ResumeData 并生成新 ID，GET 可重新读取。A 的编辑器须保留原文，显示编辑结果；不能把已有 API 当作 UI 已完成。
-- JD：工具/薪资解析及展示已随 PR #6 集成；来源分类和采样时间的 API 扩展仍待明确。
-- 分析：目前只有 summary/skills，尚不足以承载薪资分布、岗位技能分布和时间/来源口径。A 明确响应结构、同步前端和测试，不提前展示不存在的接口。
+- 简历编辑：已实现 UI 与保存重读，规则解析仍可能遗漏，需要人工核对；未将自动解析当事实认证。
+- JD/分析：来源、技能与分组薪资口径已提供；扩大真实雇主和薪资样本、人工效果评估仍待完成，当前五份快照均未知薪资。
 - 向量：公共 VectorRepository 与 D 片段缓存已集成；显式 local 使用固定 MiniLM revision、t5-clauses-v2、384 维 cosine 和独立空间。语义增强默认 off，参数见 D embedding 契约；公共仓储不指定业务默认模型。
 - 保持现有调用兼容；新增可选字段应有默认/空值与旧数据验证，破坏性变更新建 API 版本。
 

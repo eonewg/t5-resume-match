@@ -1,5 +1,8 @@
 """Real parser, editable persistence and fact/source preservation."""
 
+import json
+from pathlib import Path
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -76,6 +79,49 @@ def test_parser_is_stateless_and_long_input_is_not_lost():
     assert result.name is None
     assert result.skills == []
     assert result.raw_text == raw
+
+
+def test_student_03_recognizes_explicit_experience_sections_without_guessing():
+    path = Path(__file__).resolve().parents[2] / "data/holdout/2026-09-08/resumes/student-03.json"
+    raw = json.loads(path.read_text(encoding="utf-8"))["raw_text"]
+    result = parse(raw)
+    assert result.raw_text == raw
+    assert result.name is None
+    assert result.skills == ["Python"]
+    assert len(result.experience) == 10
+    assert "Developed Python API" in result.experience[0]
+    assert "102 murine breast cancer tissue slices" in result.experience[0]
+    assert "Summer Undergraduate Research Scholar" in result.experience[1]
+    assert "Lab Peer Supervisor" in result.experience[-1]
+    assert "University of Washington" in result.education
+    assert "Research Assistant" not in result.education
+    assert "Other Experience" not in result.education
+
+
+def test_markdown_peer_heading_stops_capture_but_child_heading_keeps_role():
+    result = parse(
+        "## Relevant Experience\n### Course research\n\nUsed Python for a course dataset.\n"
+        "\n### Second project\nUsed SQL for course records.\n"
+        "## Future plans\nUsed Docker in a hypothetical role.\n"
+        "## Education\n### Example College\nBSc\n## Additional information\nPrivate notes"
+    )
+    assert result.skills == ["Python", "SQL"]
+    assert result.experience == [
+        "### Course research\n\nUsed Python for a course dataset.",
+        "### Second project\nUsed SQL for course records.",
+    ]
+    assert result.education == "### Example College\nBSc"
+
+
+def test_experience_heading_does_not_invent_skills_from_intentions_or_similar_words():
+    result = parse(
+        "## Relevant Experience\n### Course project\nPlan to use Python next term.\n"
+        "Not familiar with SQL.\nUsed NoSQL in coursework.\n"
+        "## Relevant Experience Goals\nUsed Docker in an imagined future position."
+    )
+    assert result.skills == []
+    assert len(result.experience) == 1
+    assert "imagined" not in result.experience[0]
 
 
 @pytest.fixture

@@ -105,6 +105,11 @@ textarea:focus, input:focus { border-color: #84aa98; background: #fff; outline: 
 .badge[data-real="true"] { color: var(--accent); background: var(--accent-soft); }
 .page-footer { font-size: 10px; color: #a4afa7; margin-top: 42px; padding-top: 18px; border-top: 1px solid var(--border); display: flex; justify-content: space-between; gap: 12px; }
 .module-placeholder { padding: 60px 32px; text-align: center; }
+.editor-entry { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 22px; margin-bottom: 28px; }
+.editor-entry p, .quick-workflow-note { color: var(--muted); font-size: 12px; }
+.editor-entry p { margin: 5px 0 0; }
+.editor-entry .button { flex-shrink: 0; }
+@media (max-width: 760px) { .editor-entry { align-items: flex-start; flex-direction: column; } }
 .module-placeholder h1 { font-size: 26px; }
 .module-placeholder p { color: var(--muted); margin: 16px 0 24px; }
 @media (min-width: 1100px) { #resume-text { min-height: 284px; } #job-text { min-height: 200px; } }

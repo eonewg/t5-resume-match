@@ -1,5 +1,32 @@
 # 开发验证
 
+## 2026-09-08：A Resume / Analytics 产品验证
+
+基线 `ee983782ef7c8af411869b52a55422267be54b96`，本记录随产品功能提交；最终提交由 Git 历史定位。未修改 D Jobs/Embedding/Diagnosis 业务文件或测试，未触及 main。
+
+- `uv sync --locked` 通过；`ruff check backend tests scripts examples`、`ruff format --check backend tests scripts examples` 通过（84 文件）。
+- 连接真实 PostgreSQL 17.6 / pgvector 0.8.1 后，`uv run --locked pytest -q`：**264 passed、0 skipped，18.81s**。覆盖来源迁移保值、Resume 确认字段及主链路、Analytics 分组/缺失口径、真实 PG 并发导入幂等与事务回滚。两个既有依赖弃用提示仍存在。
+- `node scripts/check_frontend.mjs`：**53 passed**。Windows 沙箱限制子进程导致首轮 spawn EPERM，在获准环境重跑通过；未删测试规避。
+- `uv run --locked python -m scripts.smoke_postgres` 通过扩展、迁移、索引、向量 upsert/query 与 Resume → JD → keyword match。
+- Resume/Analytics 成员自检通过；此额外检查未设 PG 变量，公共测试有 32 个数据库跳过，数据库验收仍以前述全量 264 项无跳过结果为准。成员自检临时目录权限失败在获准环境解决。`validate_data` 通过；`validate_holdout` 已适配历史 `real_web` 到 API `real` 的标签映射，不修改冻结样本。
+- 浏览器插件缺失其配置指向的 `browser-service.mjs`，改用独立 Playwright / 无头 Edge；真实 FastAPI/PG 临时 schema，1440px 和 390px 实测。验证 student-03 解析、修改/清空/确认字段保护、显式采用、解析失败保留编辑、保存后逐字段 GET 比较、读取失败重试不重复 POST、刷新载入一致、跨页草稿保留。
+- Resume 编辑器 → JD → Match 使用只确认 SQL 的合成简历；真实关键词结果未从原文补回 Python，semantic 维持 off。Analytics 导入 5 份真实快照，重复导入不增量，来源/日期过滤、真实未知薪资和移动端通过；另以 synthetic 数据验证 CNY/year、USD/month、EUR/hour 独立图形、缺单位排除、API 故障恢复。
+
+浏览器复现（需要本机可用的 Playwright 包和 Edge，Node 的 NODE_PATH 指向安装位置；两个终端）：
+
+```powershell
+# 终端一；退出时清理独立 PG schema
+. ./scripts/local_postgres.ps1 -Action Connect
+uv run --locked python -m tests.core.product_browser_server
+# 终端二
+node tests/core/product-smoke.cjs
+Invoke-RestMethod -Method Post http://127.0.0.1:8770/__verification_shutdown
+```
+
+本机证据保留于 ignored `.verification/product-browser-report.json`、`product-market-real.json`、`product-resume-{desktop,mobile}.png`、`product-analytics-real-{desktop,mobile}.png`、`product-analytics-salary-fixtures.png`；可复现脚本与断言提交 Git。截图已检查编辑器、移动端与图表呈现。浏览器验证不是用户已登录会话，也不包含真实 Diagnosis 模型输出。
+
+真实样本结果见 [五份 JD 报告](analytics-sample-analysis.md)。此轮未重跑 MiniLM holdout 分数：student-03 的解析输入已改变，旧 D 报告保留为历史证据，后续质量评估需固定新输入和新 A SHA。完整系统门槛见 [验收台账](acceptance.md)。
+
 ## 2026-09-08：PR #6 合并提交复验
 
 实测提交 `79e35a9de94245c466e9218ef132643d92c1eb0a`，完整范围及 A/D 后续见 [验收台账](acceptance.md)。本轮开始时 PR 已合并，仅进行合并后复核。

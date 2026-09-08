@@ -20,7 +20,7 @@
 | `backend/modules/resume/` | A，保守规则解析；编辑保存通过公共 API，专用 UI 待完成 |
 | `backend/modules/jobs/` | D，已集成 JD 关键词与可解释匹配 |
 | `backend/modules/diagnosis/` | D，已集成诊断实现，真实模型待验证 |
-| `backend/modules/analytics/` | A，预留市场分析实现 |
+| `backend/modules/analytics/` | A，已录入 JD 的来源、技能和分组薪资统计 |
 
 业务目录由成员创建。业务模块可以导入公共 Schema/ports；A 只导入成员发布的公开入口，不导入内部函数。现有标准路由保持稳定，接入模块时替换 provider；需要额外路由时提交集成请求，由 A 挂载到 v1。
 
@@ -56,9 +56,9 @@ SQLite 保留为零服务演示默认方案；PostgreSQL + pgvector 已落地并
 | `vector_spaces`（PG） | 不可混用的模型/预处理标识、维度、距离 |
 | `document_vectors`（PG） | vector 列、空间/源外键、source_hash，按空间和源类型隔离 |
 
-关系字段独立列，业务结构存 JSON，以支持初期可变字段；尚无需要数据库级筛选的技能查询。UUID 由 A 生成。SQLite 每连接启用外键。创建记录后不提供原地更新/删除，以保留结果关联的原始输入；编辑器应复用 POST /resumes 保存编辑后的新记录并重新读取，再生成新结果；当前尚无编辑器 UI。保留 raw_text，不能重解析覆盖用户编辑。后续更新/删除或版本关联扩展由 A 明确后写入契约。
+关系字段独立列，业务结构存 JSON。普通记录 UUID 由 A 生成；固定市场快照导入使用来源/日期/原文的确定性 ID 实现去重。SQLite 每连接启用外键。创建记录后不提供原地更新/删除，以保留结果关联的原始输入。Resume 编辑器通过 POST /resumes 保存新版本，再 GET 比对确认值；raw_text 保留，重解析不覆盖用户编辑。Analytics 公共层统一筛选来源与日期，纯统计 provider 只接收 JD，不访问数据库；扩容前需下推数据库筛选/聚合。
 
-每请求一个 session/事务，在 HTTP 响应发送前完成提交；错误自动回滚。`/workflow` 内匹配与诊断同事务，诊断失败不会留下半条流程结果。服务启动调用 migrate(engine) 并在退出时释放连接。迁移 1 接纳旧表，迁移 2 补 JD 可选 JSON 字段，迁移 3 仅在 PG 创建扩展与向量表；不自动重建或删除数据。
+每请求一个 session/事务，在 HTTP 响应发送前完成提交；错误自动回滚。`/workflow` 内匹配与诊断同事务，诊断失败不会留下半条流程结果。服务启动调用 migrate(engine) 并在退出时释放连接。迁移 1 接纳旧表，2 补 JD 可选 JSON 字段，3/4 在 PG 创建向量与片段表，5 补来源默认值；不自动重建或删除数据。
 
 简历/JD 来源为 Mock 时，后续结果继续标记 Mock，即使计算 provider 已换为真实实现。解析记录通过响应头暴露 Mock 状态；结果直接带 `is_mock`。
 
