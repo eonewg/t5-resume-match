@@ -1,0 +1,18 @@
+[
+  {"id":"synonym-zh","category":"同义技能/中文","jd":"定位程序错误并修复缺陷","skills":["调试"],"positive":"排查软件故障，修正导致异常的代码","negative":"整理员工考勤报表","expect":"rank"},
+  {"id":"synonym-en","category":"同义技能/英文","jd":"Build reliable data ingestion pipelines","skills":["ETL"],"positive":"Implemented robust workflows that collect and import datasets","negative":"Painted office walls and repaired chairs","expect":"rank"},
+  {"id":"rewrite-zh","category":"技能描述改写/中文","jd":"降低网页加载延迟","skills":["性能优化"],"positive":"压缩静态资源并减少网络请求，让页面更快呈现","negative":"为活动设计宣传标语","expect":"rank"},
+  {"id":"rewrite-en","category":"技能描述改写/英文","jd":"Detect suspicious transactions","skills":["风控"],"positive":"Identified unusual payments and investigated potential fraud","negative":"Documented employee holiday requests","expect":"rank"},
+  {"id":"negative-only-zh","category":"否定要求/中文","jd":"不需要 Rust 开发经验","skills":[],"positive":"策划校园展览","negative":"Rust 系统开发经验丰富","expect":"zero"},
+  {"id":"negative-only-en","category":"否定要求/英文","jd":"C++ experience is not required.","skills":[],"positive":"Scheduled customer interviews","negative":"Implemented C++ applications","expect":"zero"},
+  {"id":"intent-zh","category":"学习意向/中文","jd":"维护 Redis 缓存服务","skills":["Redis"],"positive":"配置缓存过期策略，排查缓存击穿问题","negative":"计划学习 Redis 缓存维护","expect":"rank"},
+  {"id":"intent-en","category":"学习意向/英文","jd":"Develop mobile applications with Swift","skills":["Swift"],"positive":"Delivered iOS apps using Swift and tested their release builds","negative":"Interested in Swift mobile application development","expect":"rank"},
+  {"id":"related-zh","category":"相近但不同技能/中文","jd":"实现后端接口权限校验","skills":["鉴权"],"positive":"检查访问令牌并阻止未授权请求","negative":"为登录页面绘制按钮和图标","expect":"rank"},
+  {"id":"related-en","category":"相近但不同技能/英文","jd":"Optimize SQL query execution","skills":["SQL"],"positive":"Tuned database indexes to reduce query latency","negative":"Designed a search box for the website homepage","expect":"rank"},
+  {"id":"benefits-zh","category":"福利与岗位混合/中文","jd":"维护自动化测试流程。福利包括摄影课程和带薪年假。","skills":["自动化测试"],"positive":"编写持续集成测试脚本","negative":"组织摄影课程和带薪年假活动","expect":"rank"},
+  {"id":"company-en","category":"公司介绍与岗位混合/英文","jd":"Maintain Linux servers. Our company sells designer furniture.","skills":["Linux"],"positive":"Administered Linux services and resolved server outages","negative":"Sold designer furniture in a showroom","expect":"rank"},
+  {"id":"benefits-only","category":"仅福利/中文","jd":"福利：免费健身课程和年度旅游。","skills":[],"positive":"维护构建流水线","negative":"组织健身课程和旅游","expect":"zero"},
+  {"id":"not-only","category":"否定词但正向事实/英文","jd":"Develop Java services","skills":["Java"],"positive":"Not only built Java services but also deployed them","negative":"Arranged Java training sessions for colleagues","expect":"rank"},
+  {"id":"mixed-clause","category":"否定与事实同句/中文","jd":"维护 MySQL 数据库","skills":["MySQL"],"positive":"没有 Oracle 经验，但维护过 MySQL 数据库","negative":"编写数据库产品的广告文案","expect":"rank"},
+  {"id":"english-ml","category":"learning 非学习意向/英文","jd":"Train machine learning classifiers","skills":["机器学习"],"positive":"Trained machine learning classifiers and measured precision","negative":"Published restaurant menus","expect":"rank"}
+]

@@ -1,7 +1,11 @@
 # D：开发计划与公共集成请求
 
-本阶段交付 Jobs/Matching 关键词基线及 Jobs 前端预览；不包含 Embedding。
-开发流程：`feat/intelligence-d → feat/core-a`。本轮同步基线：`844b89c`。
+最新阶段：轻量否定/意向过滤，原开发集 7/8、新增独立集 14/16；详见 [过滤验证](D-filter-validation.md)。
+保留误伤案例，默认 off；A Vector Port 尚未提供，未进行 pgvector 接入。
+
+Level 1 已经 A 合并（PR #5）；本阶段实现可选本地 Embedding，默认关闭，待业务验收。
+开发流程：`feat/intelligence-d → feat/core-a`。本轮同步基线：`ebbe251`。
+Level 2 方案/验证/接口请求见 [语义匹配记录](D-embedding-contract.md)，真实模型在 8 组新对照中排序正确 6 组，否定/学习意向仍存在误判。
 具体实现、验收证据和待 A 集成事项见 [本阶段记录](D-jobs-integration.md)。
 
 ## 统一依据
@@ -22,7 +26,7 @@
 | Level 1 关键词匹配 | 0–100、matched/missing、评分解释与异常测试 | 规则服务、28 项测试及前端预览通过；待 A 业务验收/默认导航集成 |
 | Level 2 STAR | 原文/优化/理由、事实边界、待补充成果 | Diagnosis 已有代码和离线测试；真实模型质量未验证 |
 | Level 2 JD 定向诊断 | 关键词、已有经历、技能/表达 gap、量化补充建议 | 已有结构，需结合交接样本逐项评估 |
-| 向量增强 | 模型/维度/距离/归一化/组合权重/降级 | 未实现，参数待定，不替代关键词基线 |
+| 向量增强 | 模型/维度/距离/归一化/组合权重/降级 | MiniLM 384 维 cosine 本地实现及降级已验证；默认关闭；pgvector 待 A port，生产语义验收未完成 |
 | Level 3 数据支持 | tools/salary/raw_text 等解析、持久化与分析口径 | 内部技能/工具分离；独立字段、薪资及分析口径待 A 契约 |
 | 样本分析 | 技能/表达 gap、人工 baseline 对照 | 30 JD / 40 配对关键词样本内报告完成；表达 gap 和独立评测仍待推进 |
 | 最终系统 | 全链路、真实 AI、PostgreSQL/pgvector | 未完成真实验收 |

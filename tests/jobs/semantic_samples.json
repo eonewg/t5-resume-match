@@ -1,0 +1,10 @@
+[
+  {"id":"cleaning","jd":"清洗数据，处理缺失值和重复记录","skills":["数据清洗"],"positive":"对数据进行去重并填补空值","negative":"设计商品海报，调整字体和配色"},
+  {"id":"visualization","jd":"构建与维护数据可视化报表","skills":["数据可视化"],"positive":"制作图表和仪表盘，展示业务指标","negative":"负责物流仓库盘点与货品打包"},
+  {"id":"deployment","jd":"使用容器部署后端服务","skills":["Docker"],"positive":"将服务器程序打包为 Docker 镜像并发布","negative":"整理项目会议记录并安排员工出差"},
+  {"id":"retention","jd":"分析客户流失原因并提升留存","skills":["用户运营"],"positive":"研究用户离开的因素，提出让用户继续使用产品的方案","negative":"设计机器人运动控制算法"},
+  {"id":"cross-language","jd":"自动执行软件测试以减少回归缺陷","skills":["自动化测试"],"positive":"Built automated test suites to catch software regressions","negative":"Organized office furniture and managed travel bookings"},
+  {"id":"negation","jd":"有数据库查询优化经验","skills":["SQL"],"positive":"分析慢查询，改写语句以缩短执行时间","negative":"没有数据库查询优化经验，也从未做过慢查询分析"},
+  {"id":"aspiration","jd":"能够训练机器学习模型","skills":["机器学习"],"positive":"训练分类器并比较验证集上的预测效果","negative":"希望未来学习机器学习模型训练，目前没有实践经验"},
+  {"id":"related-not-equivalent","jd":"设计数据库索引以优化查询性能","skills":["索引优化"],"positive":"为检索字段创建索引，改进 SQL 执行计划","negative":"设计网页上的搜索图标及输入框布局"}
+]

@@ -1,8 +1,14 @@
+import os
 from dataclasses import dataclass
 
 from backend.schemas.contracts import JD, JDData, JDInput, MatchResult, Resume
 
+from .embedding import LocalMiniLM
+from .evidence_filter import filter_clauses
 from .keywords import TOOLS, canonicalize, extract, normalized
+from .salary import parse_salary
+from .semantic import enhance
+from .vector_cache import cached_comparator
 
 
 @dataclass(frozen=True)
@@ -16,15 +22,28 @@ class JDDetails:
 class JobsService:
     is_mock = False
 
+    def __init__(self, embedding=None, semantic_weight=None):
+        mode = os.environ.get("T5_JOBS_EMBEDDING", "off")
+        self.embedding = (
+            embedding if embedding is not None else LocalMiniLM() if mode == "local" else None
+        )
+        self.semantic_weight = (
+            float(os.environ.get("T5_JOBS_SEMANTIC_WEIGHT", "0.2"))
+            if semantic_weight is None
+            else semantic_weight
+        )
+
     def parse(self, data: JDInput) -> JDData:
         original = data.model_dump(warnings=False) if isinstance(data, JDInput) else data
         checked = JDInput.model_validate(original)
         # Public validation trims for validity; preserve the caller's original text values.
-        skills = extract(checked.jd_text)
+        accepted = filter_clauses([checked.jd_text], jd=True)
+        skills = extract("\n".join(accepted.kept))
         result = JDData(
             **checked.model_dump(),
             skills=skills,
             tools=[word for word in skills if word in TOOLS],
+            **parse_salary(checked.jd_text),
         )
         for field in ("jd_text", "title", "company"):
             setattr(
@@ -42,6 +61,44 @@ class JobsService:
         )
 
     def match(self, resume: Resume, jd: JD) -> MatchResult:
+        return self.match_detail(resume, jd).result
+
+    def match_with_context(self, resume, jd, context) -> MatchResult:
+        return self.match_detail(resume, jd, context=context).result
+
+    def match_detail(self, resume: Resume, jd: JD, *, context=None):
+        resume = Resume.model_validate(resume.model_dump(warnings=False))
+        jd = JD.model_validate(jd.model_dump(warnings=False))
+        if context is not None and self.embedding is not None and self.semantic_weight != 0:
+            try:
+                with context.vector_repository() as vectors:
+                    if vectors is not None:
+                        events = []
+                        detail = enhance(
+                            self.keyword_match(resume, jd),
+                            resume,
+                            jd,
+                            self.embedding,
+                            self.semantic_weight,
+                            comparator=cached_comparator(vectors, resume, jd, events),
+                        )
+                        if events:
+                            detail.result.gap_analysis.append(
+                                "pgvector 片段缓存：" + ", ".join(events)
+                            )
+                        return detail
+            except Exception:
+                # SQL errors escape the public scope first; it owns savepoint rollback.
+                detail = self.match_detail(resume, jd)
+                detail.result.gap_analysis.append(
+                    "片段缓存不可用；已退回内存语义/关键词路径，详见评分依据。"
+                )
+                return detail
+        return enhance(
+            self.keyword_match(resume, jd), resume, jd, self.embedding, self.semantic_weight
+        )
+
+    def keyword_match(self, resume: Resume, jd: JD) -> MatchResult:
         resume = Resume.model_validate(resume.model_dump(warnings=False))
         jd = JD.model_validate(jd.model_dump(warnings=False))
         # Structured fields are authoritative (possibly edited by the user).
