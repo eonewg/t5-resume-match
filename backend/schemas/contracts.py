@@ -2,10 +2,22 @@
 
 from typing import Annotated
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+from pydantic import AfterValidator, BaseModel, ConfigDict, Field, StringConstraints
 
 Text = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=50000)]
 Label = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)]
+
+
+def nonblank_original(value: str) -> str:
+    if not value.strip():
+        raise ValueError("resume text must not be blank")
+    return value
+
+
+# Preserve the pasted resume verbatim; normalizing it would lose the source document.
+ResumeText = Annotated[
+    str, StringConstraints(min_length=1, max_length=50000), AfterValidator(nonblank_original)
+]
 
 
 class Contract(BaseModel):
@@ -13,7 +25,7 @@ class Contract(BaseModel):
 
 
 class TextInput(Contract):
-    raw_text: Text
+    raw_text: ResumeText
 
 
 class ResumeData(Contract):
@@ -21,7 +33,7 @@ class ResumeData(Contract):
     education: str = ""
     skills: list[Label] = Field(default_factory=list, max_length=500)
     experience: list[Text] = Field(default_factory=list, max_length=500)
-    raw_text: Text
+    raw_text: ResumeText
 
 
 class Resume(ResumeData):

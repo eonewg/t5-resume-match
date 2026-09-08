@@ -12,7 +12,11 @@ from backend.models.entities import DiagnosisRow, MatchRow
 
 @pytest.fixture
 def app(tmp_path):
-    return create_app(Settings(_env_file=None, database_url=f"sqlite:///{tmp_path / 'test.db'}"))
+    return create_app(
+        Settings(
+            _env_file=None, database_url=f"sqlite:///{tmp_path / 'test.db'}", resume_provider="mock"
+        )
+    )
 
 
 @pytest.fixture

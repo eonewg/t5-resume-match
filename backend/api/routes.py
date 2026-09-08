@@ -1,6 +1,6 @@
-from typing import Annotated
+from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, Query, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -46,6 +46,13 @@ def mark_mock(response: Response, is_mock: bool):
     response.headers["X-T5-Mock"] = str(is_mock).lower()
 
 
+def parse_resume_data(provider, data):
+    result = invoke(provider, "parse", ResumeData, data)
+    if result.raw_text != data.raw_text:
+        raise HTTPException(502, "简历解析未保留原文")
+    return result
+
+
 @router.get("/modules", tags=["core"])
 def modules(request: Request):
     return {name: {"is_mock": item.is_mock} for name, item in request.app.state.providers.items()}
@@ -54,12 +61,21 @@ def modules(request: Request):
 @router.post("/resumes/parse", response_model=Resume, status_code=201, tags=["resume"])
 def parse_resume(data: TextInput, request: Request, response: Response, db: DB):
     provider = request.app.state.providers["resume"]
-    result = invoke(provider, "parse", ResumeData, data)
+    result = parse_resume_data(provider, data)
     row = ResumeRow(id=new_id("resume"), payload=result.model_dump(), is_mock=provider.is_mock)
     db.add(row)
     db.flush()
     mark_mock(response, row.is_mock)
     return Resume(id=row.id, **row.payload)
+
+
+@router.post("/resumes/preview", response_model=ResumeData, tags=["resume"])
+def preview_resume(data: TextInput, request: Request, response: Response):
+    """Parse an editable draft without creating a persisted resume."""
+    provider = request.app.state.providers["resume"]
+    result = parse_resume_data(provider, data)
+    mark_mock(response, provider.is_mock)
+    return result
 
 
 @router.post("/resumes", response_model=Resume, status_code=201, tags=["resume"])
@@ -72,10 +88,17 @@ def create_resume(data: ResumeData, response: Response, db: DB):
 
 
 @router.get("/resumes", response_model=list[Resume], tags=["resume"])
-def list_resumes(response: Response, db: DB, limit: Limit = 20, offset: Offset = 0):
-    rows = db.scalars(
-        select(ResumeRow).order_by(ResumeRow.created_at, ResumeRow.id).offset(offset).limit(limit)
-    ).all()
+def list_resumes(
+    response: Response,
+    db: DB,
+    limit: Limit = 20,
+    offset: Offset = 0,
+    order: Literal["asc", "desc"] = "asc",
+):
+    ordering = (ResumeRow.created_at, ResumeRow.id)
+    if order == "desc":
+        ordering = tuple(column.desc() for column in ordering)
+    rows = db.scalars(select(ResumeRow).order_by(*ordering).offset(offset).limit(limit)).all()
     mark_mock(response, any(row.is_mock for row in rows))
     return [Resume(id=row.id, **row.payload) for row in rows]
 
