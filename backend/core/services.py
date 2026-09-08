@@ -93,7 +93,22 @@ def matching(session, providers, pair):
 def diagnosing(session, providers, pair):
     resume, jd, input_mock = load_pair(session, pair)
     provider = providers["diagnosis"]
-    data = DiagnosisInput(resume_text=resume.raw_text, jd_text=jd.jd_text)
+    # The saved structured version is the confirmed input. The raw document remains an archive,
+    # not a fallback that can restore facts the user removed in the editor.
+    sections = []
+    if resume.name:
+        sections.append("姓名：" + resume.name)
+    if resume.education:
+        sections.append("教育：" + resume.education)
+    if resume.skills:
+        sections.append("技能：" + "、".join(resume.skills))
+    if resume.experience:
+        sections.append("经历：\n" + "\n\n".join(resume.experience))
+    confirmed = "\n".join(sections) or "用户确认的简历未提供姓名、教育、技能或经历。"
+    try:
+        data = DiagnosisInput(resume_text=confirmed, jd_text=jd.jd_text)
+    except ValidationError as error:
+        raise HTTPException(422, "确认后的简历内容过长，请精简后再诊断；原版本已保留。") from error
     result = invoke(provider, "diagnose", DiagnosisResult, data)
     row = DiagnosisRow(
         id=new_id("diagnosis"),

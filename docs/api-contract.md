@@ -111,6 +111,8 @@ analytics 的公开方法仍为 `analyze(list[JD]) -> AnalysisResult`，兼容�
 
 ## 变更记录
 
+- 2026-09-08（Diagnosis 集成适配）：诊断/工作流将已保存的 name/education/skills/experience 组成模型输入，原 raw_text 仅存档，不恢复用户删除的事实；全空值明确传达未提供信息。确认内容超过 DiagnosisInput 50,000 字符限制返回 422，不截断。前端两项 AI POST 超时为 120 秒，其余请求仍为 45 秒；服务端非默认超长配置可能先触发页面超时，重试仍由用户发起。
+
 - 2026-09-08（A 产品阶段）：Resume 编辑器与保守章节修复；JD 来源字段及迁移 5；默认真实 Analytics、来源/日期筛选、market/scope 可选扩展及固定快照导入。JDInput、PairInput、MatchResult 与 Diagnosis 协议保持不变。
 
 - 2026-09-08：发布兼容的 JDCreate、tools/薪资公共字段与旧记录迁移；JDInput provider port 不变。默认接入 ResumeService / JobsService；新增 Resume preview 与可选倒序列表。向量接口见 [PostgreSQL 与向量契约](postgres.md)。

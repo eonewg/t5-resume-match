@@ -40,3 +40,17 @@ test("API facade rejects external destinations", async () => {
     await assert.rejects(api.request(path), /当前服务/);
   }
 });
+
+test("diagnosis and workflow can finish beyond the normal deadline and still have a bound", async () => {
+  const api = createApi({ timeoutMs: 5, diagnosisTimeoutMs: 1000, fetchImpl: (_, { signal }) => new Promise((resolve, reject) => {
+    const timer = setTimeout(() => resolve(new Response(JSON.stringify({ is_mock: false }))), 25);
+    signal.addEventListener("abort", () => { clearTimeout(timer); reject(new Error("aborted")); }, { once: true });
+  }) });
+  await assert.rejects(api.modules(), /请求超时/);
+  assert.equal((await api.workflow({ resume_id: "r", jd_id: "j" })).data.is_mock, false);
+  assert.equal((await api.request("/api/v1/diagnoses", { method: "POST", body: {} })).data.is_mock, false);
+  const slow = createApi({ diagnosisTimeoutMs: 5, fetchImpl: (_, { signal }) => new Promise((resolve, reject) => {
+    signal.addEventListener("abort", () => reject(new Error("aborted")), { once: true });
+  }) });
+  await assert.rejects(slow.workflow({}), /请求超时/);
+});
