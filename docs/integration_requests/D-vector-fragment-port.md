@@ -1,5 +1,7 @@
 # D → A：片段向量缓存所需最小契约（ADAPT）
 
+> 历史请求：A 已在 adfcc33 提供所需接口及修正 tools 断言。当前接入与实际验收见 [D-final-vector-validation.md](D-final-vector-validation.md)，下文保留当时缺口。
+
 基线 e3d1c16ae4f，D 已 merge。现有 VectorRepository 的 register_space / space / upsert / nearest / ensure_hnsw_index 可用于整篇文档向量检索，但不能实现本阶段要求的片段缓存。
 
 ## 实际缺口

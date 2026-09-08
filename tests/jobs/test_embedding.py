@@ -146,6 +146,8 @@ def test_chunk_normalization_and_budget():
     assert [len(x) for x in chunks(["a" * 81])] == [80, 1]
     resume, jd = pair()
     resume.experience = [str(i) for i in range(33)]
+    assert JobsService(embedding=Stub()).match_detail(resume, jd).status == "semantic"
+    resume.experience = [";".join(str(i) for i in range(513))]
     assert JobsService(embedding=Stub()).match_detail(resume, jd).status == "unavailable"
 
 

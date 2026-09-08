@@ -26,6 +26,11 @@ const path = require('node:path');
     if (process.env.T5_SMOKE_SEMANTIC === '1') {
       assert.match(await page.locator('#jobs-result').innerText(),/语义增强：关键词分 33.33/);
       assert.match(await page.locator('#jobs-result').innerText(),/cosine=/);
+      if (process.env.T5_SMOKE_PGVECTOR === '1') {
+        assert.match(await page.locator('#jobs-result').innerText(),/resume:miss, jd:miss/);
+        await match.click();
+        await page.locator('#jobs-result').filter({hasText:'resume:hit, jd:hit'}).waitFor();
+      }
     } else {
       assert.match(await page.locator('#jobs-result').innerText(),/33.33%/);
       assert.match(await page.locator('#jobs-result').innerText(),/1\/3/);

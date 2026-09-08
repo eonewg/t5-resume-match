@@ -10,6 +10,12 @@ from typing import Protocol
 MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 REVISION = "e8f8c211226b894fcb81acc59f3b34ba3efd5f42"
 DIMENSION = 384
+BATCH_SIZE = 16
+MAX_DOCUMENT_FRAGMENTS = 512
+
+
+class InputBudgetError(ValueError):
+    """Deterministic resource limit; never silently truncate semantic evidence."""
 
 
 class EmbeddingProvider(Protocol):
@@ -27,7 +33,7 @@ class LocalMiniLM:
         model = local_model()
         lengths = model.tokenizer(texts, truncation=False)["input_ids"]
         if any(len(tokens) > 128 for tokens in lengths):
-            raise ValueError("token budget")
+            raise InputBudgetError("token budget")
         return model.encode(texts, batch_size=16, normalize_embeddings=True).tolist()
 
 
@@ -39,7 +45,7 @@ def local_model():
     return SentenceTransformer(MODEL, revision=REVISION, local_files_only=True, device="cpu")
 
 
-def chunks(texts: list[str]) -> list[str]:
+def chunks(texts: list[str], *, limit: int = 32) -> list[str]:
     """NFKC + collapsed whitespace; sentence boundaries, then 80-character windows."""
     result = []
     for text in texts:
@@ -49,8 +55,8 @@ def chunks(texts: list[str]) -> list[str]:
                 value = sentence[offset : offset + 80]
                 if value and value not in result:
                     result.append(value)
-    if len(result) > 32:
-        raise ValueError("segment budget")
+    if len(result) > limit:
+        raise InputBudgetError("segment budget")
     return result
 
 
@@ -76,9 +82,30 @@ def compare(provider: EmbeddingProvider, requirements: list[str], evidence: list
     if not requirements or not evidence:
         raise ValueError("empty semantic input")
     texts = requirements + evidence
-    vectors = provider.encode(texts)
+    vectors = encode_batches(provider, texts)
     if len(vectors) != len(texts) or provider.dimension != DIMENSION:
         raise ValueError("incompatible embedding batch")
+    return score_vectors(requirements, evidence, vectors)
+
+
+def encode_batches(provider, texts):
+    if len(texts) > 2 * MAX_DOCUMENT_FRAGMENTS:
+        raise InputBudgetError("embedding batch budget")
+    if provider.dimension != DIMENSION:
+        raise ValueError("embedding dimension")
+    vectors = []
+    for offset in range(0, len(texts), BATCH_SIZE):
+        batch = texts[offset : offset + BATCH_SIZE]
+        encoded = provider.encode(batch)
+        if len(encoded) != len(batch):
+            raise ValueError("incompatible embedding batch")
+        vectors.extend(unit(v, DIMENSION) for v in encoded)
+    return vectors
+
+
+def score_vectors(requirements, evidence, vectors):
+    if not requirements or not evidence or len(vectors) != len(requirements) + len(evidence):
+        raise ValueError("incompatible scoring inputs")
     vectors = [unit(v, DIMENSION) for v in vectors]
     pairs = []
     for requirement, query in zip(requirements, vectors[: len(requirements)], strict=True):

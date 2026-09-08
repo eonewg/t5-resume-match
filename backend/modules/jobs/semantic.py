@@ -5,7 +5,14 @@ from dataclasses import dataclass
 
 from backend.schemas.contracts import JD, MatchResult, Resume
 
-from .embedding import EmbeddingProvider, SemanticEvidence, chunks, compare
+from .embedding import (
+    MAX_DOCUMENT_FRAGMENTS,
+    EmbeddingProvider,
+    InputBudgetError,
+    SemanticEvidence,
+    chunks,
+    compare,
+)
 from .evidence_filter import filter_clauses
 
 
@@ -26,6 +33,8 @@ def enhance(
     jd: JD,
     provider: EmbeddingProvider | None,
     weight: float = 0.2,
+    *,
+    comparator=None,
 ) -> MatchDetails:
     if not math.isfinite(weight) or not 0 <= weight <= 0.5:
         raise ValueError("semantic weight must be finite and between 0 and 0.5")
@@ -45,14 +54,22 @@ def enhance(
         job_text = filter_clauses([jd.jd_text], jd=True)
         resume_text = filter_clauses(resume.experience + resume.skills)
         excluded_count = len(job_text.excluded) + len(resume_text.excluded)
-        requirements = chunks(list(job_text.kept))
-        evidence = chunks(list(resume_text.kept))
+        requirements = chunks(list(job_text.kept), limit=MAX_DOCUMENT_FRAGMENTS)
+        evidence = chunks(list(resume_text.kept), limit=MAX_DOCUMENT_FRAGMENTS)
         if not requirements or not evidence:
             return fallback(
                 "empty", f"缺少有效岗位或已确认经历；过滤否定/意向/无关片段 {excluded_count} 项"
             )
-        semantic, pairs = compare(provider, requirements, evidence)
-    except Exception:
+        semantic, pairs = (comparator or compare)(provider, requirements, evidence)
+    except Exception as error:
+        if comparator is not None:
+            # Let the public context roll back its savepoint before fallback.
+            raise
+        if isinstance(error, InputBudgetError):
+            return fallback(
+                "unavailable",
+                "输入超出资源预算：每文档最多 512 片段、每片段最多 128 token；未截断评分",
+            )
         # Provider exceptions may contain paths, credentials or resume text: do not expose them.
         return fallback("unavailable", "模型、输入预算或向量校验不可用")
     final = round((1 - weight) * baseline.score + weight * semantic, 2)

@@ -8,6 +8,7 @@ from .evidence_filter import filter_clauses
 from .keywords import TOOLS, canonicalize, extract, normalized
 from .salary import parse_salary
 from .semantic import enhance
+from .vector_cache import cached_comparator
 
 
 @dataclass(frozen=True)
@@ -62,9 +63,37 @@ class JobsService:
     def match(self, resume: Resume, jd: JD) -> MatchResult:
         return self.match_detail(resume, jd).result
 
-    def match_detail(self, resume: Resume, jd: JD):
+    def match_with_context(self, resume, jd, context) -> MatchResult:
+        return self.match_detail(resume, jd, context=context).result
+
+    def match_detail(self, resume: Resume, jd: JD, *, context=None):
         resume = Resume.model_validate(resume.model_dump(warnings=False))
         jd = JD.model_validate(jd.model_dump(warnings=False))
+        if context is not None and self.embedding is not None and self.semantic_weight != 0:
+            try:
+                with context.vector_repository() as vectors:
+                    if vectors is not None:
+                        events = []
+                        detail = enhance(
+                            self.keyword_match(resume, jd),
+                            resume,
+                            jd,
+                            self.embedding,
+                            self.semantic_weight,
+                            comparator=cached_comparator(vectors, resume, jd, events),
+                        )
+                        if events:
+                            detail.result.gap_analysis.append(
+                                "pgvector 片段缓存：" + ", ".join(events)
+                            )
+                        return detail
+            except Exception:
+                # SQL errors escape the public scope first; it owns savepoint rollback.
+                detail = self.match_detail(resume, jd)
+                detail.result.gap_analysis.append(
+                    "片段缓存不可用；已退回内存语义/关键词路径，详见评分依据。"
+                )
+                return detail
         return enhance(
             self.keyword_match(resume, jd), resume, jd, self.embedding, self.semantic_weight
         )

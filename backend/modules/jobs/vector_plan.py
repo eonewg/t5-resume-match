@@ -1,4 +1,4 @@
-"""Versioned inputs for the pending public fragment cache; no database bypass."""
+"""Versioned public vector space and exact ordered embedding input identity."""
 
 import hashlib
 import json
@@ -9,8 +9,10 @@ from .embedding import DIMENSION, MODEL, REVISION
 from .evidence_filter import PREPROCESSING_VERSION
 
 
-def vector_space(*, revision=REVISION, preprocessing=PREPROCESSING_VERSION) -> VectorSpace:
-    model = f"{MODEL}@{revision}|{preprocessing}"
+def vector_space(
+    *, model_name=MODEL, revision=REVISION, preprocessing=PREPROCESSING_VERSION
+) -> VectorSpace:
+    model = f"{model_name}@{revision}|{preprocessing}"
     identity = f"{model}|cosine|{DIMENSION}"
     return VectorSpace(
         id="t5-clauses-" + hashlib.sha256(identity.encode("utf-8")).hexdigest()[:48],

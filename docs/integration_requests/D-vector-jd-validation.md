@@ -1,5 +1,7 @@
 # D：JD 字段接入与 Vector 缓存集成检查（ADAPT）
 
+> 历史阶段记录；接口缺失、公共断言与本机数据库问题现已解决。当前结果见 [D-final-vector-validation.md](D-final-vector-validation.md)。
+
 2026-09-08，head feat/intelligence-d，base feat/core-a。已 merge A `e3d1c16ae4f55b67f43f96291dfc62bcaa010286`，merge 提交 `f382b82`。
 无 Git 文本冲突；自动合并使 D 测试出现重复 resume_provider 参数，已仅在 tests/jobs/test_jobs.py 去重。未覆盖 A 的公共代码。
 
