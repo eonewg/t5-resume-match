@@ -1,6 +1,6 @@
 export function connectJobs({api, getState, updateSelection, subscribe, signal}, render) {
   let state = {jobs: [], resumes: [], jdId: getState().jdId || '', resumeId: getState().resumeId || '',
-    result: null, busy: false, error: '', notice: '', jobMock: null};
+    result: getState().result?.match || null, busy: false, error: '', notice: '', jobMock: null};
   let disposed = false, version = 0;
   const active = () => !disposed && !signal.aborted;
   const show = () => { if (active()) render({...state}); };
@@ -23,6 +23,10 @@ export function connectJobs({api, getState, updateSelection, subscribe, signal},
       const update = await work();
       if (!active() || ticket !== version) return;
       state = {...state, ...update};
+      if (update.result) {
+        const shared = getState();
+        updateSelection({resumeId: state.resumeId, jdId: state.jdId, result: {...shared.result, match: update.result}, isMock: update.result.is_mock});
+      }
       const shared = getState();
       if ((shared.jdId || '') !== state.jdId || (shared.resumeId || '') !== state.resumeId) {
         updateSelection({jdId: state.jdId || null, resumeId: state.resumeId || null, result: null, isMock: true});
@@ -37,7 +41,9 @@ export function connectJobs({api, getState, updateSelection, subscribe, signal},
     const jobRows = [...jobs.data], resumeRows = [...resumes.data];
     if (state.jdId && !jobRows.some(x => x.id === state.jdId)) jobRows.push((await api.request('/api/v1/jobs/' + encodeURIComponent(state.jdId))).data);
     if (state.resumeId && !resumeRows.some(x => x.id === state.resumeId)) resumeRows.push((await api.request('/api/v1/resumes/' + encodeURIComponent(state.resumeId))).data);
+    const cached = getState().result?.match;
     return {jobs: jobRows, resumes: resumeRows, jobMock: modes.data.jobs?.is_mock,
+      result: cached?.resume_id === state.resumeId && cached?.jd_id === state.jdId ? cached : null,
       notice: '已加载前 100 条已保存记录及工作台当前选择。'};
   });
   const create = form => task(async () => {
@@ -49,6 +55,7 @@ export function connectJobs({api, getState, updateSelection, subscribe, signal},
   const match = () => task(async () => {
     if (!state.resumeId || !state.jdId) throw Error('请选择已保存的简历与 JD。');
     const selected = {resume_id: state.resumeId, jd_id: state.jdId};
+    updateSelection({resumeId: state.resumeId, jdId: state.jdId, result: null});
     const response = await api.request('/api/v1/matches', {method: 'POST', body: selected});
     const result = response.data;
     if (result.resume_id !== selected.resume_id || result.jd_id !== selected.jd_id ||

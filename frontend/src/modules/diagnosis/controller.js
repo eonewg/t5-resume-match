@@ -1,5 +1,5 @@
 // Uses only the shared workspace and public API; no other member module imports.
-export function connectDiagnosis({ api, getState, subscribe, signal }, render) {
+export function connectDiagnosis({ api, getState, subscribe, signal, updateSelection }, render) {
   let disposed = false;
   let version = 0;
   let busy = false;
@@ -32,6 +32,7 @@ export function connectDiagnosis({ api, getState, subscribe, signal }, render) {
     const ticket = ++version;
     busy = true;
     record = null;
+    updateSelection?.({result: {...getState().result, diagnosis: null}});
     error = "";
     display();
     try {
@@ -46,6 +47,7 @@ export function connectDiagnosis({ api, getState, subscribe, signal }, render) {
         throw new Error("诊断响应不符合公共契约，请稍后重试。");
       }
       record = { ...data, is_mock: data.is_mock || response.isMock === true };
+      updateSelection?.({result: {...getState().result, diagnosis: record}});
     } catch (failure) {
       if (!disposed && !signal.aborted && ticket === version) error = failure.message || "诊断失败，请重试。";
     } finally {
