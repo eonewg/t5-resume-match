@@ -39,6 +39,11 @@ def provider_class(name: str, target: str):
         if not callable(function) or iscoroutinefunction(function):
             raise TypeError(f"{name}.{method} must be a synchronous method")
         signature(function).bind(None, *([None] * count))
+    if name == "jobs" and hasattr(service_class, "match_with_context"):
+        function = service_class.match_with_context
+        if not callable(function) or iscoroutinefunction(function):
+            raise TypeError("jobs.match_with_context must be a synchronous method")
+        signature(function).bind(None, None, None, None)
     return service_class
 
 

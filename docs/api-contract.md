@@ -57,7 +57,7 @@ JDInput 是 D 的旧 parse port，保持 title/company/jd_text 三字段；HTTP 
 | `salary_period` | `null`；已确认周期标签，如 hour、day、month、year，不做跨周期换算 |
 
 HTTP 层只向旧 provider 传 JDInput；provider 可返回完整 JDData。客户端显式给出的确认字段覆盖解析结果（包括 skills=[]、salary=null），省略的字段保留 provider 结果。
-D 当前实现仍只解析 skills 并集，tools/薪资自动提取由 D 后续补充；A 不从 D 内部词表提取或改写算法。
+真实 Jobs 的 tools 输出采用 D 已有工具标签规则，`Python SQL Docker` 返回 `["Docker", "Python", "SQL"]`；薪资和其他 PR #6 能力仍待 D 集成。A 不另写关键词算法。
 所有可选字段写入 jobs.payload JSON，列表/按 ID 读取完整返回；旧 JSON 缺失字段按默认值兼容，并通过 migration 2 非破坏性补齐，保留已有值、ID、时间和 Mock 来源。
 来源时间、URL、采样标签仍保存在验收数据文件中，不作为未定义的 API 输入。
 
@@ -98,3 +98,10 @@ analytics 的公开方法接收 `list[JD]`，返回 `{"summary":"分析摘要","
 - 分析：目前只有 summary/skills，尚不足以承载薪资分布、岗位技能分布和时间/来源口径。A 明确响应结构、同步前端和测试，不提前展示不存在的接口。
 - 向量：公共 VectorRepository 已实现；D 仍需明确实际模型/预处理版本、维度、对象、距离和评分策略，调用方注册独立空间。没有默认模型或生产向量空间。
 - 保持现有调用兼容；新增可选字段应有默认/空值与旧数据验证，破坏性变更新建 API 版本。
+
+
+### Jobs 可选事务上下文
+
+公共编排优先调用 `match_with_context(resume, jd, context: MatchContext)`；未实现时继续调用旧 `match(resume,jd)`。
+context 由公共层逐次注入，`with context.vector_repository() as vectors` 提供同一请求 Session 的片段仓储及缓存保存点。
+完整的有序片段、版本/hash、清空和失败语义见 [PostgreSQL 契约](postgres.md#有序片段缓存与-jobs-事务入口2026-09-08)。HTTP JSON 契约不变。

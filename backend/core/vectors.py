@@ -7,11 +7,11 @@ from typing import Annotated, Literal
 
 from pgvector.sqlalchemy import Vector
 from pydantic import Field, StringConstraints
-from sqlalchemy import cast, select, text
+from sqlalchemy import cast, delete, select, text
 from sqlalchemy.dialects.postgresql import insert
 
 from backend.models.entities import JDRow, ResumeRow
-from backend.models.vectors import VectorRow, VectorSpaceRow
+from backend.models.vectors import FragmentVectorRow, VectorRow, VectorSpaceRow
 from backend.schemas.contracts import Contract, Label
 
 SpaceId = Annotated[str, StringConstraints(pattern=r"^[a-zA-Z0-9_-]{1,64}$")]
@@ -31,6 +31,18 @@ class VectorWrite(Contract):
     document_id: Label
     source_hash: Hash
     values: list[float] = Field(min_length=1, max_length=16000)
+
+
+class FragmentSetWrite(Contract):
+    space: VectorSpace
+    kind: Literal["resume", "jd"]
+    document_id: Label
+    source_hash: Hash
+    fragments: list[list[float]]
+
+
+class FragmentVector(VectorWrite):
+    index: int = Field(ge=0, strict=True)
 
 
 class VectorHit(Contract):
@@ -101,6 +113,105 @@ class VectorRepository:
                 },
             )
         )
+
+    def replace_fragments(self, batch: FragmentSetWrite) -> list[FragmentVector]:
+        """Replace the complete ordered set; empty input deletes it. Never commit."""
+        batch = FragmentSetWrite.model_validate(batch.model_dump())
+        space = self.space(batch.space.id)
+        if space != batch.space:
+            raise ValueError("vector space specification mismatch")
+        fragments = [
+            FragmentVector(
+                space_id=space.id,
+                kind=batch.kind,
+                document_id=batch.document_id,
+                source_hash=batch.source_hash,
+                index=index,
+                values=self._values(space, values),
+            )
+            for index, values in enumerate(batch.fragments)
+        ]
+        table = ResumeRow if batch.kind == "resume" else JDRow
+        key = "resume_id" if batch.kind == "resume" else "jd_id"
+        # Serialize even the first cache write. The source row outlives cache rows.
+        # Savepoint also protects callers who catch a database error and continue.
+        with self.session.begin_nested():
+            source = self.session.scalar(
+                select(table.id).where(table.id == batch.document_id).with_for_update()
+            )
+            if source is None:
+                raise ValueError("unknown source document")
+            self.session.execute(
+                delete(FragmentVectorRow).where(
+                    FragmentVectorRow.space_id == space.id,
+                    getattr(FragmentVectorRow, key) == batch.document_id,
+                )
+            )
+            if fragments:
+                self.session.execute(
+                    insert(FragmentVectorRow),
+                    [
+                        dict(
+                            space_id=space.id,
+                            dimensions=space.dimensions,
+                            **{key: batch.document_id},
+                            source_hash=batch.source_hash,
+                            index=f.index,
+                            embedding=f.values,
+                        )
+                        for f in fragments
+                    ],
+                )
+        return fragments
+
+    def get_fragments(
+        self,
+        space: VectorSpace,
+        *,
+        kind: Literal["resume", "jd"],
+        document_id: str,
+        source_hash: str,
+    ) -> list[FragmentVector] | None:
+        """Read one snapshot; mismatched hash is a miss, corrupt sets are rejected."""
+        request = FragmentSetWrite(
+            space=space, kind=kind, document_id=document_id, source_hash=source_hash, fragments=[]
+        )
+        if self.space(request.space.id) != request.space:
+            raise ValueError("vector space specification mismatch")
+        key = FragmentVectorRow.resume_id if kind == "resume" else FragmentVectorRow.jd_id
+        rows = self.session.execute(
+            select(
+                FragmentVectorRow.space_id,
+                key,
+                FragmentVectorRow.source_hash,
+                FragmentVectorRow.index,
+                FragmentVectorRow.embedding,
+            )
+            .where(FragmentVectorRow.space_id == space.id, key == document_id)
+            .order_by(FragmentVectorRow.index)
+        ).all()
+        if not rows:
+            return None
+        # Validate the whole set before returning anything (never filter individual hashes).
+        if len({row[2] for row in rows}) != 1:
+            raise ValueError("inconsistent fragment hashes")
+        if rows[0][2] != source_hash:
+            return None
+        result = []
+        for index, row in enumerate(rows):
+            if row[3] != index:
+                raise ValueError("non-contiguous fragment indices")
+            result.append(
+                FragmentVector(
+                    space_id=row[0],
+                    kind=kind,
+                    document_id=row[1],
+                    source_hash=row[2],
+                    index=row[3],
+                    values=self._values(space, row[4]),
+                )
+            )
+        return result
 
     def nearest(
         self,

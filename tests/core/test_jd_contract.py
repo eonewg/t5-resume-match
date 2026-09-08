@@ -101,7 +101,11 @@ def test_real_resume_to_jd_to_keyword_match(app):
         )
         assert jd_response.status_code == 201 and jd_response.headers["x-t5-mock"] == "false"
         jd = jd_response.json()
-        assert jd["salary"] is None and jd["salary_min"] is None and jd["tools"] == []
+        assert (
+            jd["salary"] is None
+            and jd["salary_min"] is None
+            and jd["tools"] == ["Docker", "Python", "SQL"]
+        )
         result = client.post("/api/v1/matches", json={"resume_id": resume["id"], "jd_id": jd["id"]})
         assert result.status_code == 201
         match = result.json()

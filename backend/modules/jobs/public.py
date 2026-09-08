@@ -20,7 +20,12 @@ class JobsService:
         original = data.model_dump(warnings=False) if isinstance(data, JDInput) else data
         checked = JDInput.model_validate(original)
         # Public validation trims for validity; preserve the caller's original text values.
-        result = JDData(**checked.model_dump(), skills=extract(checked.jd_text))
+        skills = extract(checked.jd_text)
+        result = JDData(
+            **checked.model_dump(),
+            skills=skills,
+            tools=[word for word in skills if word in TOOLS],
+        )
         for field in ("jd_text", "title", "company"):
             setattr(
                 result, field, original[field] if field in original else getattr(checked, field)
