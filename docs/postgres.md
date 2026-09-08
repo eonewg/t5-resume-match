@@ -79,14 +79,23 @@ from backend.core.vectors import VectorRepository, VectorSpace, VectorWrite
 # 这些参数由 D 的业务配置提供，公共层没有默认模型/维度/距离。
 with Session(engine) as session, session.begin():
     vectors = VectorRepository(session)
-    vectors.register_space(VectorSpace(
-        id=space_id, model=model_and_preprocessing_version,
-        dimensions=dimensions, metric=metric,
-    ))
-    vectors.upsert(VectorWrite(
-        space_id=space_id, kind="jd", document_id=saved_jd_id,
-        source_hash=sha256_of_embedding_input, values=embedding_from_D,
-    ))
+    vectors.register_space(
+        VectorSpace(
+            id=space_id,
+            model=model_and_preprocessing_version,
+            dimensions=dimensions,
+            metric=metric,
+        )
+    )
+    vectors.upsert(
+        VectorWrite(
+            space_id=space_id,
+            kind="jd",
+            document_id=saved_jd_id,
+            source_hash=sha256_of_embedding_input,
+            values=embedding_from_D,
+        )
+    )
     hits = vectors.nearest(space_id, query_vector_from_D, kind="jd", limit=10)
 ```
 
@@ -131,13 +140,21 @@ D 明确选择 `approximate=True` 后允许使用 HNSW；结果可能减少或�
 ```python
 vectors.register_space(specification)  # 完整 VectorSpace，由 D 指定
 cached = vectors.get_fragments(
-    specification, kind="jd", document_id=jd.id, source_hash=input_hash,
+    specification,
+    kind="jd",
+    document_id=jd.id,
+    source_hash=input_hash,
 )
 if cached is None:
-    cached = vectors.replace_fragments(FragmentSetWrite(
-        space=specification, kind="jd", document_id=jd.id,
-        source_hash=input_hash, fragments=encoded_vectors,
-    ))
+    cached = vectors.replace_fragments(
+        FragmentSetWrite(
+            space=specification,
+            kind="jd",
+            document_id=jd.id,
+            source_hash=input_hash,
+            fragments=encoded_vectors,
+        )
+    )
 values = [fragment.values for fragment in cached]
 ```
 
@@ -153,6 +170,7 @@ Jobs 可选实现公开同步方法：
 
 ```python
 from backend.core.matching import MatchContext
+
 
 def match_with_context(self, resume, jd, context: MatchContext):
     with context.vector_repository() as vectors:
