@@ -1,5 +1,23 @@
 # 开发验证
 
+## 2026-09-08：PR #6 合并提交复验
+
+实测提交 `79e35a9de94245c466e9218ef132643d92c1eb0a`，完整范围及 A/D 后续见 [验收台账](acceptance.md)。本轮开始时 PR 已合并，仅进行合并后复核。
+
+在仓库根 PowerShell 执行 `scripts/local_postgres.ps1 -Action Start`，设置当前进程数据库变量；`UV_CACHE_DIR` 指向 ignored `.verification/uv-cache`。运行 `uv run --locked pytest -q` 得 **247 passed、0 skipped，19.35s**；`uv run --locked python -m scripts.smoke_postgres` 通过。真实数据库为 PostgreSQL 17.6 / pgvector 0.8.1，测试独立 schema 自动清理。首次 Connect 因实例未启动失败，启动后通过；Node 首次因沙箱 spawn EPERM 失败，获准环境重跑后 **33 passed**。
+
+`uv sync --locked`、`ruff check backend tests scripts examples`、`ruff format --check backend tests scripts examples`（78 文件）、准确 PR diff whitespace 检查通过。额外 member 检查为离线模式，有数据库跳过；数据库验收依据为前述设置 PG 变量的全量 247 项，不使用离线跳过结果替代。
+
+真实模型复验使用已缓存的 sentence-transformers 5.1.0 / torch 2.8.0+cpu，模型身份固定为 D 的 MiniLM revision 与 t5-clauses-v2。设置 `HF_HOME=.verification/huggingface`、`HF_HUB_OFFLINE=1`、`PYTHONPATH=.`、`PYTHONUTF8=1`、`OMP_NUM_THREADS=2` 后运行：
+
+```powershell
+uv run --offline --locked --with sentence-transformers==5.1.0 --with torch==2.8.0+cpu --extra-index-url https://download.pytorch.org/whl/cpu python tests/jobs/evaluate_pg_holdout.py
+```
+
+本轮执行相同脚本，唯一替换为报告目标 `.verification/A-pr6-recheck-holdout.md`，保留 D 原报告。15 配对全部符合断言：10 semantic、5 empty；miss/hit 语义分和最终分相同，hit 无编码；内存/PG 最终分一致。五份 JD 片段数为 121/100/113/88/154，简历为 35/28/0。HTTP preview→保存→JD→缓存→Matching/MatchRecord 通过。hash 变化、版本隔离、fallback/rollback 另由全量中的真实 PG 测试覆盖。
+
+本轮没有重跑浏览器 smoke，也未验收真实 Diagnosis、专用 Resume UI、Analytics 或最终安装演示。D 的既有浏览器证据与本轮亲自运行的检查分开。此批 holdout 是集成回归，没有独立人工金标准，不能解释为生产质量提升。
+
 ## 运行检查
 
 从 feat/core-a 使用锁定依赖运行：

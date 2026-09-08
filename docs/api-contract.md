@@ -57,7 +57,7 @@ JDInput 是 D 的旧 parse port，保持 title/company/jd_text 三字段；HTTP 
 | `salary_period` | `null`；已确认周期标签，如 hour、day、month、year，不做跨周期换算 |
 
 HTTP 层只向旧 provider 传 JDInput；provider 可返回完整 JDData。客户端显式给出的确认字段覆盖解析结果（包括 skills=[]、salary=null），省略的字段保留 provider 结果。
-真实 Jobs 的 tools 输出采用 D 已有工具标签规则，`Python SQL Docker` 返回 `["Docker", "Python", "SQL"]`；薪资和其他 PR #6 能力仍待 D 集成。A 不另写关键词算法。
+真实 Jobs 的 tools 输出采用 D 已有工具标签规则，`Python SQL Docker` 返回 `["Docker", "Python", "SQL"]`。PR #6 已集成保守薪资解析与可选语义缓存；仅解析明确薪资表达，不猜测币种/周期。A 不另写关键词算法。
 所有可选字段写入 jobs.payload JSON，列表/按 ID 读取完整返回；旧 JSON 缺失字段按默认值兼容，并通过 migration 2 非破坏性补齐，保留已有值、ID、时间和 Mock 来源。
 来源时间、URL、采样标签仍保存在验收数据文件中，不作为未定义的 API 输入。
 
@@ -94,9 +94,9 @@ analytics 的公开方法接收 `list[JD]`，返回 `{"summary":"分析摘要","
 以上 2026-09-08 字段已实现并验证；以下仍为待办，不能按已完成验收。
 
 - 简历编辑：现有 POST /resumes 接收编辑后的 ResumeData 并生成新 ID，GET 可重新读取。A 的编辑器须保留原文，显示编辑结果；不能把已有 API 当作 UI 已完成。
-- JD：D 按已发布字段补工具/薪资解析及展示；来源分类和采样时间的 API 扩展仍待明确。
+- JD：工具/薪资解析及展示已随 PR #6 集成；来源分类和采样时间的 API 扩展仍待明确。
 - 分析：目前只有 summary/skills，尚不足以承载薪资分布、岗位技能分布和时间/来源口径。A 明确响应结构、同步前端和测试，不提前展示不存在的接口。
-- 向量：公共 VectorRepository 已实现；D 仍需明确实际模型/预处理版本、维度、对象、距离和评分策略，调用方注册独立空间。没有默认模型或生产向量空间。
+- 向量：公共 VectorRepository 与 D 片段缓存已集成；显式 local 使用固定 MiniLM revision、t5-clauses-v2、384 维 cosine 和独立空间。语义增强默认 off，参数见 D embedding 契约；公共仓储不指定业务默认模型。
 - 保持现有调用兼容；新增可选字段应有默认/空值与旧数据验证，破坏性变更新建 API 版本。
 
 

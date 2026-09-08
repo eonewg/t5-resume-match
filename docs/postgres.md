@@ -1,7 +1,7 @@
 # PostgreSQL + pgvector 公共基础设施
 
 本阶段已在 Windows 实测 PostgreSQL 17.6、pgvector 0.8.1、psycopg 3.3.5、pgvector-python 0.4.2。
-A 提供数据库与可复用接口，D 决定模型、向量化对象、预处理、维度、距离和评分。未实现或启用 embedding 算法。
+A 提供数据库与可复用接口，D 决定模型、向量化对象、预处理、维度、距离和评分。PR #6 已集成可选 embedding 与事务片段缓存，默认仍 off；见 [验收台账](acceptance.md)。
 
 ## 启动
 
@@ -162,7 +162,7 @@ def match_with_context(self, resume, jd, context: MatchContext):
     return self.match(resume, jd)
 ```
 
-该示例仅说明调用形状；实际接入由 D 实现。公共 `TransactionalJobsProvider` Protocol 位于 `backend.core.ports`。
+该示例仅说明调用形状；D JobsService 已在 PR #6 实现接入。公共 `TransactionalJobsProvider` Protocol 位于 `backend.core.ports`。
 无参装载及原 `match(resume,jd)` 保持；仅当存在 `match_with_context` 才由编排层优先调用，启动时验证同步与三参数签名。
 Context 每次调用新建，不写到共享 provider 实例；禁止在调用结束后保留 Context/repository，不自行开 Session/commit/rollback。
 Resume/JD 读取、缓存访问、MatchRecord 保存均使用 HTTP 请求同一个 Session/事务；workflow 后续 diagnosis 失败时缓存和匹配记录共同回滚。

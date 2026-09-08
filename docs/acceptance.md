@@ -7,7 +7,7 @@
 | 模块 | Owner | 当前实现 | 验收状态与待办 |
 | --- | --- | --- | --- |
 | Resume | A | 真实保守解析、preview 草稿、确认后保存/读取及原文保留 | API 链路通过，专用结构化编辑器 UI 待完成 |
-| Jobs / Matching | D | PR #5 已集成；默认真实关键词 provider 和 Jobs 导航 | Level 1 关键词/分数/gap PASS；独立 tools/薪资自动解析与 embedding 待 D |
+| Jobs / Matching | D | PR #6 已集成；关键词基线、tools/薪资解析、可选语义增强及事务片段缓存 | 本阶段 PASS；semantic 默认 off，独立人工效果评估仍待完成 |
 | Diagnosis | D | 已有服务、公共 provider 与前端挂载、离线测试 | 真实模型输出、延迟及 T5 全项待验证；不能据离线检查判定最终 PASS |
 | Analytics | A | 公共基础统计接口、Mock；无真实模块实现 | 待实现词云、薪资/技能分布、来源口径与观察说明并验收 |
 
@@ -24,8 +24,8 @@
 | Level 1 jobs/matching | D，A 提供持久化 | JD 输入保存复用、技能/工具提取、关键词基线、0–100 分数、matched/missing/gap 及一致解释；只有向量评分不通过 |
 | Level 2 | D，A 串联 | 平淡经历 STAR、JD 定向关键词/经历建议、量化补充提示、不虚构事实；真实/Mock 与失败行为区分；真实模型待验证 |
 | Level 3 | A，D 解析 JD | 已录入 JD 聚合的近期技能词云、薪资分布、技能要求分布、观察/职业建议；来源、样本量、时间范围和缺失值口径 |
-| PostgreSQL + pgvector | A，D 提供参数 | 公共设施本阶段已真实通过连接、扩展、表/索引、repository、迁移与数据库测试；生产模型参数与 D 集成待后续 |
-| NLP 与向量 | D | 关键词规则基线与向量相似度增强、组合评分解释；模型、维度、距离请求待明确 |
+| PostgreSQL + pgvector | A，D 提供参数 | 公共设施及 PR #6 事务片段缓存已真实复验 PASS；最终部署复现仍待完成 |
+| NLP 与向量 | D | 固定 MiniLM revision、384 维 cosine 与关键词组合已集成；默认 off，质量金标准与独立效果评估待完成 |
 | 全链路演示与 E2E | A/D | 按 T5 对照表十步演示，包括原始/优化简历对比、全部图表；无未解释关键失败 |
 | 可复现运行 | A | 主程序、数据库初始化、完整依赖安装、README、无密钥 .env.example；最终提交的 clean clone / fresh install |
 | AI 过程与设计材料 | A/D | 真实需求拆解、架构/Schema/API、编码、测试审查、文档/演示复盘；原型工具采用情况如实说明 |
@@ -53,6 +53,19 @@ A 自有模块执行相同门槛；新增提交重新检查，集成失败保留
 - 本地验证：全量 Python（含 PG）142 passed、前端 33 passed、Diagnosis 44 项离线回归、PostgreSQL/pgvector 与 Resume → JD → keyword match smoke 通过。无头 Edge 默认导航、编辑后确认简历 API、33.33%/gap、502 重试、390px、重复导航选择保留通过。
 - 结论：**PASS（本阶段范围）**。不代表完整 T5 PASS：Resume 编辑器 UI、Analytics、D tools/薪资解析、Embedding 与真实 AI 质量仍待后续。
 - 给 D 的当前公共契约见 [A 交接](integration_requests/A-level1-vector-handoff.md)，详细验证见 [验证记录](validation.md)。
+
+## 2026-09-08：PR #6 最终缓存集成复验
+
+- A 基线：`adfcc33e3854ef7cfddab8e1f59c93d8d66db05a`；D 源：`fd6cf30813d9af86f1da55b933dafb5219b51bfd`。
+- 本轮开始查询时 PR 已于 07:47:39 UTC 合并，merge commit 为 `79e35a9de94245c466e9218ef132643d92c1eb0a`，双亲准确对应以上 base/head；本地与远端 feat/core-a 一致。本轮在此合并提交复验，没有重复合并或操作 main。
+- 审查 34 个变更文件：仅 D Jobs 后端、前端、测试及 D 集成记录。D 仅在 match_with_context 的公共仓储作用域内注册/读写片段，没有直接 SQL、Session、向量表访问或 commit/rollback。保存点异常在作用域外捕获，外层请求仍拥有事务。
+- 关键词基线保持结构化字段、归一去重和等权覆盖率；语义只调整 score/解释，不改变 matched/missing。tools 不重复计数；HTTP 显式字段含空数组/null 仍覆盖解析。薪资仅解析明确表达，不猜币种/周期、不跨周期换算。
+- semantic 默认 off。每文档最多完整处理 512 片段、每批 16 条、编码前检查 128 token；超限明确降级，不静默截断。hash 覆盖实际有序输入，空间隔离模型/revision/预处理。
+- 真实 PostgreSQL 17.6 + pgvector 0.8.1：全量 Python **247 passed、0 skipped**；前端 **33 passed**；PG smoke、锁定依赖、Ruff check/format（78 文件）通过。两条既有依赖弃用提示保留。
+- 数据库回归覆盖 Resume preview→保存→JD→Vector cache→Matching/读取、miss/hit、两类文档 hash 失效、版本隔离、SQL 失败保存点回滚后内存降级、模型失败关键词降级、workflow 失败撤销缓存与 MatchRecord。
+- 固定真实 MiniLM 的 5 JD × 3 简历复验通过：10 个语义配对 miss/hit 一致且 hit 不编码，内存与 PG 最终分相同；5 个 student-03 配对为明确 empty 降级。完整片段数量与 D 报告一致，没有把解析遗漏当作成功向量匹配。步骤见 [验证记录](validation.md#2026-09-08pr-6-合并提交复验)。
+- 结论：**PASS（PR #6 集成范围）**，无实际 blocker。本轮未重跑浏览器 smoke，已有 D 浏览器结果仍为 D 提交证据；未调用真实 Diagnosis AI，未完成 T5 全系统验收。
+- 下一阶段：A 优先完成 Resume 结构化编辑器与解析遗漏处理，随后实现 Analytics 三类图表及来源/时间/样本量/缺失值口径；D 优先真实 Diagnosis STAR/JD 定向建议、量化提示、事实边界、失败与延迟验收，并维护 Jobs 回归。A/D 联合补人工效果标注、招聘 APP 实际体验、十步演示与最终 fresh install；语义保持默认 off，最终仅经 feat/core-a → main PR 交付。
 
 ## 历史审查（已由以上准确新提交复验取代）
 
