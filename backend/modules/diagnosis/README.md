@@ -1,5 +1,11 @@
 # Diagnosis 模块
 
+当前按两人开发分工执行：D 同时负责 jobs 与 diagnosis，新分支为 `feat/intelligence-d`，
+从最新 core-a 开发并向 core-a 提交 PR。完整约定与待办见
+[D 严格版计划](../../../docs/integration_requests/D-strict-plan.md)。
+本 README 的早期验证段落保留为历史记录；A 已在 `93e1b12` 正式挂载 diagnosis 页面。
+新 jobs/embedding 尚未实现，不能用 diagnosis 的离线结果代替新功能验收。
+
 负责 DeepSeek 调用、STAR 经历改写、面向 JD 的建议、关键词强化、结构校验、有限重试及内存缓存。
 Owner 为 D，开发分支 feat/intelligence-d，PR 指向 feat/core-a。公共接口与数据库由 A 维护。
 
