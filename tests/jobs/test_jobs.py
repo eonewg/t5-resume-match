@@ -117,6 +117,7 @@ def test_public_api_parse_save_select_match_readback():
     settings = Settings(
         _env_file=None,
         database_url="sqlite://",
+        resume_provider="mock",
         jobs_provider="backend.modules.jobs.public:JobsService",
     )
     with TestClient(create_app(settings)) as client:

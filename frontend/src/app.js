@@ -133,7 +133,9 @@ async function refreshStatus() {
     byId("connection-status").textContent = "服务已连接";
     byId("connection-status").dataset.status = "ok";
     byId("mode-banner").hidden = !hasMock;
-    byId("mode-banner").textContent = "当前包含演示模块（Mock）。结果用于体验流程，不代表真实匹配度或 AI 诊断。";
+    const mockNames = Object.entries(data).filter(([, module]) => module.is_mock)
+      .map(([key]) => moduleSlots[key]?.title || key);
+    byId("mode-banner").textContent = `当前仍使用 Mock 的模块：${mockNames.join("、")}。请以各项结果的 Mock 标识为准。`;
   } catch {
     byId("connection-status").textContent = "服务暂不可用";
     byId("connection-status").dataset.status = "error";

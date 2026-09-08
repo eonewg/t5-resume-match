@@ -1,7 +1,7 @@
 // A registers reviewed frontend entrypoints here. Members edit only their own module directory.
 export const moduleSlots = {
   resume: { title: "简历编辑", load: null },
-  jobs: { title: "岗位匹配", load: null },
+  jobs: { title: "岗位匹配", load: () => import("../modules/jobs/index.js") },
   diagnosis: { title: "AI 诊断", load: () => import("../modules/diagnosis/index.js") },
   analytics: { title: "市场分析", load: null },
 };

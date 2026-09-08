@@ -2,7 +2,14 @@
 
 from typing import Annotated
 
-from pydantic import AfterValidator, BaseModel, ConfigDict, Field, StringConstraints
+from pydantic import (
+    AfterValidator,
+    BaseModel,
+    ConfigDict,
+    Field,
+    StringConstraints,
+    model_validator,
+)
 
 Text = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=50000)]
 Label = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)]
@@ -46,8 +53,29 @@ class JDInput(Contract):
     jd_text: Text
 
 
-class JDData(JDInput):
+class JDFields(Contract):
     skills: list[Label] = Field(default_factory=list, max_length=500)
+    tools: list[Label] = Field(default_factory=list, max_length=500)
+    salary: str | None = Field(default=None, max_length=2000)
+    salary_min: float | None = Field(default=None, ge=0, allow_inf_nan=False)
+    salary_max: float | None = Field(default=None, ge=0, allow_inf_nan=False)
+    currency: Label | None = None
+    salary_period: Label | None = None
+
+    @model_validator(mode="after")
+    def ordered_salary(self):
+        if self.salary_min is not None and self.salary_max is not None:
+            if self.salary_min > self.salary_max:
+                raise ValueError("salary_min must not exceed salary_max")
+        return self
+
+
+class JDCreate(JDInput, JDFields):
+    """HTTP input; optional confirmed metadata never changes the legacy parse port."""
+
+
+class JDData(JDInput, JDFields):
+    pass
 
 
 class JD(JDData):

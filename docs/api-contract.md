@@ -13,10 +13,11 @@
 | `GET /ready` | 无 | 200 全部配置真实入口；503 尚有 Mock |
 | `GET /api/v1/modules` | 无 | 四个入口的 `is_mock` |
 | `POST /api/v1/resumes/parse` | `{"raw_text":"简历原文"}` | 201，Resume |
+| `POST /api/v1/resumes/preview` | `{"raw_text":"简历原文"}` | 200，ResumeData 草稿；不写库 |
 | `POST /api/v1/resumes` | ResumeData | 201，保存结构化简历，Resume |
-| `GET /api/v1/resumes` | `limit=20&offset=0` | Resume 数组 |
+| `GET /api/v1/resumes` | `limit=20&offset=0&order=asc` | Resume 数组；可用 order=desc 读最新记录 |
 | `GET /api/v1/resumes/{id}` | 无 | Resume |
-| `POST /api/v1/jobs` | JDInput | 201，JD |
+| `POST /api/v1/jobs` | JDCreate（兼容原 JDInput 请求） | 201，JD |
 | `GET /api/v1/jobs` | `limit=20&offset=0` | JD 数组 |
 | `GET /api/v1/jobs/{id}` | 无 | JD |
 | `POST /api/v1/matches` | PairInput | 201，MatchRecord |
@@ -36,15 +37,29 @@ ResumeData：
 {"name":"示例","education":"本科","skills":["Python","SQL"],"experience":["数据分析项目"],"raw_text":"完整简历文本"}
 ```
 
-`raw_text` 必填，其余字段有默认值；Resume 在其上增加服务端 `id=resume_<uuid>`。结构化保存不进行技能推断。
+`raw_text` 必填且逐字保留（含首尾空白和换行），纯空白拒绝；其余字段有默认值，未知 name 为 null。Resume 在其上增加服务端 `id=resume_<uuid>`。结构化保存不进行技能推断。preview 用于编辑前草稿，POST /resumes 保存确认后的新版本；不覆盖历史记录。
 
-JDInput / JD：
+JDInput 是 D 的旧 parse port，保持 title/company/jd_text 三字段；HTTP JDCreate 与返回的 JDData/JD 增加可选字段：
 
 ```json
-{"title":"数据分析师","company":"示例公司","jd_text":"需要 Python 和 SQL"}
+{"title":"数据分析师","company":"示例公司","jd_text":"需要 Python 和 SQL","skills":["Python","SQL"],"tools":["Python","SQL"],"salary":"15–20 EUR / hour","salary_min":15,"salary_max":20,"currency":"EUR","salary_period":"hour"}
 ```
 
-`company` 可省略；JDData 增加 `skills` 数组，JD 再增加 `id=jd_<uuid>`。
+`company` 可省略；JD 再增加 `id=jd_<uuid>`。只传原三字段仍有效。
+
+| 字段 | 默认与语义 |
+| --- | --- |
+| `skills` | `[]`；维持 v1 的技能/工具关键词并集，当前 D 的关键词匹配仅消费此字段 |
+| `tools` | `[]`；独立工具标签，不自动参与额外计数；不能只填 tools 就期待旧算法使用它 |
+| `salary` | `null`；薪资原文，最大 2000 字符，完整保留首尾空白 |
+| `salary_min / salary_max` | `null`；非负有限数值，二者都存在时 min ≤ max；以 currency/period 对应的实际金额为单位，不默认是 K/月 |
+| `currency` | `null`；已确认币种标签，如 CNY、USD、EUR，不推断币种 |
+| `salary_period` | `null`；已确认周期标签，如 hour、day、month、year，不做跨周期换算 |
+
+HTTP 层只向旧 provider 传 JDInput；provider 可返回完整 JDData。客户端显式给出的确认字段覆盖解析结果（包括 skills=[]、salary=null），省略的字段保留 provider 结果。
+D 当前实现仍只解析 skills 并集，tools/薪资自动提取由 D 后续补充；A 不从 D 内部词表提取或改写算法。
+所有可选字段写入 jobs.payload JSON，列表/按 ID 读取完整返回；旧 JSON 缺失字段按默认值兼容，并通过 migration 2 非破坏性补齐，保留已有值、ID、时间和 Mock 来源。
+来源时间、URL、采样标签仍保存在验收数据文件中，不作为未定义的 API 输入。
 
 PairInput：
 
@@ -58,7 +73,7 @@ D 的公开方法收到 `{"resume_text":"原文","jd_text":"原文"}`，返回 `
 
 analytics 的公开方法接收 `list[JD]`，返回 `{"summary":"分析摘要","skills":{"Python":3}}`；HTTP 响应再加 `is_mock`。此结构是基础统计交接点，不是最终看板图表契约，薪资、来源、时间范围及图表字段仍待 A/D 对齐后由 A 扩展，当前 v1 不接受这些未知字段。
 
-文本去除首尾空白后必须非空且 ≤ 50,000 字符；title、技能及关联 ID 最多 200 字符；简历技能/经历及 JD 技能数组最多 500 项。name、education、company 是可选描述字段，暂未统一长度约束。
+简历原文必须非纯空白且 ≤ 50,000 字符，保留原始空白；JD 原文等其他 Text 字段仍沿用 v1 首尾去空白规则。title、技能/工具、币种/周期及关联 ID 最多 200 字符；简历技能/经历及 JD 技能/工具数组最多 500 项。name、education、company 是可选描述字段，暂未统一长度约束。
 
 ## Mock 与错误约定
 
@@ -68,16 +83,18 @@ analytics 的公开方法接收 `list[JD]`，返回 `{"summary":"分析摘要","
 
 ## 变更记录
 
+- 2026-09-08：发布兼容的 JDCreate、tools/薪资公共字段与旧记录迁移；JDInput provider port 不变。默认接入 ResumeService / JobsService；新增 Resume preview 与可选倒序列表。向量接口见 [PostgreSQL 与向量契约](postgres.md)。
+
 - 2026-09-07：增加同源公共前端壳与合成样例静态入口；根页面不再跳转 Swagger，`/docs` 保持可用。未改变现有业务 API 的输入输出。
 - 2026-09-07：公开 provider 启动时校验无参类与同步方法签名；可用布尔 `is_mock=True` 标识自定义示例，结果继续标注 Mock。analytics 的基础样例统计以“包含该技能的岗位数”为口径，详见 `examples/fixtures/team.json`；不要求匹配分数等于固定示例分数。未改动 v1 JSON 字段。
 - 2026-09-07：建立 v1。保留团队建议字段，补充诊断/分析输出、持久化标识、Mock 来源及错误契约。当前未冻结为跨团队最终版；后续新增字段、适配说明在此记录，破坏性修改需新 API 版本。
 
-## 严格 T5 对齐待办（尚未发布新契约）
+## 严格 T5 后续契约
 
-本次仅修订分工与差距说明，不变更 v1 JSON 字段、路由或已有 provider 签名。
+以上 2026-09-08 字段已实现并验证；以下仍为待办，不能按已完成验收。
 
 - 简历编辑：现有 POST /resumes 接收编辑后的 ResumeData 并生成新 ID，GET 可重新读取。A 的编辑器须保留原文，显示编辑结果；不能把已有 API 当作 UI 已完成。
-- JD：D 提供薪资解析，A/D 确定薪资上下限、币种/周期、来源分类及采样时间等字段语义；无法解析允许空值。A 负责 Schema、持久化、兼容旧记录及迁移。
+- JD：D 按已发布字段补工具/薪资解析及展示；来源分类和采样时间的 API 扩展仍待明确。
 - 分析：目前只有 summary/skills，尚不足以承载薪资分布、岗位技能分布和时间/来源口径。A 明确响应结构、同步前端和测试，不提前展示不存在的接口。
-- 向量：D 通过集成请求明确模型、维度、对象和距离；A 实施 PostgreSQL/pgvector 及公共查询 adapter。参数尚未确定，不猜测固定维度。
+- 向量：公共 VectorRepository 已实现；D 仍需明确实际模型/预处理版本、维度、对象、距离和评分策略，调用方注册独立空间。没有默认模型或生产向量空间。
 - 保持现有调用兼容；新增可选字段应有默认/空值与旧数据验证，破坏性变更新建 API 版本。

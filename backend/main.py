@@ -11,8 +11,8 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from backend.api.routes import router
 from backend.core.config import ROOT, Settings
 from backend.core.database import build_engine
+from backend.core.migrations import migrate
 from backend.core.providers import load_providers
-from backend.models.entities import Base
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -24,7 +24,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         engine = build_engine(settings.database_url)
         app.state.engine = engine
         try:
-            Base.metadata.create_all(engine)
+            migrate(engine)
             yield
         finally:
             engine.dispose()

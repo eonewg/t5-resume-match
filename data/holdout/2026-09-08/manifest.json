@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "collected_at": "2026-09-08",
+  "purpose": "independent_holdout",
+  "frozen_algorithm_sha": "fe3dfbb65ec5fe46852a6fb9ddd0a42adf2c92f5",
+  "jd": [
+    "jd/holdout-jd-01.json",
+    "jd/holdout-jd-02.json",
+    "jd/holdout-jd-03.json",
+    "jd/holdout-jd-04.json",
+    "jd/holdout-jd-05.json"
+  ],
+  "resumes": [
+    "resumes/student-01.json",
+    "resumes/student-02.json",
+    "resumes/student-03.json"
+  ],
+  "limitations": [
+    "5 JD 来自同一雇主 Canonical，非中国就业市场代表样本。",
+    "3 份简历为作者公开的学生时期简历；2018/2022 年历史样本不代表现在仍在校。",
+    "简历来自公开自述，未独立核验学历或成果；保留来源中的数字，不额外添加。",
+    "个人联系方式已去除，保留来源链接与许可归属，因此属于去标识化而非不可逆匿名。",
+    "该批不用于调整当前 D 词表，后续调参若使用须另建测试集。"
+  ]
+}

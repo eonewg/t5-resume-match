@@ -1,6 +1,7 @@
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
+from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -19,7 +20,9 @@ from backend.schemas.contracts import (
     AnalysisResponse,
     AnalysisResult,
     DiagnosisRecord,
+    JDCreate,
     JDData,
+    JDFields,
     JDInput,
     MatchRecord,
     PairInput,
@@ -111,9 +114,16 @@ def get_resume(identifier: str, response: Response, db: DB):
 
 
 @router.post("/jobs", response_model=JD, status_code=201, tags=["jobs"])
-def create_job(data: JDInput, request: Request, response: Response, db: DB):
+def create_job(data: JDCreate, request: Request, response: Response, db: DB):
     provider = request.app.state.providers["jobs"]
-    result = invoke(provider, "parse", JDData, data)
+    parse_input = JDInput(**data.model_dump(include=set(JDInput.model_fields)))
+    result = invoke(provider, "parse", JDData, parse_input)
+    # Explicit user metadata wins, including []/null; omitted fields retain provider output.
+    supplied = data.model_dump(include=data.model_fields_set & set(JDFields.model_fields))
+    try:
+        result = JDData.model_validate({**result.model_dump(), **supplied})
+    except ValidationError as error:
+        raise HTTPException(422, "确认字段与解析结果不符合 JD 契约") from error
     row = JDRow(id=new_id("jd"), payload=result.model_dump(), is_mock=provider.is_mock)
     db.add(row)
     db.flush()

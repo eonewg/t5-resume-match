@@ -4,7 +4,7 @@
 
 运行 `start.ps1`，打开 `http://127.0.0.1:8000/`。公共壳由 FastAPI 同源提供，使用 HTML、CSS 和原生 JavaScript ES modules；无需 npm 安装或构建。Node 22+ 只用于 `node scripts/check_frontend.mjs` 开发检查。
 
-首页已接通合成样例填充、简历/JD 保存、匹配与诊断、错误反馈、Mock 标签和当前选择状态。diagnosis 已正式挂载；resume、jobs、analytics 仍为占位入口，不能视为已完成业务页面。`/docs` 与 `/openapi.json` 继续保留。
+首页已接通合成样例填充、简历/JD 保存、匹配与诊断、错误反馈、Mock 标签和当前选择状态。diagnosis、jobs 已正式挂载；Jobs 用 `/#jobs` 或普通导航进入，无需 preview，支持已保存简历/JD 选择及真实关键词匹配。resume、analytics 专用页面仍为占位入口。`/docs` 与 `/openapi.json` 继续保留。
 
 ## 自己的目录与入口
 

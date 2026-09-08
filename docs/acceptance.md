@@ -6,8 +6,8 @@
 
 | 模块 | Owner | 当前实现 | 验收状态与待办 |
 | --- | --- | --- | --- |
-| Resume | A | 公共结构化保存/读取 API、Mock；无真实模块实现 | 待实现解析、编辑 UI、保存读取闭环并验收 |
-| Jobs / Matching | D | 公共接口、Mock；当前 A 分支无真实模块实现 | 待验收关键词基线、分数/gap、薪资解析及 embedding 增强 |
+| Resume | A | 真实保守解析、preview 草稿、确认后保存/读取及原文保留 | API 链路通过，专用结构化编辑器 UI 待完成 |
+| Jobs / Matching | D | PR #5 已集成；默认真实关键词 provider 和 Jobs 导航 | Level 1 关键词/分数/gap PASS；独立 tools/薪资自动解析与 embedding 待 D |
 | Diagnosis | D | 已有服务、公共 provider 与前端挂载、离线测试 | 真实模型输出、延迟及 T5 全项待验证；不能据离线检查判定最终 PASS |
 | Analytics | A | 公共基础统计接口、Mock；无真实模块实现 | 待实现词云、薪资/技能分布、来源口径与观察说明并验收 |
 
@@ -24,7 +24,7 @@
 | Level 1 jobs/matching | D，A 提供持久化 | JD 输入保存复用、技能/工具提取、关键词基线、0–100 分数、matched/missing/gap 及一致解释；只有向量评分不通过 |
 | Level 2 | D，A 串联 | 平淡经历 STAR、JD 定向关键词/经历建议、量化补充提示、不虚构事实；真实/Mock 与失败行为区分；真实模型待验证 |
 | Level 3 | A，D 解析 JD | 已录入 JD 聚合的近期技能词云、薪资分布、技能要求分布、观察/职业建议；来源、样本量、时间范围和缺失值口径 |
-| PostgreSQL + pgvector | A，D 提供参数 | 实际连接、扩展、字段、索引、向量读写/查询 adapter、迁移和真实集成测试；目前 SQLite 演示不足以通过 |
+| PostgreSQL + pgvector | A，D 提供参数 | 公共设施本阶段已真实通过连接、扩展、表/索引、repository、迁移与数据库测试；生产模型参数与 D 集成待后续 |
 | NLP 与向量 | D | 关键词规则基线与向量相似度增强、组合评分解释；模型、维度、距离请求待明确 |
 | 全链路演示与 E2E | A/D | 按 T5 对照表十步演示，包括原始/优化简历对比、全部图表；无未解释关键失败 |
 | 可复现运行 | A | 主程序、数据库初始化、完整依赖安装、README、无密钥 .env.example；最终提交的 clean clone / fresh install |
@@ -43,9 +43,20 @@
 
 A 自有模块执行相同门槛；新增提交重新检查，集成失败保留证据并停止后续合并。最终只通过 feat/core-a → main PR 交付。
 
-## 待处理交付
+## 2026-09-08：PR #5 Level 1 正式集成与公共基础设施
 
-### PR #5 · D 文档交接 — BLOCKED
+- D 源：`fe3dfbb65ec5fe46852a6fb9ddd0a42adf2c92f5`；继承 A 基线 `844b89c`。本次先验证用户确认的未提交 Resume 基线并提交 `c4ef397`，然后合并 PR #5 为 `ebbe251`，目标仅 feat/core-a。
+- PR diff 为 D jobs/diagnosis 文档、Jobs 模块与前端/测试，未越界修改 A 公共层；旧阻塞文档已对齐、PR 已脱离 draft 且可合并。准确源提交独立 worktree：Python 104 passed、前端 32 passed；GitHub 检查 8 项 SUCCESS。
+- A 适配：默认 Jobs provider/正式注册，HTTP JDCreate 与兼容 JDData 字段、旧 JSON 迁移；D 旧 parse port 和关键词算法不变。D 测试仅增加显式 Mock Resume 配置以保留既有来源传播断言。
+- 数据库：原生 Windows PostgreSQL 17.6 + pgvector 0.8.1 已启动连接、建扩展/表与索引、读写查询、迁移/约束/回滚通过；未选定或实现生产 embedding 模型。
+- 独立材料：5 新真实 JD + 3 公开学生时期简历；不是 D 已有调词表样本，不伪造学生经历。历史/语言/单雇主限制见 [材料说明](../data/holdout/2026-09-08/README.md)。
+- 本地验证：全量 Python（含 PG）142 passed、前端 33 passed、Diagnosis 44 项离线回归、PostgreSQL/pgvector 与 Resume → JD → keyword match smoke 通过。无头 Edge 默认导航、编辑后确认简历 API、33.33%/gap、502 重试、390px、重复导航选择保留通过。
+- 结论：**PASS（本阶段范围）**。不代表完整 T5 PASS：Resume 编辑器 UI、Analytics、D tools/薪资解析、Embedding 与真实 AI 质量仍待后续。
+- 给 D 的当前公共契约见 [A 交接](integration_requests/A-level1-vector-handoff.md)，详细验证见 [验证记录](validation.md)。
+
+## 历史审查（已由以上准确新提交复验取代）
+
+### PR #5 · 旧 D 文档交接 — 当时 BLOCKED
 
 - 源提交：dd1933e02642172d4ddbf2c3cf0ac61a9b0e978b；A 基线：124466058255a4094615a7ea84d0a47a5082b1eb。
 - 范围：6 个 Markdown 文件，位于 Diagnosis README 和 D 集成请求目录；无业务代码、公共 Schema、依赖或 CI 修改。未检出常见密钥/私钥格式。

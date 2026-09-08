@@ -1,0 +1,22 @@
+{
+  "id": "student-01",
+  "source_type": "public_student_resume",
+  "source_url": "https://github.com/dickwyn/resume/blob/cca65404bcca1627aa469c4757b3cf6a17f9ff4b/resume-dickwyn.tex",
+  "source_commit": "cca65404bcca1627aa469c4757b3cf6a17f9ff4b",
+  "collected_at": "2026-09-08",
+  "resume_period": "2018",
+  "student_status_evidence": "Senior Computer Science student; Expected December 2018; Summer 2018 Internship",
+  "license": "MIT",
+  "license_file": "licenses/student-01-MIT.txt",
+  "original_source_sha256": "3d80cb40f5933d45f16a9c91bc6ea4a4f15dedb1bbd8260ccf532c3fa61e04d6",
+  "source_snapshot": "sources/student-01.tex",
+  "source_sha256": "9cf2c22b8698383d67c89e6d72c7a5768e27a34b31acabb13c2714f40f108f3e",
+  "text_sha256": "e4391a6f469202a6bf683587a5d7e449f08234cd531e6a4c42d6398cf5378492",
+  "raw_text": "Summary:\n\nSenior Computer Science student with experience in developing full stack web applications using technologies such as JavaScript (ES6), ExpressJS and MongoDB. Seeking a\nSummer 2018 Internship to leverage exemplary coding skills, analytical skills and leadership skills.\n\nEducation:\n\nBachelor of Science\nComputer Science\nExpected December 2018\nArizona State University [Tempe, AZ]\n3.68/4.0\n\nTechnical Skills:\n\nLanguages\nJavaScript (ES6), Java, C#, SQL, HTML, CSS/Sass, C/C++, Python, Matlab\n\nFrameworks\nBootstrap, .NET, Node, jQuery, Jekyll, Express, React, Angular\n\nTools\nPhotoshop, Illustrator, Bash, Git, Gulp, WordPress, Axure RP, Amazon AWS, LaTeX\n\nProjects:\n\nSafeDevils\n(JavaScript, NodeJS, PugJS)\nMay 2018\n\nA simple safety web application that integrates the SafeTrek API to invoke emergency services when the alert button is triggered.\n\nSFLE Knowledgebase\n(AxureRP, MySQL, NodeJS)\nFebruary 2018 - Present\n\nPrototyped an interactive web application with Axure RP where practitioners and the public can browse the solutions within the database.\n\nDesigned a scalable open-source database using MySQL that stores data from researchers and stakeholders about sustainable local food economies.\n\nSound Waves\n\nJanuary 2017 - April 2017\n\nPrototyped a side-scrolling mobile game which included a scoring system, game streaks and a theme for SOUNDS Academy to help underprivileged students practice string instruments.\n\nWon EPICS Catalyst Award from Ira A. Fulton Schools of Engineering.\n\nOneLap\n(C, Kinetis Microcontroller)\nApril 2015 - June 2015\n\nDeveloped an autonomous navigation algorithm in C that aligned the vehicle to the center of two white lines. Model race car built with a FRDM-KL25Z board, a line scan camera and a servo.\n\nExperience:\n\nTeaching Assistant\nAugust 2016 - December 2017\nIra A. Fulton Schools of Engineering [Tempe, AZ]\n\nAssisted the professor to guide a class of 40 freshmen students to understand introductory programming techniques.\n\nInvolved in creating learning modules for students in\nMatlab to help learn hardware programming on the Lego Mindstorms platform.\n\nLeadership:\n\nStudent Facilitator\nFebruary 2017 - Present\nASU Student and Cultural Engagement [Tempe, AZ]\n\nFacilitated diversity & inclusion workshops for 80 students on topics such as conflict resolution, cultural adjustment and intersectionality of sex, gender & sexuality.\n\nVice President\nSeptember 2017 - April 2018\nASU Coalition of International Students [Tempe, AZ]\n\nCoordinated 58 student leaders within the coalition to host 5 large-scale events that celebrated culture from all around the world that collectively engaged over 6,000 students throughout the academic year.\n\nSupervised all internal operations within the coalition such as project management and conducting strategic reviews.",
+  "redactions": [
+    "姓名与联系方式/个人主页所在的顶部区域",
+    "样本 01 的个人项目 URL（不删除项目名称和事实）",
+    "清除脱敏快照的行末排版空白，不改变文字事实"
+  ],
+  "notes": "作者公开的学生时期个人简历，不是随机生成履历；仅去除直接标识和转换标记，不翻译、不虚构技能或量化成果。来源与许可可追溯，不能视为完全匿名或事实已独立核验。"
+}
