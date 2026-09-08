@@ -301,7 +301,10 @@ def test_a_provider_loading_persistence_and_failed_workflow_rollback(monkeypatch
         diagnosis_provider="backend.modules.diagnosis.public:DiagnosisService",
     )
     with TestClient(core_app(config)) as client:
-        resume = client.post("/api/v1/resumes", json={"raw_text": data().resume_text}).json()
+        resume = client.post(
+            "/api/v1/resumes",
+            json={"raw_text": data().resume_text, "experience": [data().resume_text]},
+        ).json()
         jd = client.post(
             "/api/v1/jobs", json={"title": "数据分析", "jd_text": data().jd_text}
         ).json()
