@@ -1,5 +1,8 @@
 # D：开发计划与公共集成请求
 
+最新阶段：轻量否定/意向过滤，原开发集 7/8、新增独立集 14/16；详见 [过滤验证](D-filter-validation.md)。
+保留误伤案例，默认 off；A Vector Port 尚未提供，未进行 pgvector 接入。
+
 Level 1 已经 A 合并（PR #5）；本阶段实现可选本地 Embedding，默认关闭，待业务验收。
 开发流程：`feat/intelligence-d → feat/core-a`。本轮同步基线：`ebbe251`。
 Level 2 方案/验证/接口请求见 [语义匹配记录](D-embedding-contract.md)，真实模型在 8 组新对照中排序正确 6 组，否定/学习意向仍存在误判。

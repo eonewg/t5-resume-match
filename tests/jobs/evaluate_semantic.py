@@ -1,10 +1,11 @@
-"""Explicit opt-in real local model evaluation; excluded from default pytest discovery."""
+"""Historical v1 reproduction; evaluate_filter.py compares v1 and current filtering."""
 
 import json
 from pathlib import Path
 
-from backend.modules.jobs.embedding import DIMENSION, MODEL, REVISION, LocalMiniLM
+from backend.modules.jobs.embedding import DIMENSION, MODEL, REVISION, LocalMiniLM, chunks, compare
 from backend.modules.jobs.public import JobsService
+from backend.modules.jobs.semantic import MatchDetails
 from backend.schemas.contracts import JD, Resume
 
 
@@ -34,7 +35,14 @@ def main():
             jd = JD(
                 id=sample["id"], title="独立验证岗位", jd_text=sample["jd"], skills=sample["skills"]
             )
-            detail = service.match_detail(resume, jd)
+            baseline = service.keyword_match(resume, jd)
+            semantic, evidence = compare(
+                LocalMiniLM(), chunks([jd.jd_text]), chunks(resume.experience)
+            )
+            final = round(0.8 * baseline.score + 0.2 * semantic, 2)
+            detail = MatchDetails(
+                baseline, baseline.score, semantic, final, "semantic", evidence=evidence
+            )
             if detail.status != "semantic":
                 raise RuntimeError("Real model evaluation unavailable: no success report written")
             results.append(detail)

@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from backend.schemas.contracts import JD, MatchResult, Resume
 
 from .embedding import EmbeddingProvider, SemanticEvidence, chunks, compare
+from .evidence_filter import filter_clauses
 
 
 @dataclass(frozen=True)
@@ -41,10 +42,15 @@ def enhance(
         return fallback("disabled")
     try:
         # Only confirmed structured resume fields, never infer skills from old raw text.
-        requirements = chunks([jd.jd_text])
-        evidence = chunks(resume.experience + resume.skills)
+        job_text = filter_clauses([jd.jd_text], jd=True)
+        resume_text = filter_clauses(resume.experience + resume.skills)
+        excluded_count = len(job_text.excluded) + len(resume_text.excluded)
+        requirements = chunks(list(job_text.kept))
+        evidence = chunks(list(resume_text.kept))
         if not requirements or not evidence:
-            return fallback("empty", "缺少岗位内容或已确认的简历技能/经历")
+            return fallback(
+                "empty", f"缺少有效岗位或已确认经历；过滤否定/意向/无关片段 {excluded_count} 项"
+            )
         semantic, pairs = compare(provider, requirements, evidence)
     except Exception:
         # Provider exceptions may contain paths, credentials or resume text: do not expose them.
@@ -60,6 +66,7 @@ def enhance(
         )
 
     notes = [
+        f"语义预处理排除 {excluded_count} 个否定、学习意向或福利/公司介绍片段；不将其视为已掌握技能。",
         f"关键词基线：{len(baseline.matched_skills)}/{len(baseline.matched_skills) + len(baseline.missing_skills)} 个直接命中，归一化、去重后等权计算。",
         f"直接命中关键词：{summary(baseline.matched_skills)}。",
         f"未直接命中关键词：{summary(baseline.missing_skills)}；语义相近不证明已掌握。",

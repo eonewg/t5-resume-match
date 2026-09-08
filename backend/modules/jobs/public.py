@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from backend.schemas.contracts import JD, JDData, JDInput, MatchResult, Resume
 
 from .embedding import LocalMiniLM
+from .evidence_filter import filter_clauses
 from .keywords import TOOLS, canonicalize, extract, normalized
 from .semantic import enhance
 
@@ -34,7 +35,8 @@ class JobsService:
         original = data.model_dump(warnings=False) if isinstance(data, JDInput) else data
         checked = JDInput.model_validate(original)
         # Public validation trims for validity; preserve the caller's original text values.
-        result = JDData(**checked.model_dump(), skills=extract(checked.jd_text))
+        accepted = filter_clauses([checked.jd_text], jd=True)
+        result = JDData(**checked.model_dump(), skills=extract("\n".join(accepted.kept)))
         for field in ("jd_text", "title", "company"):
             setattr(
                 result, field, original[field] if field in original else getattr(checked, field)

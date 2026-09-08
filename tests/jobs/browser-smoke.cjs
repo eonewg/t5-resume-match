@@ -52,6 +52,22 @@ const path = require('node:path');
     }
     let posts=0;page.on('request',r=>{if(r.url().endsWith('/api/v1/matches')&&r.method()==='POST')posts++;});
     await match.click();await page.locator('#jobs-result:not([hidden])').waitFor();assert.equal(posts,1);
+    if (process.env.T5_SMOKE_SEMANTIC === '1') {
+      await page.locator('#jobs-title').fill('过滤验证岗位');
+      await page.locator('#jobs-text').fill('无需 Docker。要求 Kubernetes。');
+      await page.getByRole('button',{name:'解析并保存 JD'}).click();
+      await page.locator('#jobs-status').filter({hasText:'JD 已解析并保存'}).waitFor();
+      assert.match(await page.locator('#jobs-keywords').innerText(),/Kubernetes/);
+      assert.doesNotMatch(await page.locator('#jobs-keywords').innerText(),/Docker/);
+      const intentResponse=await page.request.post('http://127.0.0.1:8768/api/v1/resumes',{data:{raw_text:'正在学习 Kubernetes',experience:['正在学习 Kubernetes'],skills:[]}});
+      assert.equal(intentResponse.status(),201); const intent=await intentResponse.json();
+      await page.getByRole('button',{name:'刷新已保存记录'}).click();
+      await page.locator('#jobs-status').filter({hasText:'已加载'}).waitFor();
+      await page.locator('#jobs-resume').selectOption(intent.id);
+      await match.click();await page.locator('#jobs-result:not([hidden])').waitFor();
+      assert.match(await page.locator('#jobs-result').innerText(),/过滤/);
+      assert.match(await page.locator('#jobs-result h2').innerText(),/^0%/);
+    }
     assert.deepEqual(errors,[]);console.log(JSON.stringify({status:'PASS',desktop,mobile,
       checks:['empty','JD save/parse','selection',process.env.T5_SMOKE_SEMANTIC === '1' ? 'real semantic blend/evidence' : '33.33 keyword score/gap','failure/retry','Mock','XSS/long text','390px','navigation cleanup']}));
   }finally{await browser.close();}
