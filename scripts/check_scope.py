@@ -7,10 +7,22 @@ import sys
 from pathlib import PurePosixPath
 
 from backend.core.config import ROOT
-from scripts.member_specs import BRANCHES, D_BRANCHES, MODULES
+from scripts.member_specs import BRANCHES, D_BRANCHES, D_UI_BRANCH, MODULES
 
 
-def allowed_path(owner, path):
+def allowed_path(owner, path, branch=None):
+    if owner == "D" and branch == D_UI_BRANCH:
+        return path.startswith("frontend/") or (
+            path.endswith(".md")
+            and (
+                path.startswith("docs/ui/")
+                or path
+                in (
+                    "docs/frontend-integration.md",
+                    "docs/integration_requests/D-ui-refresh.md",
+                )
+            )
+        )
     prefixes = [
         prefix
         for spec in MODULES.values()
@@ -26,10 +38,10 @@ def allowed_path(owner, path):
     return path.startswith(f"docs/integration_requests/{owner}-") and path.endswith(".md")
 
 
-def violations(owner, paths):
+def violations(owner, paths, branch=None):
     errors = []
     for path in paths:
-        if not allowed_path(owner, path):
+        if not allowed_path(owner, path, branch):
             errors.append(f"超出 {owner} 责任范围: {path}")
         file = PurePosixPath(path)
         if file.name == ".env" or "__pycache__" in file.parts or file.suffix in (".pyc", ".db"):
@@ -47,6 +59,11 @@ def main():
     parser.add_argument("--ci", action="store_true")
     args = parser.parse_args()
     owner = args.owner
+    ref = (
+        subprocess.check_output(["git", "branch", "--show-current"], cwd=ROOT, text=True).strip()
+        if not args.ci
+        else ""
+    )
     if args.ci:
         ref = os.environ.get("GITHUB_HEAD_REF") or os.environ.get("GITHUB_REF_NAME", "")
         target = os.environ.get("GITHUB_BASE_REF", "")
@@ -76,7 +93,7 @@ def main():
         print("FAIL: 无法比较集成基线；请先 git fetch origin，并确认 --base。")
         return 1
     paths = [p for p in result.stdout.decode("utf-8").split("\0") if p]
-    errors = violations(owner, paths)
+    errors = violations(owner, paths, ref)
     if errors:
         print("\n".join(errors))
         return 1

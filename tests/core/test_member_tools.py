@@ -171,6 +171,54 @@ def test_owner_mapping_covers_current_modules():
     assert set(MODULES) == {"resume", "jobs", "diagnosis", "analytics"}
 
 
+@pytest.mark.parametrize(
+    "path, expected",
+    [
+        ("frontend/src/app.js", 0),
+        ("frontend/index.html", 0),
+        ("docs/ui/design.md", 0),
+        ("docs/frontend-integration.md", 0),
+        ("docs/integration_requests/D-ui-refresh.md", 0),
+        ("backend/modules/jobs/public.py", 1),
+        ("backend/modules/diagnosis/client.py", 1),
+        ("backend/models/entities.py", 1),
+        ("docs/api-contract.md", 1),
+        ("docs/postgres.md", 1),
+        ("docs/team-rules.md", 1),
+        (".github/workflows/core.yml", 1),
+        ("frontend/.env", 1),
+    ],
+)
+def test_ui_branch_has_separate_scope(monkeypatch, path, expected):
+    from scripts import check_scope
+
+    monkeypatch.setenv("GITHUB_HEAD_REF", "feat/ui-refresh-d")
+    monkeypatch.setenv("GITHUB_BASE_REF", "feat/core-a")
+    monkeypatch.setattr(sys, "argv", ["check_scope", "--ci"])
+    monkeypatch.setattr(
+        check_scope.subprocess,
+        "run",
+        lambda *args, **kwargs: types.SimpleNamespace(returncode=0, stdout=(path + "\0").encode()),
+    )
+    assert check_scope.main() == expected
+
+
+def test_ui_branch_preserves_all_contract_gates(tmp_path):
+    assert ci_modules("feat/ui-refresh-d", tmp_path) == list(MODULES)
+    assert not allowed_path("D", "frontend/src/app.js", "feat/intelligence-d")
+    with pytest.raises(CheckFailure):
+        ci_modules("feat/ui-refresh-d-typo", tmp_path)
+
+
+def test_ui_branch_cannot_target_main(monkeypatch):
+    from scripts import check_scope
+
+    monkeypatch.setenv("GITHUB_HEAD_REF", "feat/ui-refresh-d")
+    monkeypatch.setenv("GITHUB_BASE_REF", "main")
+    monkeypatch.setattr(sys, "argv", ["check_scope", "--ci"])
+    assert check_scope.main() == 1
+
+
 @pytest.mark.parametrize("source", ["feat/intelligence-d", "feat/diagnosis-llm-d"])
 @pytest.mark.parametrize(
     "path, expected", [("backend/modules/diagnosis/client.py", 0), ("backend/core/config.py", 1)]

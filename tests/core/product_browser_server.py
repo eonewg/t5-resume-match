@@ -4,6 +4,7 @@ Connect T5_TEST_DATABASE_URL, then python -m tests.core.product_browser_server.
 POST /__verification_shutdown only exists in this loopback-only test harness.
 """
 
+import argparse
 import os
 from contextlib import asynccontextmanager, contextmanager
 
@@ -15,6 +16,11 @@ from tests.core.test_vectors import pg_engine
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--live-diagnosis", action="store_true")
+    parser.add_argument("--env-file", default=".env")
+    parser.add_argument("--market-supplement", action="store_true")
+    args = parser.parse_args()
     with contextmanager(pg_engine.__wrapped__)() as engine:
         app = create_app(Settings(_env_file=None, database_url="sqlite://"))
         original_lifespan = app.router.lifespan_context
@@ -25,6 +31,24 @@ def main():
                 original = application.state.engine
                 application.state.engine = engine
                 try:
+                    if args.live_diagnosis:
+                        from backend.core.providers import Provider
+                        from backend.modules.diagnosis.config import DiagnosisSettings
+                        from backend.modules.diagnosis.public import DiagnosisService
+
+                        service = DiagnosisService(
+                            settings=DiagnosisSettings(_env_file=args.env_file)
+                        )
+                        application.state.providers["diagnosis"] = Provider(
+                            service, service.is_mock
+                        )
+                    if args.market_supplement:
+                        from sqlalchemy.orm import Session
+
+                        from scripts.import_final_samples import import_samples
+
+                        with Session(engine) as session, session.begin():
+                            import_samples(session, application.state.providers["jobs"])
                     yield
                 finally:
                     application.state.engine = original

@@ -1,0 +1,665 @@
+{
+  "code_sha": "0b175f0b73071b648012f32257e51cdaf9524c78",
+  "model_identity_hidden_from_reviewer": true,
+  "resumes": [
+    {
+      "name": null,
+      "education": "Bachelor of Science\nComputer Science\nExpected December 2018\nArizona State University [Tempe, AZ]\n3.68/4.0",
+      "skills": [
+        "MySQL",
+        "C"
+      ],
+      "experience": [
+        "SafeDevils\n(JavaScript, NodeJS, PugJS)\nMay 2018",
+        "A simple safety web application that integrates the SafeTrek API to invoke emergency services when the alert button is triggered.",
+        "SFLE Knowledgebase\n(AxureRP, MySQL, NodeJS)\nFebruary 2018 - Present",
+        "Prototyped an interactive web application with Axure RP where practitioners and the public can browse the solutions within the database.",
+        "Designed a scalable open-source database using MySQL that stores data from researchers and stakeholders about sustainable local food economies.",
+        "Sound Waves",
+        "January 2017 - April 2017",
+        "Prototyped a side-scrolling mobile game which included a scoring system, game streaks and a theme for SOUNDS Academy to help underprivileged students practice string instruments.",
+        "Won EPICS Catalyst Award from Ira A. Fulton Schools of Engineering.",
+        "OneLap\n(C, Kinetis Microcontroller)\nApril 2015 - June 2015",
+        "Developed an autonomous navigation algorithm in C that aligned the vehicle to the center of two white lines. Model race car built with a FRDM-KL25Z board, a line scan camera and a servo.",
+        "Teaching Assistant\nAugust 2016 - December 2017\nIra A. Fulton Schools of Engineering [Tempe, AZ]",
+        "Assisted the professor to guide a class of 40 freshmen students to understand introductory programming techniques.",
+        "Involved in creating learning modules for students in\nMatlab to help learn hardware programming on the Lego Mindstorms platform."
+      ],
+      "raw_text": "Summary:\n\nSenior Computer Science student with experience in developing full stack web applications using technologies such as JavaScript (ES6), ExpressJS and MongoDB. Seeking a\nSummer 2018 Internship to leverage exemplary coding skills, analytical skills and leadership skills.\n\nEducation:\n\nBachelor of Science\nComputer Science\nExpected December 2018\nArizona State University [Tempe, AZ]\n3.68/4.0\n\nTechnical Skills:\n\nLanguages\nJavaScript (ES6), Java, C#, SQL, HTML, CSS/Sass, C/C++, Python, Matlab\n\nFrameworks\nBootstrap, .NET, Node, jQuery, Jekyll, Express, React, Angular\n\nTools\nPhotoshop, Illustrator, Bash, Git, Gulp, WordPress, Axure RP, Amazon AWS, LaTeX\n\nProjects:\n\nSafeDevils\n(JavaScript, NodeJS, PugJS)\nMay 2018\n\nA simple safety web application that integrates the SafeTrek API to invoke emergency services when the alert button is triggered.\n\nSFLE Knowledgebase\n(AxureRP, MySQL, NodeJS)\nFebruary 2018 - Present\n\nPrototyped an interactive web application with Axure RP where practitioners and the public can browse the solutions within the database.\n\nDesigned a scalable open-source database using MySQL that stores data from researchers and stakeholders about sustainable local food economies.\n\nSound Waves\n\nJanuary 2017 - April 2017\n\nPrototyped a side-scrolling mobile game which included a scoring system, game streaks and a theme for SOUNDS Academy to help underprivileged students practice string instruments.\n\nWon EPICS Catalyst Award from Ira A. Fulton Schools of Engineering.\n\nOneLap\n(C, Kinetis Microcontroller)\nApril 2015 - June 2015\n\nDeveloped an autonomous navigation algorithm in C that aligned the vehicle to the center of two white lines. Model race car built with a FRDM-KL25Z board, a line scan camera and a servo.\n\nExperience:\n\nTeaching Assistant\nAugust 2016 - December 2017\nIra A. Fulton Schools of Engineering [Tempe, AZ]\n\nAssisted the professor to guide a class of 40 freshmen students to understand introductory programming techniques.\n\nInvolved in creating learning modules for students in\nMatlab to help learn hardware programming on the Lego Mindstorms platform.\n\nLeadership:\n\nStudent Facilitator\nFebruary 2017 - Present\nASU Student and Cultural Engagement [Tempe, AZ]\n\nFacilitated diversity & inclusion workshops for 80 students on topics such as conflict resolution, cultural adjustment and intersectionality of sex, gender & sexuality.\n\nVice President\nSeptember 2017 - April 2018\nASU Coalition of International Students [Tempe, AZ]\n\nCoordinated 58 student leaders within the coalition to host 5 large-scale events that celebrated culture from all around the world that collectively engaged over 6,000 students throughout the academic year.\n\nSupervised all internal operations within the coalition such as project management and conducting strategic reviews.",
+      "id": "R1"
+    },
+    {
+      "name": null,
+      "education": "Southwest Petroleum University, Chengdu, SichuanSeptember 2023 -- Present\nUndergraduate Student, School of Computer and Software Engineering, Data Science and Big Data Technology\nAcademic Performance: GPA: 4.13/5.0, Major Ranking: 1/66",
+      "skills": [
+        "C",
+        "C++",
+        "Python"
+      ],
+      "experience": [
+        "Tecorigin Deep Learning Operator Performance OptimizationJune 2024 -- December 2024",
+        "Work: Team leader in the 2nd OpenAtom Tecorigin Operator Development Challenge; profiled the Conv forward operator, identified I/O as the 93.1% bottleneck, and designed 234KB SPM management, double buffering, async pipeline, and floatv16 SIMD data reordering.",
+        "Result: Reduced runtime from 1820.78ms to 489.18ms, achieving a 3.7x speedup; fixed the output layout mismatch between the GEMM library and NHWC format, and won National Third Prize.",
+        "Sunway PCG Solver OptimizationFebruary 2024 -- April 2024",
+        "Work: Individual project from the 7th Domestic CPU Parallel Application Challenge; refactored PCG on Sunway 64-core slave-core architecture, parallelized SpMV, dot product, and preconditioning with athread, and optimized DMA/LDM data movement and blocking.",
+        "Result: After 40+ optimization iterations, reduced runtime from 1287s to 32.5s and achieved a 39.6x speedup.",
+        "Parallel Computing Optimization for Oil Spill Prediction ModelMay 2024 -- August 2024",
+        "Work: Team leader in the 2024 Marine Computing Challenge Finals; implemented MPI+OpenMP hybrid parallelization for a 2D oil spill prediction model, used VTune for bottleneck analysis, and optimized load balance, memory access, communication, segment pruning, and binary search.",
+        "Result: Passed official correctness verification, achieved a 2482.14x speedup over the baseline, ranked 5th in the finals, and won National Third Prize.",
+        "Image Processing and Parallel Computing Laboratory (IPPC Lab), Southwest Petroleum UniversityMay 2024 -- September 2025",
+        "3D Ultrasound Speckle Tracking Algorithm OptimizationSichuan Student Innovation Program; Advisor: Prof. Bo Peng",
+        "Rebuilt the serial MATLAB workflow as a CUDA C++ parallel pipeline for high-volume cross-correlation in 3D ultrasound speckle tracking, decomposing it into RF integral volume construction, cross-correlation integral volume generation, and 3D subpixel displacement estimation GPU stages",
+        "Optimized memory access for large-scale 3D prefix-sum computation and introduced warp-level cooperation, accelerating the core kernel by 11.11x and reducing end-to-end runtime from 16.32s to 0.22s, about 73x faster",
+        "CUDA Acceleration for Large-Scale Image Pretraining Data GenerationOctober 2025 -- March 2026",
+        "Rewrote large-image tiling, noise injection, and training sequence generation for Hierarchical Denoising Encoder (HDE) pretraining in CUDA C++, packaging the workflow as a Python-callable module",
+        "Decomposed the pipeline into integral image computation, quadtree partitioning, hierarchical noise generation, and patch synthesis, processing 8192 × 8192 images on A100 in 3.16s with 13.0x speedup over CPU, 2.35x over CuPy, and 69.1x faster noise generation"
+      ],
+      "raw_text": "Education:\n\nSouthwest Petroleum University, Chengdu, SichuanSeptember 2023 -- Present\n\nUndergraduate Student, School of Computer and Software Engineering, Data Science and Big Data Technology\n\nAcademic Performance: GPA: 4.13/5.0, Major Ranking: 1/66\n\nLanguages: English CET-6 (478)\n\nCore Courses: Advanced Mathematics II(95), Linear Algebra(91), Probability and Statistics(93), Principles of Statistics(93), Data Structures and Algorithms(90)\n\nProject Experience:\n\nTecorigin Deep Learning Operator Performance OptimizationJune 2024 -- December 2024\n\nWork: Team leader in the 2nd OpenAtom Tecorigin Operator Development Challenge; profiled the Conv forward operator, identified I/O as the 93.1% bottleneck, and designed 234KB SPM management, double buffering, async pipeline, and floatv16 SIMD data reordering.\n\nResult: Reduced runtime from 1820.78ms to 489.18ms, achieving a 3.7x speedup; fixed the output layout mismatch between the GEMM library and NHWC format, and won National Third Prize.\n\nSunway PCG Solver OptimizationFebruary 2024 -- April 2024\n\nWork: Individual project from the 7th Domestic CPU Parallel Application Challenge; refactored PCG on Sunway 64-core slave-core architecture, parallelized SpMV, dot product, and preconditioning with athread, and optimized DMA/LDM data movement and blocking.\n\nResult: After 40+ optimization iterations, reduced runtime from 1287s to 32.5s and achieved a 39.6x speedup.\n\nParallel Computing Optimization for Oil Spill Prediction ModelMay 2024 -- August 2024\n\nWork: Team leader in the 2024 Marine Computing Challenge Finals; implemented MPI+OpenMP hybrid parallelization for a 2D oil spill prediction model, used VTune for bottleneck analysis, and optimized load balance, memory access, communication, segment pruning, and binary search.\n\nResult: Passed official correctness verification, achieved a 2482.14x speedup over the baseline, ranked 5th in the finals, and won National Third Prize.\n\nResearch Experience:\n\nImage Processing and Parallel Computing Laboratory (IPPC Lab), Southwest Petroleum UniversityMay 2024 -- September 2025\n\n3D Ultrasound Speckle Tracking Algorithm OptimizationSichuan Student Innovation Program; Advisor: Prof. Bo Peng\n\nRebuilt the serial MATLAB workflow as a CUDA C++ parallel pipeline for high-volume cross-correlation in 3D ultrasound speckle tracking, decomposing it into RF integral volume construction, cross-correlation integral volume generation, and 3D subpixel displacement estimation GPU stages\n\nOptimized memory access for large-scale 3D prefix-sum computation and introduced warp-level cooperation, accelerating the core kernel by 11.11x and reducing end-to-end runtime from 16.32s to 0.22s, about 73x faster\n\nCUDA Acceleration for Large-Scale Image Pretraining Data GenerationOctober 2025 -- March 2026\n\nRewrote large-image tiling, noise injection, and training sequence generation for Hierarchical Denoising Encoder (HDE) pretraining in CUDA C++, packaging the workflow as a Python-callable module\n\nDecomposed the pipeline into integral image computation, quadtree partitioning, hierarchical noise generation, and patch synthesis, processing 8192 × 8192 images on A100 in 3.16s with 13.0x speedup over CPU, 2.35x over CuPy, and 69.1x faster noise generation\n\nTechnical Skills:\n\nProgramming Languages: C/C++, Fortran, Python\n\nParallel Computing: CUDA, HIP, OpenMP, MPI, Sunway; CPU/GPU architecture and Sunway platform\n\nOptimization: Operator, memory access, communication, and performance bottleneck analysis\n\nLanguage: CET-6 English (478)\n\nAwards and Honors:\n\nInternational Second Prize, ASC2025 World Student Supercomputer ChallengeJune 2025\n\nInvited Participant, SC24 International Supercomputing Competition Online Track IndySCCNovember 2024\n\nNational Third Prize, 2024 Marine Computing Challenge FinalsAugust 2024\n\nNational Third Prize, Tecorigin Operator Development Challenge FinalsDecember 2024\n\nProvincial Second Place, Tianyi Cloud Xirang Cup College AI Competition, Sichuan Provincial CompetitionJuly 2025\n\nNational Third Prize, 15th Blue Bridge Cup National FinalsJune 2024\n\nFirst-class Scholarship, Second-class Scholarship, Southwest Petroleum University Outstanding Student Scholarship2024",
+      "id": "R2"
+    },
+    {
+      "name": null,
+      "education": "### University of Washington |   Seattle, WA, USA     Sep 2019 – Present\n- B.S. in Chemical Engineering, Nanoscience and Molecular Engineering Option, with Departmental Honors\n- Minor in Applied Mathematics and Chemistry\n- GPA: 3.97 | Expected Graduation: June 2023\n- Mary Gates Research Scholarship | 2 Dan Evans Term Scholarships | C-HACK Team 1st, 3rd Places\n### Brown University |   Providence, RI, USA     Jun 2018 – Aug 2018\n- Pre-Baccalaureate Program: Neuroscience, Cell and Molecular Biology\n### Kinglee High School |   Zhengzhou, Henan, China     Sep 2013 – Jun 2019\n- Discovery Fair 1st Place | Science Fair 1st, 2nd Places | 2 Peer Tutor Awards | Merit Student of Zhengzhou",
+      "skills": [
+        "Python"
+      ],
+      "experience": [
+        "### Undergraduate Research Assistant   Nov 2020 – Present\n\nDepartment of Chemical Engineering, University of Washington, PI: Elizabeth Nance\n\n- Quantified microglia morphology of 3 datasets using image processing and machine learning methods\n- Developed Python API for data analysis for modular integration to fluorescent image analysis workflow\n- Scanned 102 murine breast cancer tissue slices using confocal microscope (24.5 hr) for collaborators\n- Surveyed literature regarding cell segmentation, morphological analysis, and image-based profiling",
+        "### Summer Undergraduate Research Scholar   Jun 2022 - Aug 2022\n\nSTROBE NSF Science and Technology Center on Real-Time Functional Imaging   Department of Physics, Florida International University, PI: Jin He\n\n- Fabricated and functionalized gold nanorods for promoting maturation of engineered cardiac tissues\n- Characterized gold nanorods using UV-visible spectroscopy and Raman spectroscopy\n- Measured contractile force of cardiac tissues by analyzing brightfield microscopy video data with Python\n- Processed confocal microscopy images of T-tubular systems of cardiomyocytes with Python",
+        "### Calculus Teaching Assistant   Sep 2018 – May 2019\n\nKinglee High School\n\n- Gave AP Calculus AB lectures 4 hours weekly to 5 students in alignment with CollegeBoard curriculum\n- Clarified complex concepts and common confusions about calculus with classroom activities\n- Worked with supervisor to design and grade concept checks, homework, and quizzes with tight deadlines",
+        "### Webmaster   Apr 2022 – Present\n\nAmerican Institute of Chemical Engineers (AIChE), University of Washington\n\n- Managed and designed official website; monitored and updated social media accounts and email list\n- Coordinated with internal and external media efforts to ensure up-to-date online presence\n- Facilitated coordination of ChemE BBQ event and graduation ceremony",
+        "### Secretary   May 2021 – Present\n\nWomen in Chemical Engineering, University of Washington\n\n- Kept transparent meeting records, managed member email list, and maintained student group registration\n- Composed biweekly newsletters to 400+ members to update events, resources, and diversity highlights\n- Facilitated coordination of Veteran's Day event, Wiki-edit-a-thon, and International Women's Day event",
+        "### Research and Development Officer   Apr 2020 – Jun 2021\n\nChinese Students and Scholars Association, University of Washington\n\n- Designed, crafted, and edited posters and videos for major events, such as Student Orientation Programs\n- Assisted in maintenance of official blog and website to provide resources based on students' need",
+        "### Maple Hall Council SEED Representative   Oct 2019 – Mar 2020\n\nHousing and Food Services, University of Washington\n\n- Led committee meetings and planned campus-wide competition that raised waste sorting awareness\n- Attended weekly hall council and SEED meetings to liaise feedback and updates on activities and initiatives",
+        "### Peer Tutor of Math, Science, and English   Sep 2016 – Jun 2019\n\nKinglee High School\n\n- Taught active reading and note-taking strategies to English as a second language (ESL) students\n- Reviewed course notes, clarified complex concepts, and provided feedback for course assignments\n- Received 2 Peer Tutor Awards in recognition of outstanding contribution to the peer tutoring program",
+        "### Student Council Historian and Secretary   Oct 2017 – Jun 2019\n\nKinglee High School\n\n- Prepared, coordinated, and executed activities, including Halloween activities, Thanksgiving Bonfire Nights, Christmas celebrations, Spirit Weeks, and Academic Integrity Seminar\n- Drafted, edited, and updated activity proposals and meeting minutes for iterative improvement of execution\n- Raised 1000+ CNY funds and 200+ books for children in need with fundraising events",
+        "### Lab Peer Supervisor   Mar 2017 – Mar 2019\n\nKinglee High School\n\n- Supervised biology, chemistry, and physics lab practices of 9th-grade students for Zhongzhao Examination\n- Taught lab safety guidelines, standard lab procedures, and best practices, as well as ensured lab safety"
+      ],
+      "raw_text": "## Education\n\n### University of Washington |   Seattle, WA, USA     Sep 2019 – Present\n\n- B.S. in Chemical Engineering, Nanoscience and Molecular Engineering Option, with Departmental Honors\n- Minor in Applied Mathematics and Chemistry\n- GPA: 3.97 | Expected Graduation: June 2023\n- Mary Gates Research Scholarship | 2 Dan Evans Term Scholarships | C-HACK Team 1st, 3rd Places\n\n### Brown University |   Providence, RI, USA     Jun 2018 – Aug 2018\n\n- Pre-Baccalaureate Program: Neuroscience, Cell and Molecular Biology\n\n### Kinglee High School |   Zhengzhou, Henan, China     Sep 2013 – Jun 2019\n\n- Discovery Fair 1st Place | Science Fair 1st, 2nd Places | 2 Peer Tutor Awards | Merit Student of Zhengzhou\n\n## Relevant Experience\n\n### Undergraduate Research Assistant   Nov 2020 – Present\n\nDepartment of Chemical Engineering, University of Washington, PI: Elizabeth Nance\n\n- Quantified microglia morphology of 3 datasets using image processing and machine learning methods\n- Developed Python API for data analysis for modular integration to fluorescent image analysis workflow\n- Scanned 102 murine breast cancer tissue slices using confocal microscope (24.5 hr) for collaborators\n- Surveyed literature regarding cell segmentation, morphological analysis, and image-based profiling\n\n### Summer Undergraduate Research Scholar   Jun 2022 - Aug 2022\n\nSTROBE NSF Science and Technology Center on Real-Time Functional Imaging   Department of Physics, Florida International University, PI: Jin He\n\n- Fabricated and functionalized gold nanorods for promoting maturation of engineered cardiac tissues\n- Characterized gold nanorods using UV-visible spectroscopy and Raman spectroscopy\n- Measured contractile force of cardiac tissues by analyzing brightfield microscopy video data with Python\n- Processed confocal microscopy images of T-tubular systems of cardiomyocytes with Python\n\n### Calculus Teaching Assistant   Sep 2018 – May 2019\n\nKinglee High School\n\n- Gave AP Calculus AB lectures 4 hours weekly to 5 students in alignment with CollegeBoard curriculum\n- Clarified complex concepts and common confusions about calculus with classroom activities\n- Worked with supervisor to design and grade concept checks, homework, and quizzes with tight deadlines\n\n## Other Experience\n\n### Webmaster   Apr 2022 – Present\n\nAmerican Institute of Chemical Engineers (AIChE), University of Washington\n\n- Managed and designed official website; monitored and updated social media accounts and email list\n- Coordinated with internal and external media efforts to ensure up-to-date online presence\n- Facilitated coordination of ChemE BBQ event and graduation ceremony\n\n### Secretary   May 2021 – Present\n\nWomen in Chemical Engineering, University of Washington\n\n- Kept transparent meeting records, managed member email list, and maintained student group registration\n- Composed biweekly newsletters to 400+ members to update events, resources, and diversity highlights\n- Facilitated coordination of Veteran's Day event, Wiki-edit-a-thon, and International Women's Day event\n\n### Research and Development Officer   Apr 2020 – Jun 2021\n\nChinese Students and Scholars Association, University of Washington\n\n- Designed, crafted, and edited posters and videos for major events, such as Student Orientation Programs\n- Assisted in maintenance of official blog and website to provide resources based on students' need\n\n### Maple Hall Council SEED Representative   Oct 2019 – Mar 2020\n\nHousing and Food Services, University of Washington\n\n- Led committee meetings and planned campus-wide competition that raised waste sorting awareness\n- Attended weekly hall council and SEED meetings to liaise feedback and updates on activities and initiatives\n\n### Peer Tutor of Math, Science, and English   Sep 2016 – Jun 2019\n\nKinglee High School\n\n- Taught active reading and note-taking strategies to English as a second language (ESL) students\n- Reviewed course notes, clarified complex concepts, and provided feedback for course assignments\n- Received 2 Peer Tutor Awards in recognition of outstanding contribution to the peer tutoring program\n\n### Student Council Historian and Secretary   Oct 2017 – Jun 2019\n\nKinglee High School\n\n- Prepared, coordinated, and executed activities, including Halloween activities, Thanksgiving Bonfire Nights, Christmas celebrations, Spirit Weeks, and Academic Integrity Seminar\n- Drafted, edited, and updated activity proposals and meeting minutes for iterative improvement of execution\n- Raised 1000+ CNY funds and 200+ books for children in need with fundraising events\n\n### Lab Peer Supervisor   Mar 2017 – Mar 2019\n\nKinglee High School\n\n- Supervised biology, chemistry, and physics lab practices of 9th-grade students for Zhongzhao Examination\n- Taught lab safety guidelines, standard lab procedures, and best practices, as well as ensured lab safety",
+      "id": "R3"
+    }
+  ],
+  "jobs": [
+    {
+      "source_type": "unknown",
+      "source_url": null,
+      "source_name": null,
+      "collected_at": null,
+      "skills": [
+        "C++",
+        "Go",
+        "Java",
+        "JavaScript",
+        "Kubernetes",
+        "Linux",
+        "Python"
+      ],
+      "tools": [
+        "C++",
+        "Go",
+        "Java",
+        "JavaScript",
+        "Kubernetes",
+        "Linux",
+        "Python"
+      ],
+      "salary": null,
+      "salary_min": null,
+      "salary_max": null,
+      "currency": null,
+      "salary_period": null,
+      "title": "Graduate Software Engineer, Open Source and Linux, Canonical Ubuntu",
+      "company": "Canonical",
+      "jd_text": "Canonical is a leading provider of open source software and operating systems to the global enterprise and technology markets. Our platform, Ubuntu, is very widely used in breakthrough enterprise initiatives such as public cloud, data science, AI, engineering innovation, and IoT. Our customers include the world's leading public cloud and silicon providers, and industry leaders in many sectors. The company is a pioneer of global distributed collaboration, with 1200+ colleagues in 75+ countries and very few office-based roles. Teams meet two to four times yearly in person, in interesting locations around the world, to align on strategy and execution.\n\nThe company is founder led, profitable and growing.\n\nWe are hiring 2025 and 2026 Graduate Software Engineers into engineering teams around the world. As a global platform company we offer a wide range of software engineering challenges, in both open source products and commercial business systems. We have teams that work in a variety of languages, typically Python, Golang, Rust, C/C++, JavaScript and of course... Bash. We work from the very lowest levels of the Linux system - BIOS and boot loaders, firmware, kernel and drivers, all the way up to desktop applications and containers. We work on tiny devices like the Raspberry Pi and new RISC-V boards, all the way up to supercomputers, clouds and Kubernetes clusters. We work on compilers and toolchains, and we work on security, cryptography, performance and documentation. Some of our teams focus on packaging thousands of pieces of software, others focus on deep contributions to a single body of code.\n\nIf you are excited about the potential that open source has for humanity and the enterprise, you have outstanding results in your academic career, and you are excited to contribute to the open source stack, this is the best way to apply to Canonical. We will work with you to identify teams and projects that would be interesting and a good fit for your skills and motivations. The process is highly competitive, it will require effort and excellence to succeed if you apply here.\n\nMost of our engineering teams work from home. We try to align a single team in a single time zone - EMEA (Europe, Middle East and Africa), APAC (Asia Pacific and Indian Ocean), and AMER (North, South and Central Americas). Even though you work from home, we try to ensure you always have colleagues alongside to coach and mentor you, and for the companionship of shared problem solving and pair programming. Larger projects have multiple teams and might span the globe. We work with the open source community and specialize in building teams that work well in the 'fishbowl' of open source engineering. This is full time work, five days a week, often solving hard problems with significant responsibility. We don't generally work weekends and nights and we do enjoy good holidays but we also expect productive and intense engagement Monday to Friday.\n\nWe bring all our engineering teams together in person twice a year for a deep 'sprint' with other teams to stimulate discussion and enable a wide range of career development paths. This is a fantastic way to demonstrate and develop your skill in software, learn about a wide range of technologies, make a meaningful impact to open source, and see some very interesting new cities that you might never otherwise get to visit.\n\nIf you find the open source stack amazing, and you have been a consistent high-performing student in your school and university, then this will be a challenging and exciting start to your career.\n\nLocation: This is a Globally remote role.\n\nThe role entails\n\nShaping the roadmap for your product at global sprints every six months\n\nFocusing on design and user experience, even for developer tooling and command line apps\n\nWriting high quality, resilient and performant code, potentially serving millions of demanding daily users\n\nWorking towards mastery of key programming languages and Linux system knowledge\n\nEngaging with users and the open source community through code reviews and issue trackers\n\nResponding to customer issues as a priority, develop an understanding of enterprise requirements\n\nDeveloping skills and awareness of security in software design and implementation\n\nWhat we are looking for in you\n\nExceptional academic track record from both high school and university\n\nUndergraduate degree in Computer Science, Business Informatics, Mathematics or another STEM discipline with programming courses\n\nConfidence to get started and deliver high quality code in one of Python, Rust, C/C++, Golang, JavaScript or Java\n\nExperience with Ubuntu or another Linux distribution\n\nTrack record of going above-and-beyond expectations to achieve outstanding results\n\nResult-oriented and organized, with the drive to meet commitments\n\nPersonal projects in technology and software engineering beyond the curriculum\n\nProfessional written and spoken English\n\nExcellent interpersonal skills, curiosity, flexibility, and accountability\n\nPersonal responsibility and accountability\n\nThoughtfulness, self-awareness and the ability to reflect and develop\n\nAbility to travel internationally twice a year for company events up to two weeks long\n\nNice-to-have skills\n\nUpstream open source contributions\n\nPackaging and Linux distribution contributions - Debian, Fedora, Arch, Nix or another\n\nLeadership and organization skills\n\nPresentation and writing skills\n\nBusiness and commercial interests\n\nWhat we offer colleagues\n\nWe consider geographical location, experience, and performance in shaping compensation worldwide. We revisit compensation annually (and more often for graduates and associates) to ensure we recognize outstanding performance. In addition to base pay, we offer a performance-driven annual bonus or commission. We provide all team members with additional benefits which reflect our values and ideals. We balance our programs to meet local needs and ensure fairness globally.\n\nDistributed work environment with twice-yearly team sprints in person\n\nPersonal learning and development budget of USD 2,000 per year\n\nAnnual compensation review\n\nRecognition rewards\n\nAnnual holiday leave\n\nMaternity and paternity leave\n\nTeam Member Assistance Program & Wellness Platform\n\nOpportunity to travel to new locations to meet colleagues\n\nPriority Pass and travel upgrades for long-haul company events\n\nAbout Canonical\n\nCanonical is a pioneering tech firm at the forefront of the global move to open source. As the company that publishes Ubuntu, one of the most important open source projects and the platform for AI, IoT and the cloud, we are changing the world of software. We recruit on a global basis and set a very high standard for people joining the company. We expect excellence - in order to succeed, we need to be the best at what we do. Most colleagues at Canonical have worked from home since its inception in 2004.​ Working here is a step into the future, and will challenge you to think differently, work smarter, learn new skills, and raise your game.\n\nCanonical is an equal opportunity employer\n\nWe are proud to foster a workplace free from discrimination. Diversity of experience, perspectives, and background create a better work environment and better products. Whatever your identity, we will give your application fair consideration.\n\n#LI-remote",
+      "id": "J1"
+    },
+    {
+      "source_type": "unknown",
+      "source_url": null,
+      "source_name": null,
+      "collected_at": null,
+      "skills": [
+        "Git",
+        "Linux",
+        "Python"
+      ],
+      "tools": [
+        "Git",
+        "Linux",
+        "Python"
+      ],
+      "salary": null,
+      "salary_min": null,
+      "salary_max": null,
+      "currency": null,
+      "salary_period": null,
+      "title": "Junior Linux Kernel Engineer - Ubuntu",
+      "company": "Canonical",
+      "jd_text": "Canonical is a leading provider of open source software and operating systems to the global enterprise and technology markets. Our platform, Ubuntu, is very widely used in breakthrough enterprise initiatives such as public cloud, data science, AI, engineering innovation, and IoT. Our customers include the world's leading public cloud and silicon providers, and industry leaders in many sectors. The company is a pioneer of global distributed collaboration, with 1200+ colleagues in 75+ countries and very few office-based roles. Teams meet two to four times yearly in person, in interesting locations around the world, to align on strategy and execution.\n\nThe company is founder-led, profitable, and growing.\n\nEvery year we select new junior professionals into the Canonical Kernel Team, to work on the Linux kernel for Ubuntu. If you’ve enjoyed operating systems in your coursework or current role, you are confident in your ability to write high quality C and possibly Rust, and are ready to take the plunge and see how it all works, then this would be a great place to pursue your next career stage. We are a global team working to ship the world's most widely used Linux kernel, across the very latest silicon and cloud, where you can apply and grow your software engineering skills.\n\nThe Canonical Kernel Team builds and maintains all supported Ubuntu Linux kernels for a variety of platforms and architectures from small embedded devices to standard desktop/server systems to large-scale cloud environments. In your first year you will tackle serious initiatives, which include but are not limited to:\n\nOptimized solutions for key Silicon and Cloud partner platforms\n\nDeveloper platforms such as Raspberry Pi and RISC-V\n\nEnabling Ubuntu on a wide range of embedded systems\n\nSecurity hardening and exploit mitigation\n\nThird-party driver integration and distribution, such as graphics\n\nExpanded driver support for bleeding-edge PC platforms\n\nWe select candidates that are recent university graduates or early career professionals who are enthusiastic to develop kernel-level software in multiple areas including security updates, patching, and testing. The successful candidate will have a background in software engineering, be motivated to work in a distributed team and willing and able to travel globally twice a year for company engineering events.\n\nThese are full-time positions available to prospective or recently graduated students.\n\nLocation: We have home-based Kernel Teams in every timezone.\n\nThe role entails\n\nCollaborate regularly and proactively with a globally distributed team\n\nLearn from senior mentors to demystify the inner workings of the Linux kernel and how it is distributed\n\nWork closely with external silicon, cloud, or hardware manufacturer delivery teams on bleeding-edge platforms\n\nDiagnose and resolve issues in the kernel reported by customers, the community, and discovered by your own rigorous testing\n\nTake personal responsibility for the delivery of various flavors of the Ubuntu Linux kernel\n\nImprove tooling and automation for delivery and test of Ubuntu Linux kernels\n\nSubmit, review, and apply kernel patches, working with both internal and external upstream maintainers\n\nWhat we are looking for in you\n\nWell-organized and motivated self-starter able to thrive in a remote work environment\n\nProfessional manner with colleagues, business partners, and the open-source community\n\nAbility to communicate effectively in English, both written and verbal\n\nProgramming experience in C and/or Rust\n\nFamiliarity with version control practices, ideally with git\n\nUnderstanding of operating system kernel fundamentals\n\nAbility to travel twice a year for company events of up to two weeks length\n\nNice-to-have skills\n\nInterest and experience in Rust\n\nPython and Bash scripting ability\n\nPrior experience with Ubuntu/Debian/Snap packaging\n\nDemonstrated experience with kernel patching and debugging\n\nStrong grasp of device drivers, BSP’s, and other low level system engineering\n\nWhat we offer colleagues\n\nWe consider geographical location, experience, and performance in shaping compensation worldwide. We revisit compensation annually (and more often for graduates and associates) to ensure we recognize outstanding performance. In addition to base pay, we offer a performance-driven annual bonus or commission. We provide all team members with additional benefits which reflect our values and ideals. We balance our programs to meet local needs and ensure fairness globally.\n\nDistributed work environment with twice-yearly team sprints in person\n\nPersonal learning and development budget of USD 2,000 per year\n\nAnnual compensation review\n\nRecognition rewards\n\nAnnual holiday leave\n\nMaternity and paternity leave\n\nTeam Member Assistance Program & Wellness Platform\n\nOpportunity to travel to new locations to meet colleagues\n\nPriority Pass and travel upgrades for long-haul company events\n\nAbout Canonical\n\nCanonical is a pioneering tech firm at the forefront of the global move to open source. As the company that publishes Ubuntu, one of the most important open-source projects and the platform for AI, IoT, and the cloud, we are changing the world of software. We recruit on a global basis and set a very high standard for people joining the company. We expect excellence; in order to succeed, we need to be the best at what we do. Most colleagues at Canonical have worked from home since our inception in 2004.​ Working here is a step into the future and will challenge you to think differently, work smarter, learn new skills, and raise your game.\n\nCanonical is an equal opportunity employer\n\nWe are proud to foster a workplace free from discrimination. Diversity of experience, perspectives, and background create a better work environment and better products. Whatever your identity, we will give your application fair consideration.\n\n#LI-remote",
+      "id": "J2"
+    },
+    {
+      "source_type": "unknown",
+      "source_url": null,
+      "source_name": null,
+      "collected_at": null,
+      "skills": [
+        "C++",
+        "Go",
+        "Linux",
+        "Python"
+      ],
+      "tools": [
+        "C++",
+        "Go",
+        "Linux",
+        "Python"
+      ],
+      "salary": null,
+      "salary_min": null,
+      "salary_max": null,
+      "currency": null,
+      "salary_period": null,
+      "title": "Junior Ubuntu Software Engineer",
+      "company": "Canonical",
+      "jd_text": "Canonical is a leading provider of open source software and operating systems to the global enterprise and technology markets. Our platform, Ubuntu, is very widely used in breakthrough enterprise initiatives such as public cloud, data science, AI, engineering innovation and IoT. Our customers include the world's leading public cloud and silicon providers, and industry leaders in many sectors. The company is a pioneer of global distributed collaboration, with 1200+ colleagues in 75+ countries and very few office based roles. Teams meet two to four times yearly in person, in interesting locations around the world, to align on strategy and execution.\n\nThe company is founder led, profitable and growing.\n\nWe are hiring junior engineers to work across the breadth of our Ubuntu Engineering organisation -  engineers who care deeply for quality, performance and resilience in software, engineers who are just as comfortable designing and engineering new software as they are packaging, integrating, testing and shipping the incredible catalog of open source software provided by the Ubuntu repositories.\n\nOur engineers integrate the freshest open source software, provide robust upgrade paths and engineer the future of Ubuntu. Ubuntu is not just the world’s most deployed open source operating system, it's a platform that enables innovation for millions of users across the globe. Our community represents the full breadth of the developer experience; from students, hobbyists and freelancers to high performance engineering and creative teams in corporate and academic environments.\n\nThe four key teams that ship Ubuntu are \n\nFoundations: maintaining foundational software: architectures, package managers, compilers, toolchains, bootloaders, filesystems and core utilities\n\nServer: leading the design, evolution and future of our Ubuntu Server distribution\n\nDesktop: driving Ubuntu Desktop, our future immutable desktop: Ubuntu Core Desktop, WSL, gaming technology, and a suite of modern applications for the desktop crafted with Flutter\n\nDebcrafters: a new team responsible for the forward movement, maintenance and overall health of the Ubuntu archive: one of the most abundant repositories of open source software available today\n\nBring your existing expertise and learn new skills by working on one of the most prolific pieces of open source software. As an engineer working on Ubuntu you could work on any or all of the following categories:\n\nDevelopment: design, build and ship new foundational systems software and applications in Rust, Go, Flutter, and Python\n\nArchitecture: engineer the integration of open source from boot firmware to cloud applications deployment\n\nPackaging: a combination of Debian and Snap packaging to ship software in the distribution\n\nAutomation: build and maintain the machinery responsible for building, testing and shipping Ubuntu\n\nDistro Engineering: the maintenance and evolution of a Linux distribution and its repositories\n\nIf you have skills in those areas, or you have other skills you believe could contribute to Ubuntu, and you're keen to get started building your career in open source, then this is the role for you. Our junior career path caters for both new graduates and early careers engineers. \n\nAt Canonical, you will have the opportunity to engage with and contribute to the broader open source community. We're looking for individuals who can help build a thriving community and contribute with enthusiasm and precision to a broad range of technologies.\n\nLocation: We have remote roles open in every time zone.\n\nThe role entails\n\nBased on the first round of interviews, we identify specific teams where you might be an excellent fit and conduct second-round interviews with those teams. Our engineers are:\n\nDesigning, building and shipping software in Rust, Go, Python and C/C++\n\nPackaging, integrating, testing and uploading open source software to the Ubuntu repositories\n\nDebugging issues, then designing and delivering robust solutions\n\nAuthoring and improving technical and community documentation\n\nContributing to upstream and neighboring open source projects\n\nCollaborating as part of a globally distributed team\n\nContinuously learning and progressing their technical and professional skills\n\nWhat we are looking for in you\n\nAn exceptional academic track record from both high school and university\n\nUndergraduate degree in Computer Science or STEM, or a compelling narrative about your alternative path\n\nDrive and a track record of going above and beyond expectations\n\nA passion for open source software\n\nExperience with Rust, Go, Python, Flutter or C/C++\n\nProfessional written and spoken English\n\nExcellent communication and interpersonal skills\n\nAbility to travel twice a year, for company events up to two weeks each\n\nNice-to-have skills\n\nFamiliarity with Linux distributions\n\nFamiliarity with system debugging tools and techniques\n\nFamiliarity with automation tooling and CI/CD systems\n\nExperience contributing to open source projects\n\nWhat we offer you\n\nWe consider geographical location, experience, and performance in shaping compensation worldwide. We revisit compensation annually (and more often for graduates and associates) to ensure we recognize outstanding performance. In addition to base pay, we offer a performance-driven annual bonus. We provide all team members with additional benefits, which reflect our values and ideals. We balance our programs to meet local needs and ensure fairness globally.\n\nDistributed work environment with twice-yearly team sprints in person\n\nPersonal learning and development budget of USD 2,000 per year\n\nAnnual compensation review\n\nRecognition rewards\n\nAnnual holiday leave\n\nMaternity and paternity leave\n\nTeam Member Assistance Program & Wellness Platform\n\nOpportunity to travel to new locations to meet colleagues\n\nPriority Pass, and travel upgrades for long haul company events\n\nAbout Canonical\n\nCanonical is a pioneering tech firm at the forefront of the global move to open source. As the company that publishes Ubuntu, one of the most important open source projects and the platform for AI, IoT and the cloud, we are changing the world on a daily basis. We recruit on a global basis and set a very high standard for people joining the company. We expect excellence - in order to succeed, we need to be the best at what we do. Canonical has been a remote-first company since its inception in 2004.​ Working here is a step into the future, and will challenge you to think differently, work smarter, learn new skills, and raise your game.\n\nCanonical is an equal opportunity employer\n\nWe are proud to foster a workplace free from discrimination. Diversity of experience, perspectives, and background create a better work environment and better products. Whatever your identity, we will give your application fair consideration.",
+      "id": "J3"
+    },
+    {
+      "source_type": "unknown",
+      "source_url": null,
+      "source_name": null,
+      "collected_at": null,
+      "skills": [
+        "Go",
+        "Kubernetes",
+        "Linux",
+        "Python"
+      ],
+      "tools": [
+        "Go",
+        "Kubernetes",
+        "Linux",
+        "Python"
+      ],
+      "salary": null,
+      "salary_min": null,
+      "salary_max": null,
+      "currency": null,
+      "salary_period": null,
+      "title": "Distributed Systems Testing Software Engineer, Python / Go",
+      "company": "Canonical",
+      "jd_text": "Canonical is a leading provider of open source software and operating systems to the global enterprise and technology markets. Our platform, Ubuntu, is very widely used in breakthrough enterprise initiatives such as public cloud, data science, AI, engineering innovation, and IoT. Our customers include the world's leading public cloud and silicon providers, and industry leaders in many sectors. The company is a pioneer of global distributed collaboration, with 1200+ colleagues in 75+ countries and very few office-based roles. Teams meet two to four times yearly in person, in interesting locations around the world, to align on strategy and execution.\n\nThe company is founder-led, profitable, and growing.\n\nWe are hiring a Software Engineer for Distributed Systems Testing with a passion for building and validating resilient distributed systems. You drive the success of those leveraging Canonical’s Ubuntu and Juju to build multi-cloud deployable applications. We see quality engineering as a first class engineering practice and are looking for people who can bring deep engineering insights and a data driven approach to testing, test automation, reporting and data analytics.\n\nThe Distributed Systems testing team at Canonical is responsible for the high quality of Canonical’s Cloud solutions based on for example Juju, Terraform, OpenStack, or Kubernetes. Systems are tested and deployed under highly diverse conditions, from bare metal in customer data centers to public clouds such as AWS, GCE, Azure.\n\nAs a software engineer you will have the opportunity to develop CI pipelines which power Canonical’s cloud integration testing and reporting. You will help test our products on new clouds and advance our AI/ML pipelines for automatic analysis of test results. A successful candidate is interested in tackling these problems, as well as imagining and leading new initiatives within the team and across Canonical.\n\nThe role entails\n\nCreating automated testing approaches and infrastructure for validating reliability, performance, and resilience of cloud orchestration tools and applications \n\nEnabling engineering teams across Canonical to develop software with confidence by making distributed system testing tooling available across the company\n\nEnhancing continuous integration pipelines for deploying and testing Canonical’s cloud native products such as Kubeflow\n\nDeploying, managing, and debugging highly distributed systems on clouds and bare metal\n\nMonitoring and reporting on automated testing efforts\n\nCollaborating daily with a globally distributed team\n\nWhat we are looking for in you\n\nSolid background in modern test processes and strategies\n\nExperience with Python or Go development\n\nStrong object oriented development skills\n\nWorking knowledge of continuous integration tools such as Jenkins, CircleCI, GitHub Actions\n\nKnowledge of networking technologies and fundamentals\n\nSolid understanding of the Linux system architecture\n\nComplex abstract thinking\n\n2-4 weeks of international travel travel per year\n\nNice-to-have skills\n\nAbility to develop and ship modern production grade web applications\n\nAbility to operate data platforms: key-value stores, relational or document databases, event buses\n\nData collection and analytics skills for large multidimensional datasets\n\nExperience with AI/ML pipelines\n\nExperience with cloud technologies such as OpenStack, Kubernetes, Terraform and AWS\n\nWhat we offer colleagues\n\nWe consider geographical location, experience, and performance in shaping compensation worldwide. We revisit compensation annually (and more often for graduates and associates) to ensure we recognize outstanding performance. In addition to base pay, we offer a performance-driven annual bonus or commission. We provide all team members with additional benefits which reflect our values and ideals. We balance our programs to meet local needs and ensure fairness globally.\n\nDistributed work environment with twice-yearly team sprints in person\n\nPersonal learning and development budget of USD 2,000 per year\n\nAnnual compensation review\n\nRecognition rewards\n\nAnnual holiday leave\n\nMaternity and paternity leave\n\nTeam Member Assistance Program & Wellness Platform\n\nOpportunity to travel to new locations to meet colleagues\n\nPriority Pass and travel upgrades for long-haul company events\n\nAbout Canonical\n\nCanonical is a pioneering tech firm at the forefront of the global move to open source. As the company that publishes Ubuntu, one of the most important open-source projects and the platform for AI, IoT, and the cloud, we are changing the world of software. We recruit on a global basis and set a very high standard for people joining the company. We expect excellence; in order to succeed, we need to be the best at what we do. Most colleagues at Canonical have worked from home since our inception in 2004.​ Working here is a step into the future and will challenge you to think differently, work smarter, learn new skills, and raise your game.\n\nCanonical is an equal opportunity employer\n\nWe are proud to foster a workplace free from discrimination. Diversity of experience, perspectives, and background create a better work environment and better products. Whatever your identity, we will give your application fair consideration.",
+      "id": "J4"
+    },
+    {
+      "source_type": "unknown",
+      "source_url": null,
+      "source_name": null,
+      "collected_at": null,
+      "skills": [
+        "Docker",
+        "Excel",
+        "Go",
+        "Kubernetes",
+        "Linux"
+      ],
+      "tools": [
+        "Docker",
+        "Excel",
+        "Go",
+        "Kubernetes",
+        "Linux"
+      ],
+      "salary": null,
+      "salary_min": null,
+      "salary_max": null,
+      "currency": null,
+      "salary_period": null,
+      "title": "Junior Product Manager",
+      "company": "Canonical",
+      "jd_text": "Canonical is a leading provider of open source software and operating systems to the global enterprise and technology markets. Our platform, Ubuntu, is very widely used in breakthrough enterprise initiatives such as public cloud, data science, AI, engineering innovation and IoT. Our customers include the world's leading public cloud and silicon providers, and industry leaders in many sectors. The company is a pioneer of global distributed collaboration, with 1200+ colleagues in 75+ countries and very few office based roles. Teams meet two to four times yearly in person, in interesting locations around the world, to align on strategy and execution.\n\nThe company is founder led, profitable and growing.\n\nCanonical’s product management team are technologists who have a passion for delivering products and solutions that help shape market demands while elevating open source software everywhere. This is a general application track for the product management positions at Canonical. You will set a clear vision, prioritize work effectively, and ensure the team delivers high-quality products that meet business and user needs. Apply here if you excel at leadership, communication, and technical vision, and believe you can drive product strategy for the business needs of tomorrow. During the interview process we will identify specific software products which would be a good fit for your interests.\n\nWe believe that open source is transforming the way that enterprises solve their business needs. Although open source has been around for thirty years, it is only now fundamental to every corner of the software landscape. Going forward we believe open source will have an even bigger impact as it moves into specialised vertical markets. Our goal is to make open source easier, more reliable and more secure for deployment and development. We strive to be the provider of ‘most software to most companies’, starting with Ubuntu but expanding to cover every class of application on every class of compute. To deliver on that ambition, we select product managers for their intellect and strong drive to advance the open source community. Together, we aim to improve open source quality, outreach, and impact. Our product managers set the vision and the direction to ensure teams deliver the right products in the right markets at the right time. They push the boundaries of the technology landscape to identify and deliver products into new and existing market opportunities.\n\nOur product managers are technology professionals with a software engineering background who strive to become business executives and entrepreneurs. We discuss strategy, plan product development, drive engagement, and promote the open source way. We oversee the entire product lifecycle from conception to delivery, blending technical expertise, strategic thinking, analytics, project management skills and effective communication to ensure products meet both user needs and business objectives.\n\nWe have open product manager roles across a wide range of product domains, including:\n\nUbuntu Platform - Our Ubuntu experience on Desktop, Server, Windows (WSL), Multipass, Gaming, Enterprise, & Hardware Enablement\n\nUbuntu Pro Services - Our key commercial offerings Ubuntu Pro, Compliance, Standards, Security Engineering, and Managed Services on cloud and on prem\n\nAI/ML & MLOps - Open source AI/ML solutions, AIOps automation, model lifecycle management, Kubeflow, MLFlow, KServe, and AI infrastructure on cloud and edge\n\nIoT - Ubuntu on embedded devices and/or edge servers, device management, and robotics\n\nCloud - Ubuntu in public and private clouds, promoting automation frameworks, and including technologies such as Kubernetes, MAAS, and LXD\n\nTelco - Open source for Telco's including technologies and standards related to Core Network, RAN/vRAN, SoNIC, DENT, and SmartNICs\n\nFinance - Open source solutions for financial institutions including trading platforms, blockchain technologies, regulatory compliance, and AI-driven analytics\n\nAutomotive - Open source solutions for autonomous driving, in-vehicle infotainment, connected vehicles, and compliance with automotive industry standards such as ISO 26262 and ISO 21434\n\nApplication Management - Open source solutions in the enterprise including Observability, IAM, App Stores and technologies such Grafana, GitOps, and Juju Charms\n\nIf your domain of expertise isn’t listed above, yet you feel it’s relevant to Canonical, then feel free to apply anyway. We will route you to the most suitable team.\n\nLocation: These roles are home based in the EMEA time zone. You will be expected to be located in this region.\n\nThe role entails\n\nLead the product development lifecycle, reviewing the priorities and goals for your product\n\nCollaborate with cross-functional teams such as engineering, design, marketing, and sales\n\nAddress common challenges across projects, align on priorities, enable informed decisions, and keep business execution on track\n\nConduct market research, analyse industry trends, and gather customer feedback to identify opportunities\n\nCommunicate your product vision, status updates, and key decisions to ensure alignment and manage expectations\n\nConduct usability testing, analyse user feedback, and iterate on the product to improve the user experience\n\nCollaborate with marketing, sales, and support teams to develop go-to-market strategies, create product documentation, and provide training\n\nContribute to the success of our sales team in winning new opportunities, reviewing customer feedback and participating in customer meetings\n\nOversee the work of a product line, ensuring consistency in strategy and execution across different teams\n\nFacilitate collaboration and resolve conflicts within different teams and across other departments\n\nWhat we are looking for in you\n\nExceptional academic results at high school and university\n\nUnderstanding of Linux and the wider open source software community\n\nUnderstanding of computer architecture, application development, datacenters, cloud or devices\n\nPassion to write about technologies and the tech landscape\n\nA strong work ethic, and personal interests aligned with the open source movement\n\nCuriosity, and the habit of continuous learning\n\nA strong sense of ownership\n\nProblem solving and the ability to innovate\n\nOutstanding communications skills in English, both verbal and written\n\nAbility to manage multiple projects or product lines while maintaining focus on key priorities\n\nWillingness to travel internationally up to 4 times a year for company events up to two weeks long\n\nAdditional skills that we value\n\nFamiliarity with a particular verticals (e.g. Telco, Finance, Industrial, Automotive)\n\nFamiliarity with the technology ecosystem including Silicon, IHV, ISV, ODM/OEMs, cloud service providers and channel\n\nFamiliarity with cloud native technologies such as Kubernetes, Docker containers & Snaps\n\nFamiliarity with embedded and connected device technology and ecosystems\n\nFamiliarity with networking technologies - ethernet, IPv4 and IPv6, routing, firewalling, overlays such as OVN/OVS, VPNs, SR-IOV, infiniband\n\nFamiliarity with telco networking - RAN, Core, CPE\n\nExperience in leading distributed teams across different time zones\n\nDemonstrated ability to foster collaboration and innovation in team settings\n\nWhat we offer you\n\nWe consider geographical location, experience, and performance in shaping compensation worldwide. We revisit compensation annually (and more often for graduates and associates) to ensure we recognise outstanding performance. In addition to base pay, we offer a performance-driven annual bonus or commission. We provide all team members with additional benefits, which reflect our values and ideals. We balance our programs to meet local needs and ensure fairness globally.\n\nDistributed work environment with twice-yearly team sprints in person\n\nPersonal learning and development budget of USD 2,000 per year\n\nAnnual compensation review\n\nRecognition rewards\n\nAnnual holiday leave\n\nMaternity and paternity leave\n\nEmployee Assistance Program\n\nOpportunity to travel to new locations to meet colleagues\n\nPriority Pass, and travel upgrades for long haul company events\n\nAbout Canonical\n\nCanonical is a pioneering tech firm at the forefront of the global move to open source. As the company that publishes Ubuntu, one of the most important open source projects and the platform for AI, IoT and the cloud, we are changing the world of software. We recruit on a global basis and set a very high standard for people joining the company. We expect excellence - in order to succeed, we need to be the best at what we do. Most colleagues at Canonical have worked from home since its inception in 2004.​ Working here is a step into the future, and will challenge you to think differently, work smarter, learn new skills, and raise your game.\n\nCanonical is an equal opportunity employer\n\nWe are proud to foster a workplace free from discrimination. Diversity of experience, perspectives, and background create a better work environment and better products. Whatever your identity, we will give your application fair consideration.\n\n#LI-remote",
+      "id": "J5"
+    }
+  ],
+  "predictions": [
+    {
+      "resume_id": "R1",
+      "jd_id": "J1",
+      "score": 0.0,
+      "matched_skills": [],
+      "missing_skills": [
+        "C++",
+        "Go",
+        "Java",
+        "JavaScript",
+        "Kubernetes",
+        "Linux",
+        "Python"
+      ],
+      "gap_analysis": [
+        "关键词覆盖率：0/7 × 100 = 0%。技能与工具等权；大小写及等价别名归一化、去重。",
+        "缺失关键词共 7 项，详见缺失清单。",
+        "仅衡量已确认结构化关键词覆盖，不代表录用概率或实际能力；未启用向量增强。"
+      ]
+    },
+    {
+      "resume_id": "R1",
+      "jd_id": "J2",
+      "score": 0.0,
+      "matched_skills": [],
+      "missing_skills": [
+        "Git",
+        "Linux",
+        "Python"
+      ],
+      "gap_analysis": [
+        "关键词覆盖率：0/3 × 100 = 0%。技能与工具等权；大小写及等价别名归一化、去重。",
+        "缺失关键词共 3 项，详见缺失清单。",
+        "仅衡量已确认结构化关键词覆盖，不代表录用概率或实际能力；未启用向量增强。"
+      ]
+    },
+    {
+      "resume_id": "R1",
+      "jd_id": "J3",
+      "score": 0.0,
+      "matched_skills": [],
+      "missing_skills": [
+        "C++",
+        "Go",
+        "Linux",
+        "Python"
+      ],
+      "gap_analysis": [
+        "关键词覆盖率：0/4 × 100 = 0%。技能与工具等权；大小写及等价别名归一化、去重。",
+        "缺失关键词共 4 项，详见缺失清单。",
+        "仅衡量已确认结构化关键词覆盖，不代表录用概率或实际能力；未启用向量增强。"
+      ]
+    },
+    {
+      "resume_id": "R1",
+      "jd_id": "J4",
+      "score": 0.0,
+      "matched_skills": [],
+      "missing_skills": [
+        "Go",
+        "Kubernetes",
+        "Linux",
+        "Python"
+      ],
+      "gap_analysis": [
+        "关键词覆盖率：0/4 × 100 = 0%。技能与工具等权；大小写及等价别名归一化、去重。",
+        "缺失关键词共 4 项，详见缺失清单。",
+        "仅衡量已确认结构化关键词覆盖，不代表录用概率或实际能力；未启用向量增强。"
+      ]
+    },
+    {
+      "resume_id": "R1",
+      "jd_id": "J5",
+      "score": 0.0,
+      "matched_skills": [],
+      "missing_skills": [
+        "Docker",
+        "Excel",
+        "Go",
+        "Kubernetes",
+        "Linux"
+      ],
+      "gap_analysis": [
+        "关键词覆盖率：0/5 × 100 = 0%。技能与工具等权；大小写及等价别名归一化、去重。",
+        "缺失关键词共 5 项，详见缺失清单。",
+        "仅衡量已确认结构化关键词覆盖，不代表录用概率或实际能力；未启用向量增强。"
+      ]
+    },
+    {
+      "resume_id": "R2",
+      "jd_id": "J1",
+      "score": 28.57,
+      "matched_skills": [
+        "C++",
+        "Python"
+      ],
+      "missing_skills": [
+        "Go",
+        "Java",
+        "JavaScript",
+        "Kubernetes",
+        "Linux"
+      ],
+      "gap_analysis": [
+        "关键词覆盖率：2/7 × 100 = 28.57%。技能与工具等权；大小写及等价别名归一化、去重。",
+        "缺失关键词共 5 项，详见缺失清单。",
+        "仅衡量已确认结构化关键词覆盖，不代表录用概率或实际能力；未启用向量增强。"
+      ]
+    },
+    {
+      "resume_id": "R2",
+      "jd_id": "J2",
+      "score": 33.33,
+      "matched_skills": [
+        "Python"
+      ],
+      "missing_skills": [
+        "Git",
+        "Linux"
+      ],
+      "gap_analysis": [
+        "关键词覆盖率：1/3 × 100 = 33.33%。技能与工具等权；大小写及等价别名归一化、去重。",
+        "缺失关键词共 2 项，详见缺失清单。",
+        "仅衡量已确认结构化关键词覆盖，不代表录用概率或实际能力；未启用向量增强。"
+      ]
+    },
+    {
+      "resume_id": "R2",
+      "jd_id": "J3",
+      "score": 50.0,
+      "matched_skills": [
+        "C++",
+        "Python"
+      ],
+      "missing_skills": [
+        "Go",
+        "Linux"
+      ],
+      "gap_analysis": [
+        "关键词覆盖率：2/4 × 100 = 50%。技能与工具等权；大小写及等价别名归一化、去重。",
+        "缺失关键词共 2 项，详见缺失清单。",
+        "仅衡量已确认结构化关键词覆盖，不代表录用概率或实际能力；未启用向量增强。"
+      ]
+    },
+    {
+      "resume_id": "R2",
+      "jd_id": "J4",
+      "score": 25.0,
+      "matched_skills": [
+        "Python"
+      ],
+      "missing_skills": [
+        "Go",
+        "Kubernetes",
+        "Linux"
+      ],
+      "gap_analysis": [
+        "关键词覆盖率：1/4 × 100 = 25%。技能与工具等权；大小写及等价别名归一化、去重。",
+        "缺失关键词共 3 项，详见缺失清单。",
+        "仅衡量已确认结构化关键词覆盖，不代表录用概率或实际能力；未启用向量增强。"
+      ]
+    },
+    {
+      "resume_id": "R2",
+      "jd_id": "J5",
+      "score": 0.0,
+      "matched_skills": [],
+      "missing_skills": [
+        "Docker",
+        "Excel",
+        "Go",
+        "Kubernetes",
+        "Linux"
+      ],
+      "gap_analysis": [
+        "关键词覆盖率：0/5 × 100 = 0%。技能与工具等权；大小写及等价别名归一化、去重。",
+        "缺失关键词共 5 项，详见缺失清单。",
+        "仅衡量已确认结构化关键词覆盖，不代表录用概率或实际能力；未启用向量增强。"
+      ]
+    },
+    {
+      "resume_id": "R3",
+      "jd_id": "J1",
+      "score": 14.29,
+      "matched_skills": [
+        "Python"
+      ],
+      "missing_skills": [
+        "C++",
+        "Go",
+        "Java",
+        "JavaScript",
+        "Kubernetes",
+        "Linux"
+      ],
+      "gap_analysis": [
+        "关键词覆盖率：1/7 × 100 = 14.29%。技能与工具等权；大小写及等价别名归一化、去重。",
+        "缺失关键词共 6 项，详见缺失清单。",
+        "仅衡量已确认结构化关键词覆盖，不代表录用概率或实际能力；未启用向量增强。"
+      ]
+    },
+    {
+      "resume_id": "R3",
+      "jd_id": "J2",
+      "score": 33.33,
+      "matched_skills": [
+        "Python"
+      ],
+      "missing_skills": [
+        "Git",
+        "Linux"
+      ],
+      "gap_analysis": [
+        "关键词覆盖率：1/3 × 100 = 33.33%。技能与工具等权；大小写及等价别名归一化、去重。",
+        "缺失关键词共 2 项，详见缺失清单。",
+        "仅衡量已确认结构化关键词覆盖，不代表录用概率或实际能力；未启用向量增强。"
+      ]
+    },
+    {
+      "resume_id": "R3",
+      "jd_id": "J3",
+      "score": 25.0,
+      "matched_skills": [
+        "Python"
+      ],
+      "missing_skills": [
+        "C++",
+        "Go",
+        "Linux"
+      ],
+      "gap_analysis": [
+        "关键词覆盖率：1/4 × 100 = 25%。技能与工具等权；大小写及等价别名归一化、去重。",
+        "缺失关键词共 3 项，详见缺失清单。",
+        "仅衡量已确认结构化关键词覆盖，不代表录用概率或实际能力；未启用向量增强。"
+      ]
+    },
+    {
+      "resume_id": "R3",
+      "jd_id": "J4",
+      "score": 25.0,
+      "matched_skills": [
+        "Python"
+      ],
+      "missing_skills": [
+        "Go",
+        "Kubernetes",
+        "Linux"
+      ],
+      "gap_analysis": [
+        "关键词覆盖率：1/4 × 100 = 25%。技能与工具等权；大小写及等价别名归一化、去重。",
+        "缺失关键词共 3 项，详见缺失清单。",
+        "仅衡量已确认结构化关键词覆盖，不代表录用概率或实际能力；未启用向量增强。"
+      ]
+    },
+    {
+      "resume_id": "R3",
+      "jd_id": "J5",
+      "score": 0.0,
+      "matched_skills": [],
+      "missing_skills": [
+        "Docker",
+        "Excel",
+        "Go",
+        "Kubernetes",
+        "Linux"
+      ],
+      "gap_analysis": [
+        "关键词覆盖率：0/5 × 100 = 0%。技能与工具等权；大小写及等价别名归一化、去重。",
+        "缺失关键词共 5 项，详见缺失清单。",
+        "仅衡量已确认结构化关键词覆盖，不代表录用概率或实际能力；未启用向量增强。"
+      ]
+    }
+  ],
+  "diagnosis_cases": [
+    {
+      "id": "D1",
+      "resume_id": "R1",
+      "jd_id": "J1",
+      "experience": "SafeDevils\n(JavaScript, NodeJS, PugJS)\nMay 2018",
+      "status": "completed",
+      "result": {
+        "summary": "简历信息极度匮乏，仅包含一个项目名称 SafeDevils、技术栈（JavaScript, NodeJS, PugJS）及日期（2018年5月），无任何关于个人角色、项目描述、具体贡献或成果的说明。针对 Canonical 2025/2026 应届软件工程师岗位，当前简历完全无法展示学术背景、Linux 经验、开源贡献或编程深度，需大幅补充后才能进行有效诊断。",
+        "star_rewrites": [],
+        "jd_targeted_suggestions": [
+          "补充学历信息：JD 明确要求 STEM 专业本科及以上学历，需列出学校、专业、毕业时间及成绩表现（GPA 或排名）",
+          "大幅扩展 SafeDevils 项目：需补充项目背景、你的角色、具体任务、技术选型理由及可量化成果（如代码规模、用户数、性能指标或 GitHub 数据）",
+          "展示 Linux/Ubuntu 使用经验：JD 将此列为硬性要求，需补充日常使用、运维或开发相关的具体经历",
+          "补充课程外的个人技术项目：JD 明确期望候选人有课程体系之外的个人项目，当前简历无法体现",
+          "添加开源社区参与经历：JD 优先考虑上游开源贡献，若有 GitHub 账号、PR 或 issue 贡献需明确列出",
+          "强化 JavaScript 能力描述：JD 接受 JavaScript 作为入门语言，需说明具体能力水平，包括框架、项目复杂度和工程实践",
+          "补充英语能力证明：JD 要求专业英语书面和口语能力，需提供相关经历或证书",
+          "列出其他编程语言经验：JD 提及 Python、Golang、Rust、C/C++ 等，若有相关经验需补充以拓宽团队匹配面",
+          "补充安全意识相关经历：JD 强调软件设计中的安全意识，若有相关课程或项目经验需列出",
+          "展示远程协作与沟通能力：JD 为全球分布式远程工作模式，需补充团队协作、异步沟通或跨时区合作经历"
+        ],
+        "keywords_to_strengthen": [
+          "Ubuntu",
+          "Linux",
+          "Python",
+          "Golang",
+          "Rust",
+          "C/C++",
+          "Bash",
+          "开源贡献",
+          "GitHub",
+          "STEM学位",
+          "计算机科学",
+          "安全",
+          "容器",
+          "Kubernetes",
+          "个人项目",
+          "学术成绩",
+          "英语能力",
+          "远程协作",
+          "代码审查",
+          "Debian/Fedora/Arch"
+        ],
+        "risks": [
+          "简历信息极其有限，仅有一个项目名称和技术栈列表，无法进行 STAR 改写——原文没有任何包含行动、职责或结果描述的语句可供提取和优化",
+          "SafeDevils 项目完全缺乏描述，无法判断项目规模、复杂度或候选人具体贡献，需补充后才能评估与 JD 的相关性",
+          "没有学历信息，无法核实是否满足 STEM 本科学历这一硬性要求",
+          "没有 Linux/Ubuntu 使用经验描述，而这是 JD 的明确必备条件",
+          "没有课程外个人项目或开源贡献的记录，而这正是 JD 重点考察项",
+          "请在补充信息时确保所有内容真实可核实，不得编造未经证实的技能、项目或成果"
+        ]
+      },
+      "is_mock": false,
+      "latency_seconds": 27.253,
+      "attempts": [
+        {
+          "input_tokens": 2187,
+          "output_tokens": 1579,
+          "status": "text",
+          "latency_seconds": 27.250730500090867
+        }
+      ],
+      "model": "glm-5.2",
+      "api_style": "openai_chat",
+      "candidate_mapping": {
+        "A": "model",
+        "B": "original"
+      }
+    },
+    {
+      "id": "D2",
+      "resume_id": "R2",
+      "jd_id": "J4",
+      "experience": "Tecorigin Deep Learning Operator Performance OptimizationJune 2024 -- December 2024",
+      "status": "completed",
+      "result": {
+        "summary": "当前简历内容仅包含一段经历的项目名称和时间（Tecorigin Deep Learning Operator Performance Optimization, 2024.06-2024.12），缺乏任何具体的项目细节、使用的技术栈以及量化结果。由于信息极度匮乏，无法有效评估与Canonical分布式系统测试工程师岗位的匹配度。为提升简历竞争力，必须围绕JD中强调的Python/Go开发、CI/CD流水线、测试自动化、Linux系统架构以及云原生技术（如Kubernetes）等方面，大幅补充实际的项目经历和工程实践细节。",
+        "star_rewrites": [],
+        "jd_targeted_suggestions": [
+          "补充在Tecorigin项目中的具体工程职责，重点突出是否涉及测试策略制定、自动化测试框架搭建或CI/CD流水线开发，以直接呼应JD对测试自动化和持续集成的要求。",
+          "明确该项目中使用的编程语言，特别是Python或Go，并举例说明如何运用面向对象编程思想进行开发或优化。",
+          "描述在性能优化过程中是否涉及分布式系统或云原生组件（如Kubernetes）的部署、管理或调试，以匹配JD对分布式系统和云技术的核心需求。",
+          "增加关于Linux系统架构运用及网络技术基础的细节，例如如何分析系统资源瓶颈或网络通信开销来辅助深度学习算子的性能优化。",
+          "补充项目结果的量化数据，如性能提升的具体百分比、测试覆盖率或CI执行效率的提升，体现JD所要求的数据驱动测试和报告能力。",
+          "若有涉及AI/ML管道或对大规模多维测试数据集的收集与分析经验，请具体说明，以契合JD中Nice-to-have的相关要求。",
+          "说明在Tecorigin项目中的团队协作模式，特别是是否有与分布式团队协作的经验，以满足JD对全球分布式日常协作的要求。"
+        ],
+        "keywords_to_strengthen": [
+          "Python",
+          "Go",
+          "CI/CD",
+          "Jenkins",
+          "GitHub Actions",
+          "Linux",
+          "Kubernetes",
+          "Terraform",
+          "OpenStack",
+          "Test Automation",
+          "Distributed Systems",
+          "AI/ML pipelines",
+          "Data Analytics",
+          "Networking"
+        ],
+        "risks": [
+          "简历信息严重不足，仅有项目名称和时间，无法提取任何具体事实进行STAR改写。",
+          "请确认是否有更多简历内容未提交，当前提供的文本无法支撑对该岗位的专业评估。",
+          "在补充经历时，请务必核实所有改写和新增的事实，不得虚构测试经验、Python/Go技能或分布式系统部署经历。"
+        ]
+      },
+      "is_mock": false,
+      "latency_seconds": 23.577,
+      "attempts": [
+        {
+          "input_tokens": 1738,
+          "output_tokens": 1424,
+          "status": "text",
+          "latency_seconds": 23.575740000000224
+        }
+      ],
+      "model": "glm-5.2",
+      "api_style": "openai_chat",
+      "candidate_mapping": {
+        "A": "model",
+        "B": "original"
+      }
+    },
+    {
+      "id": "D3",
+      "resume_id": "R3",
+      "jd_id": "J3",
+      "experience": "### Undergraduate Research Assistant   Nov 2020 – Present\n\nDepartment of Chemical Engineering, University of Washington, PI: Elizabeth Nance\n\n- Quantified microglia morphology of 3 datasets using image processing and machine learning methods\n- Developed Python API for data analysis for modular integration to fluorescent image analysis workflow\n- Scanned 102 murine breast cancer tissue slices using confocal microscope (24.5 hr) for collaborators\n- Surveyed literature regarding cell segmentation, morphological analysis, and image-based profiling",
+      "status": "failed",
+      "error_type": "TemporaryLLMError",
+      "latency_seconds": 93.146,
+      "attempts": [
+        {
+          "input_tokens": null,
+          "output_tokens": null,
+          "status": "error",
+          "latency_seconds": 30.038597400067374
+        },
+        {
+          "input_tokens": null,
+          "output_tokens": null,
+          "status": "error",
+          "latency_seconds": 30.057500900002196
+        },
+        {
+          "input_tokens": null,
+          "output_tokens": null,
+          "status": "error",
+          "latency_seconds": 30.04709600005299
+        }
+      ],
+      "model": "glm-5.2",
+      "api_style": "openai_chat",
+      "candidate_mapping": {
+        "A": "model",
+        "B": "original"
+      }
+    }
+  ],
+  "input_sha256": "7dc4b99404d8bb8e54bb3a1a2864ad4d68c09c7ecbd3ce3acda50cad1510b2e2",
+  "evaluation_kind": "independent_ai_blind_review",
+  "review_status": "received_awaiting_final_acceptance"
+}

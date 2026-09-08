@@ -4,7 +4,7 @@
 
 依据本地实验指导要求 T5：Level 1 简历编辑/文本解析与关键词匹配；Level 2 STAR 与定向 AI 优化；Level 3 就业市场分析。A 负责公共平台、数据库、resume 编辑器与 analytics；D 负责 JD/匹配算法及诊断 Prompt。完整要求见 [T5 对照表](../T5_REQUIREMENTS_MATRIX.md)。
 
-当前已集成 diagnosis 与 Jobs Level 1；Resume/Jobs 默认使用真实规则实现，Diagnosis/Analytics 默认仍为 Mock。Resume 支持预览草稿、确认后保存/读取，专用编辑器 UI 待完成。`/ready` 判断配置是否全部替换了 Mock，不对算法质量或外部 AI 服务可用性作保证。
+已集成 PR #5、#6、#7。Resume/Jobs/Analytics 默认使用真实实现，Diagnosis 默认仍为显式 Mock，配置真实 provider 后调用模型。Resume 编辑器支持预览、字段保护、确认、保存和读回；UI 专项重构由 D 接续。`/ready` 判断配置是否全部替换了 Mock，不对算法质量或外部 AI 服务可用性作保证。
 
 ## 分层与责任映射
 
@@ -17,9 +17,9 @@
 | `tests/core/`、`scripts/smoke.py` | A，公共集成验证 |
 | `examples/`、`scripts/check_member.py`、`scripts/check_scope.py` | A，合成样例、成员接入自检与范围检查 |
 | `frontend/index.html`、`frontend/src/core/`、`frontend/src/app.js`、全局样式 | A，同源公共壳、API 客户端、导航、状态及流程编排 |
-| `backend/modules/resume/` | A，保守规则解析；编辑保存通过公共 API，专用 UI 待完成 |
+| `backend/modules/resume/` | A，保守规则解析；编辑保存通过公共 API，编辑器已接入并验证 |
 | `backend/modules/jobs/` | D，已集成 JD 关键词与可解释匹配 |
-| `backend/modules/diagnosis/` | D，已集成诊断实现，真实模型待验证 |
+| `backend/modules/diagnosis/` | D，已集成诊断实现，custom/openai_chat 真实模型已验证；其他协议有离线测试 |
 | `backend/modules/analytics/` | A，已录入 JD 的来源、技能和分组薪资统计 |
 
 业务目录由成员创建。业务模块可以导入公共 Schema/ports；A 只导入成员发布的公开入口，不导入内部函数。现有标准路由保持稳定，接入模块时替换 provider；需要额外路由时提交集成请求，由 A 挂载到 v1。

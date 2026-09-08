@@ -1,0 +1,366 @@
+{
+  "summary": "当前筛选包含 10 条已录入 JD、6 家已知雇主；18 种技能/工具关键词，4 条薪资可按同币种、同周期比较。",
+  "skills": {
+    "Python": 8,
+    "Go": 6,
+    "Linux": 6,
+    "Kubernetes": 4,
+    "C++": 3,
+    "React": 3,
+    "TypeScript": 3,
+    "Docker": 2,
+    "Git": 2,
+    "Java": 2,
+    "JavaScript": 2,
+    "SQL": 2,
+    "C#": 1,
+    "CSS": 1,
+    "Excel": 1,
+    "HTML": 1,
+    "Tableau": 1,
+    "数据分析": 1
+  },
+  "market": {
+    "sample_size": 10,
+    "company_count": 6,
+    "unknown_company_count": 0,
+    "source_counts": {
+      "real": 10,
+      "course": 0,
+      "synthetic": 0,
+      "unknown": 0
+    },
+    "collected_from": "2026-09-08",
+    "collected_to": "2026-09-08",
+    "undated_count": 0,
+    "skill_frequency": [
+      {
+        "skill": "Python",
+        "job_count": 8,
+        "share_percent": 80
+      },
+      {
+        "skill": "Go",
+        "job_count": 6,
+        "share_percent": 60
+      },
+      {
+        "skill": "Linux",
+        "job_count": 6,
+        "share_percent": 60
+      },
+      {
+        "skill": "Kubernetes",
+        "job_count": 4,
+        "share_percent": 40
+      },
+      {
+        "skill": "C++",
+        "job_count": 3,
+        "share_percent": 30
+      },
+      {
+        "skill": "React",
+        "job_count": 3,
+        "share_percent": 30
+      },
+      {
+        "skill": "TypeScript",
+        "job_count": 3,
+        "share_percent": 30
+      },
+      {
+        "skill": "Docker",
+        "job_count": 2,
+        "share_percent": 20
+      },
+      {
+        "skill": "Git",
+        "job_count": 2,
+        "share_percent": 20
+      },
+      {
+        "skill": "Java",
+        "job_count": 2,
+        "share_percent": 20
+      },
+      {
+        "skill": "JavaScript",
+        "job_count": 2,
+        "share_percent": 20
+      },
+      {
+        "skill": "SQL",
+        "job_count": 2,
+        "share_percent": 20
+      },
+      {
+        "skill": "C#",
+        "job_count": 1,
+        "share_percent": 10
+      },
+      {
+        "skill": "CSS",
+        "job_count": 1,
+        "share_percent": 10
+      },
+      {
+        "skill": "Excel",
+        "job_count": 1,
+        "share_percent": 10
+      },
+      {
+        "skill": "HTML",
+        "job_count": 1,
+        "share_percent": 10
+      },
+      {
+        "skill": "Tableau",
+        "job_count": 1,
+        "share_percent": 10
+      },
+      {
+        "skill": "数据分析",
+        "job_count": 1,
+        "share_percent": 10
+      }
+    ],
+    "jobs": [
+      {
+        "source_type": "real",
+        "source_url": "https://job-boards.greenhouse.io/thenewyorktimes/jobs/4724948005",
+        "source_name": "The New York Times · Greenhouse",
+        "collected_at": "2026-09-08",
+        "jd_id": "jd_market_final_92e843801affc402fd813a09",
+        "title": "Software Engineer, Reflections",
+        "company": "The New York Times",
+        "skills": [
+          "CSS",
+          "Docker",
+          "Go",
+          "HTML",
+          "JavaScript",
+          "Kubernetes",
+          "React",
+          "SQL",
+          "TypeScript"
+        ],
+        "salary": "annual base pay: $110,000 - $130,000 USD",
+        "salary_status": "comparable"
+      },
+      {
+        "source_type": "real",
+        "source_url": "https://job-boards.greenhouse.io/sage49/jobs/6152678004",
+        "source_name": "Sage · Greenhouse",
+        "collected_at": "2026-09-08",
+        "jd_id": "jd_market_final_328d3ac8dbc6b7c828542549",
+        "title": "Senior/Staff Software Engineer - Edge",
+        "company": "Sage",
+        "skills": [
+          "C#",
+          "C++",
+          "Go",
+          "Java",
+          "Linux",
+          "Python"
+        ],
+        "salary": "expected annual salary: $190,000–245,000 USD",
+        "salary_status": "comparable"
+      },
+      {
+        "source_type": "real",
+        "source_url": "https://job-boards.greenhouse.io/anthropic/jobs/5400153008",
+        "source_name": "Anthropic · Greenhouse",
+        "collected_at": "2026-09-08",
+        "jd_id": "jd_market_final_50ae773a2e2fd1995dc51cf3",
+        "title": "Software Engineer, Business Technology",
+        "company": "Anthropic",
+        "skills": [
+          "Python",
+          "React",
+          "TypeScript"
+        ],
+        "salary": "Annual Salary: $320,000 - $405,000 USD",
+        "salary_status": "comparable"
+      },
+      {
+        "source_type": "real",
+        "source_url": "https://job-boards.greenhouse.io/scopely/jobs/5301857008",
+        "source_name": "Scopely · Greenhouse",
+        "collected_at": "2026-09-08",
+        "jd_id": "jd_market_final_582979493d65ffcec6701f32",
+        "title": "Data Analyst - MARVEL Strike Force",
+        "company": "Scopely",
+        "skills": [
+          "Git",
+          "Python",
+          "SQL",
+          "Tableau",
+          "数据分析"
+        ],
+        "salary": "CA, CO, NJ, NY, WA Annual Salary Range: $91,300 - $140,000 USD",
+        "salary_status": "comparable"
+      },
+      {
+        "source_type": "real",
+        "source_url": "https://job-boards.greenhouse.io/scaleai/jobs/4730836005",
+        "source_name": "Scale AI · Greenhouse",
+        "collected_at": "2026-09-08",
+        "jd_id": "jd_market_final_a1d88fdbb3b21b5abaa9daee",
+        "title": "Software Engineer - New Grad",
+        "company": "Scale AI",
+        "skills": [
+          "Python",
+          "React",
+          "TypeScript"
+        ],
+        "salary": "San Francisco base salary range: $124,000 - $162,000 USD; period unconfirmed",
+        "salary_status": "missing_unit"
+      },
+      {
+        "source_type": "real",
+        "source_url": "https://job-boards.greenhouse.io/canonical/jobs/8142329",
+        "source_name": "Canonical · Greenhouse 公开招聘快照",
+        "collected_at": "2026-09-08",
+        "jd_id": "jd_market_e5fe89f1d52917059ae6b16abc4f4775",
+        "title": "Graduate Software Engineer, Open Source and Linux, Canonical Ubuntu",
+        "company": "Canonical",
+        "skills": [
+          "C++",
+          "Go",
+          "Java",
+          "JavaScript",
+          "Kubernetes",
+          "Linux",
+          "Python"
+        ],
+        "salary": null,
+        "salary_status": "missing_range"
+      },
+      {
+        "source_type": "real",
+        "source_url": "https://job-boards.greenhouse.io/canonical/jobs/5370815",
+        "source_name": "Canonical · Greenhouse 公开招聘快照",
+        "collected_at": "2026-09-08",
+        "jd_id": "jd_market_e3dea52cf8bd3d152ded8c22710ab422",
+        "title": "Junior Linux Kernel Engineer - Ubuntu",
+        "company": "Canonical",
+        "skills": [
+          "Git",
+          "Linux",
+          "Python"
+        ],
+        "salary": null,
+        "salary_status": "missing_range"
+      },
+      {
+        "source_type": "real",
+        "source_url": "https://job-boards.greenhouse.io/canonical/jobs/6707669",
+        "source_name": "Canonical · Greenhouse 公开招聘快照",
+        "collected_at": "2026-09-08",
+        "jd_id": "jd_market_2fb2ce67f423c94cb92078a9caf83f1b",
+        "title": "Junior Ubuntu Software Engineer",
+        "company": "Canonical",
+        "skills": [
+          "C++",
+          "Go",
+          "Linux",
+          "Python"
+        ],
+        "salary": null,
+        "salary_status": "missing_range"
+      },
+      {
+        "source_type": "real",
+        "source_url": "https://job-boards.greenhouse.io/canonical/jobs/2969042",
+        "source_name": "Canonical · Greenhouse 公开招聘快照",
+        "collected_at": "2026-09-08",
+        "jd_id": "jd_market_d48e428ec65140bfbfb608d7cafc2628",
+        "title": "Distributed Systems Testing Software Engineer, Python / Go",
+        "company": "Canonical",
+        "skills": [
+          "Go",
+          "Kubernetes",
+          "Linux",
+          "Python"
+        ],
+        "salary": null,
+        "salary_status": "missing_range"
+      },
+      {
+        "source_type": "real",
+        "source_url": "https://job-boards.greenhouse.io/canonical/jobs/6980706",
+        "source_name": "Canonical · Greenhouse 公开招聘快照",
+        "collected_at": "2026-09-08",
+        "jd_id": "jd_market_8940d21e9e68397750f333e8d4fcabed",
+        "title": "Junior Product Manager",
+        "company": "Canonical",
+        "skills": [
+          "Docker",
+          "Excel",
+          "Go",
+          "Kubernetes",
+          "Linux"
+        ],
+        "salary": null,
+        "salary_status": "missing_range"
+      }
+    ],
+    "salary_coverage": {
+      "comparable_count": 4,
+      "missing_range_count": 5,
+      "missing_unit_count": 1
+    },
+    "salary_groups": [
+      {
+        "currency": "USD",
+        "period": "year",
+        "sample_size": 4,
+        "ranges": [
+          {
+            "jd_id": "jd_market_final_92e843801affc402fd813a09",
+            "title": "Software Engineer, Reflections",
+            "lower": 110000,
+            "upper": 130000
+          },
+          {
+            "jd_id": "jd_market_final_328d3ac8dbc6b7c828542549",
+            "title": "Senior/Staff Software Engineer - Edge",
+            "lower": 190000,
+            "upper": 245000
+          },
+          {
+            "jd_id": "jd_market_final_50ae773a2e2fd1995dc51cf3",
+            "title": "Software Engineer, Business Technology",
+            "lower": 320000,
+            "upper": 405000
+          },
+          {
+            "jd_id": "jd_market_final_582979493d65ffcec6701f32",
+            "title": "Data Analyst - MARVEL Strike Force",
+            "lower": 91300,
+            "upper": 140000
+          }
+        ]
+      }
+    ],
+    "observations": [
+      "统计单位为已录入的 JD 记录；同一 JD 的同名技能仅计一次，tools 不额外计数。百分比分母为当前筛选全部 JD，技能之间可重叠。",
+      "日期代表资料采集日期，不是职位发布日期；无日期的记录不进入有日期边界的筛选。快照不代表岗位当前仍在招聘。",
+      "薪资图展示招聘区间原值，按币种和周期分别绘制；不折汇、不折算年/月薪，不把未披露或单位不明的薪资记成零。",
+      "样本内出现最多的关键词是 Python（8/10 条 JD）。可作为目标岗位对照清单；仅在确有经历时补充对应技能和证据，不据频率宣称已掌握。",
+      "5 条没有完整薪资区间，1 条缺少可比较的币种/周期。这些记录仍计入样本量与技能统计，但不进入薪资区间图。",
+      "这是当前录入样本的描述性分析，存在来源、岗位和时间选择偏差，不能外推整个就业市场。"
+    ]
+  },
+  "is_mock": false,
+  "scope": {
+    "source_type": "real",
+    "date_from": null,
+    "date_to": null,
+    "available_count": 12,
+    "selected_count": 10,
+    "mock_count": 0,
+    "excluded_mock_count": 0
+  }
+}

@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>T5 独立 AI 盲评 / LLM-as-a-Judge</title>
+<style>body{font:16px/1.65 system-ui;margin:24px auto;max-width:1100px;padding:0 18px;background:#f8f6f0;color:#263328}h1{font-size:28px}button,input,select,textarea{font:inherit;padding:9px;border:1px solid #aab4a8;border-radius:6px}button{background:#285843;color:white;cursor:pointer}textarea{width:96%;min-height:100px}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:white;border:1px solid #ddd;padding:18px;max-height:480px;overflow:auto}label{display:block;margin:14px 0}.row{display:flex;gap:18px;flex-wrap:wrap}section{background:#fff;padding:22px;border-radius:12px;margin:20px 0}small{color:#56675c}</style>
+<h1>T5 独立 AI 盲评 / LLM-as-a-Judge</h1><p>请先评分，再查看算法结果。共 3 项解析、15 组匹配、3 组改写。未评分保持空白；不要把缺失分数填成 0。</p>
+<p>这里不会调用模型、上传简历或发送评分。填写会保存在当前浏览器；结束后请导出 JSON 并交回。来源为公开学生时期履历，真实性未经独立核验；解析结果只是草稿。</p>
+<label>评审模型或任务代号 <input id="reviewer" placeholder="姓名或代号"></label><div class="row"><select id="task"></select><button id="export">导出评分 JSON</button><span id="progress"></span></div>
+<section><h2 id="title"></h2><p id="prompt"></p><details><summary>完整简历原文（先阅读）</summary><pre id="resume"></pre></details><details><summary>岗位原文</summary><pre id="job"></pre></details><h3>待评内容</h3><pre id="candidate"></pre>
+<div class="row"><label>评分 / A 分数 <select id="score"><option value="">未评分</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label><label id="b-label">B 分数 <select id="scoreB"><option value="">未评分</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label></div>
+<label>已证实技能 / 忠实保留的事实<textarea id="supported"></textarea></label><label>缺失技能、硬条件、遗漏或新增事实<textarea id="issues"></textarea></label><label>理由及原文证据<textarea id="notes"></textarea></label></section><small id="fingerprint"></small>
+<script id="data" type="application/json">__EVALUATION_DATA__</script><script>
+const data=JSON.parse(document.getElementById('data').textContent),$=id=>document.getElementById(id),key='t5-independent-'+data.input_sha256;
+let saved={reviewer:'',ratings:{}};try{saved=JSON.parse(localStorage.getItem(key))||saved}catch{}
+const fields=['score','scoreB','supported','issues','notes'];
+for(const task of data.tasks){const option=document.createElement('option');option.value=task.id;option.textContent=task.id+' · '+task.kind+' · '+task.resume+(task.job?' / '+task.job:'');$('task').append(option)}
+$('reviewer').value=saved.reviewer||'';
+function current(){return data.tasks.find(t=>t.id===$('task').value)}
+function progress(){const count=data.tasks.filter(t=>saved.ratings[t.id]?.score&&(t.kind!=='改写'||saved.ratings[t.id]?.scoreB)).length;$('progress').textContent=count+' / '+data.tasks.length+' 已评分'}
+function persist(){const task=current();saved.reviewer=$('reviewer').value;saved.ratings[task.id]=Object.fromEntries(fields.map(f=>[f,$(f).value]));try{localStorage.setItem(key,JSON.stringify(saved))}catch{}progress()}
+function show(){const task=current();$('title').textContent=task.id+' '+task.kind;$('prompt').textContent=task.prompt;$('resume').textContent=data.resumes.find(r=>r.id===task.resume).raw_text;$('job').textContent=data.jobs.find(j=>j.id===task.job)?.jd_text||'此项只评解析';$('candidate').textContent=task.candidate?JSON.stringify(task.candidate,null,2):'算法分数与 gap 已隐藏，请独立依据原文评分。';$('b-label').hidden=task.kind!=='改写';for(const f of fields)$(f).value=saved.ratings[task.id]?.[f]||'';progress()}
+for(const f of [...fields,'reviewer'])$(f).addEventListener('input',persist);$('task').addEventListener('change',show);
+$('export').onclick=()=>{persist();const blob=new Blob([JSON.stringify({...saved,input_sha256:data.input_sha256,exported_at:new Date().toISOString(),status:'ai_submission',evaluation_kind:'independent_ai_blind_review'},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='reviewer-ai.json';a.click();URL.revokeObjectURL(url)};
+$('fingerprint').textContent='固定输入 SHA-256: '+data.input_sha256;show();
+</script></html>

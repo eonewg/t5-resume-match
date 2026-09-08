@@ -1,7 +1,7 @@
 name: A-D module integration
 on:
   push:
-    branches: [main, feat/core-a, feat/intelligence-d, feat/diagnosis-llm-d]
+    branches: [main, feat/core-a, feat/intelligence-d, feat/diagnosis-llm-d, feat/ui-refresh-d]
   pull_request:
 permissions:
   contents: read

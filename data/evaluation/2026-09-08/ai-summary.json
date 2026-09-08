@@ -1,0 +1,19 @@
+{
+  "status": "ai_rated_awaiting_final_acceptance",
+  "evaluation_kind": "independent_ai_blind_review",
+  "reviewer": "AI 盲评员（独立评审，未接触实现/模型信息）",
+  "input_sha256": "7dc4b99404d8bb8e54bb3a1a2864ad4d68c09c7ecbd3ce3acda50cad1510b2e2",
+  "parse_count": 3,
+  "parse_mean": 3,
+  "match_count": 15,
+  "keyword_vs_judge_spearman": 0.27556957464068593,
+  "diagnosis_attempted_cases": 3,
+  "diagnosis_completed_cases": 2,
+  "diagnosis_failed_cases": 1,
+  "rewrite_available_cases": 0,
+  "rewrite_empty_completed_cases": 2,
+  "rewrite_mean_delta_among_available": null,
+  "rewrite_improved_count": 0,
+  "limitations": "独立 AI 盲评 / LLM-as-a-Judge，小样本且可能有模型偏好；主观岗位适配度与关键词覆盖不是同一概念。相关系数不等于准确率；失败样本单列，不从成功率分母删除。事实问题需逐条复核，不代表人工金标准，不自动宣布最终 PASS。",
+  "submission_sha256": "1880893480cd84fb2bf00a6641a9d5d1b9c5deb0e673b6f6089270a6c9ef8269"
+}

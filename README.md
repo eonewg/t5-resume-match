@@ -1,6 +1,6 @@
 # T5 AI 简历诊断与岗位匹配系统
 
-按 [T5 需求对照表](T5_REQUIREMENTS_MATRIX.md) 和 [两人分工](T5_TWO_PERSON_ALLOCATION_STRICT.md) 开发：A 负责公共平台、resume、analytics、数据库与最终交付；D 负责 jobs/matching、embedding、diagnosis。Resume 结构化编辑器、Jobs 关键词匹配与可选 pgvector 缓存、来源明确的 Analytics 已接入并验证。语义增强默认 off，Diagnosis 新协议交付待 D PR 后统一验收；完整状态见 [验收台账](docs/acceptance.md)。
+按 [T5 需求对照表](T5_REQUIREMENTS_MATRIX.md) 和 [两人分工](T5_TWO_PERSON_ALLOCATION_STRICT.md) 开发：A 负责公共平台、resume、analytics、数据库与最终交付；D 负责 jobs/matching、embedding、diagnosis。Resume 结构化编辑器、Jobs 关键词匹配与可选 pgvector 缓存、来源明确的 Analytics 已接入并验证。语义增强默认 off，Diagnosis 新协议已随 PR #7 集成，custom/openai_chat 真实调用已验证，最终 UI 与独立 AI 评估已汇总、最终质量复核仍待完成；完整状态见 [验收台账](docs/acceptance.md)。
 
 ## 一键运行
 
@@ -64,7 +64,9 @@ smoke 会新建一份演示简历、一个岗位及匹配/诊断记录，然后�
 | `T5_RESUME_PROVIDER` | `backend.modules.resume.public:ResumeService` | A，保守规则解析，缺失信息留空 |
 | `T5_JOBS_PROVIDER` | `backend.modules.jobs.public:JobsService` | D，JD 关键词解析与匹配，正式入口 `/#jobs` |
 | `T5_DIAGNOSIS_PROVIDER` | `mock` | D，诊断；真实实现 `backend.modules.diagnosis.public:DiagnosisService` |
-| `DEEPSEEK_API_KEY` | 空 | D 专用，启用真实诊断时设置；未设置时诊断明确失败而非降级 Mock |
+| `T5_DIAGNOSIS_API_KEY` | 空 | 真实诊断密钥，仅服务端；不提交 Git |
+| `T5_DIAGNOSIS_LLM_VENDOR` | `deepseek` | openai / anthropic / deepseek / qwen / custom |
+| `DEEPSEEK_API_KEY` | 空 | 仅 deepseek 的旧配置兼容入口 |
 | `T5_DIAGNOSIS_MODEL` | `deepseek-v4-flash` | D 专用，模型名 |
 | `T5_ANALYTICS_PROVIDER` | `backend.modules.analytics.public:AnalyticsService` | A，来源/日期筛选下的技能与薪资样本统计 |
 
@@ -87,3 +89,7 @@ PostgreSQL/pgvector 依赖已进入默认锁定依赖。启动、迁移、原生
 - 数据库不可用：检查连接配置、目录写权限和服务状态。启动执行带版本记录的非破坏性迁移，也可先运行 `uv run --locked python -m scripts.migrate`；不删除旧数据。
 
 `doc/` 为本地原始教学资料，保留但未上传；`.env`、本地数据库和虚拟环境也不进入 Git。
+
+## 最终交付准备
+
+当前不合 main；D 正在准备 UI 专项，最终 fresh install 等 UI PR 集成后执行。见 [交付状态与已知限制](docs/final/delivery-status.md)、[独立 AI 盲评](docs/final/ai-evaluation.md)、[新增真实 JD / 薪资说明](data/market/2026-09-08/README.md)。新增五份摘要通过 `uv run --locked python -m scripts.import_final_samples --apply` 导入，和默认五份 Canonical 快照合计十条、六家雇主。

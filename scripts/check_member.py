@@ -30,7 +30,7 @@ from backend.schemas.contracts import (
     TextInput,
 )
 from examples.fixtures import load_cases
-from scripts.member_specs import BRANCHES, D_BRANCHES, MODULES, OWNER_MODULES
+from scripts.member_specs import BRANCHES, D_BRANCHES, D_UI_BRANCH, MODULES, OWNER_MODULES
 
 
 class CheckFailure(Exception):
@@ -177,6 +177,9 @@ def run_module_tests(module, *, timeout):
 
 
 def ci_modules(ref: str, root=ROOT):
+    if ref == D_UI_BRANCH:
+        # UI uses all four existing contracts; this grants no backend edit permission.
+        return list(MODULES)
     if ref in D_BRANCHES:
         # Require both deliveries even if one module has not been created yet.
         return list(OWNER_MODULES["D"])
