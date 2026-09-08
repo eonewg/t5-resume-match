@@ -26,6 +26,10 @@ SECTIONS = {
         "实习经验",
         "experience",
         "work experience",
+        "relevant experience",
+        "professional experience",
+        "research experience",
+        "other experience",
         "internship experience",
         "projects",
         "project experience",
@@ -144,6 +148,8 @@ class ResumeService:
 
     def parse(self, data: TextInput) -> ResumeData:
         section = None
+        section_level = None
+        experience_item_level = None
         name = None
         education = []
         experiences = []
@@ -152,17 +158,32 @@ class ResumeService:
 
         def flush_experience():
             if paragraph:
-                experiences.append("\n".join(paragraph))
+                experiences.append("\n".join(paragraph).strip())
                 paragraph.clear()
 
         for raw_line in data.raw_text.splitlines():
             line = raw_line.strip()
+            markdown = re.match(r"^\s*(#{1,6})\s+", raw_line)
+            level = len(markdown[1]) if markdown else None
             found = heading(line)
+            if markdown and found is None and (section_level is None or level <= section_level):
+                # Unknown peer/parent sections end capture; a role/school subheading does not.
+                found = ("other", "")
             if found:
                 flush_experience()
                 section, line = found
+                section_level = level
+                experience_item_level = None
+            elif markdown and section == "experience":
+                if experience_item_level is None or level <= experience_item_level:
+                    flush_experience()
+                    experience_item_level = level
             if not line:
-                flush_experience()
+                if experience_item_level is not None and paragraph:
+                    if paragraph[-1]:
+                        paragraph.append("")
+                else:
+                    flush_experience()
                 continue
             if section == "name":
                 if name is None and not EMPTY.fullmatch(line):

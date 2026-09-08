@@ -1,10 +1,11 @@
+from datetime import date
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
-from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from backend.core.market_samples import import_sample_jobs
 from backend.core.services import (
     diagnosing,
     diagnosis_response,
@@ -12,6 +13,7 @@ from backend.core.services import (
     match_response,
     matching,
     new_id,
+    parse_job_data,
     require_row,
 )
 from backend.models.entities import DiagnosisRow, JDRow, MatchRow, ResumeRow
@@ -19,15 +21,15 @@ from backend.schemas.contracts import (
     JD,
     AnalysisResponse,
     AnalysisResult,
+    AnalysisScope,
     DiagnosisRecord,
     JDCreate,
-    JDData,
-    JDFields,
-    JDInput,
     MatchRecord,
     PairInput,
     Resume,
     ResumeData,
+    SampleImportResult,
+    SourceType,
     TextInput,
     WorkflowResult,
 )
@@ -116,15 +118,8 @@ def get_resume(identifier: str, response: Response, db: DB):
 @router.post("/jobs", response_model=JD, status_code=201, tags=["jobs"])
 def create_job(data: JDCreate, request: Request, response: Response, db: DB):
     provider = request.app.state.providers["jobs"]
-    parse_input = JDInput(**data.model_dump(include=set(JDInput.model_fields)))
-    result = invoke(provider, "parse", JDData, parse_input)
-    # Explicit user metadata wins, including []/null; omitted fields retain provider output.
-    supplied = data.model_dump(include=data.model_fields_set & set(JDFields.model_fields))
-    try:
-        result = JDData.model_validate({**result.model_dump(), **supplied})
-    except ValidationError as error:
-        raise HTTPException(422, "确认字段与解析结果不符合 JD 契约") from error
-    row = JDRow(id=new_id("jd"), payload=result.model_dump(), is_mock=provider.is_mock)
+    result = parse_job_data(provider, data)
+    row = JDRow(id=new_id("jd"), payload=result.model_dump(mode="json"), is_mock=provider.is_mock)
     db.add(row)
     db.flush()
     mark_mock(response, row.is_mock)
@@ -176,10 +171,47 @@ def workflow(data: PairInput, request: Request, db: DB):
 
 
 @router.get("/analytics", response_model=AnalysisResponse, tags=["analytics"])
-def analytics(request: Request, db: DB):
+def analytics(
+    request: Request,
+    db: DB,
+    source_type: SourceType | None = None,
+    date_from: date | None = None,
+    date_to: date | None = None,
+):
+    if date_from and date_to and date_from > date_to:
+        raise HTTPException(422, "采集日期起点不能晚于终点。")
     rows = db.scalars(select(JDRow).order_by(JDRow.created_at, JDRow.id)).all()
+    selected, mocks, excluded_mocks = [], 0, 0
+    for row in rows:
+        job = JD(id=row.id, **row.payload)
+        if source_type is not None and job.source_type != source_type:
+            continue
+        if date_from and (job.collected_at is None or job.collected_at < date_from):
+            continue
+        if date_to and (job.collected_at is None or job.collected_at > date_to):
+            continue
+        if source_type == "real" and row.is_mock:
+            excluded_mocks += 1
+            continue
+        selected.append(job)
+        mocks += row.is_mock
     provider = request.app.state.providers["analytics"]
-    result = invoke(provider, "analyze", AnalysisResult, [JD(id=r.id, **r.payload) for r in rows])
+    result = invoke(provider, "analyze", AnalysisResult, selected)
     return AnalysisResponse(
-        **result.model_dump(), is_mock=provider.is_mock or any(r.is_mock for r in rows)
+        **result.model_dump(),
+        is_mock=provider.is_mock or mocks > 0,
+        scope=AnalysisScope(
+            source_type=source_type,
+            date_from=date_from,
+            date_to=date_to,
+            available_count=len(rows),
+            selected_count=len(selected),
+            mock_count=mocks,
+            excluded_mock_count=excluded_mocks,
+        ),
     )
+
+
+@router.post("/analytics/sample-jobs", response_model=SampleImportResult, tags=["analytics"])
+def import_market_jobs(request: Request, db: DB):
+    return import_sample_jobs(db, request.app.state.providers["jobs"])

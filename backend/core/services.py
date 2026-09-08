@@ -4,7 +4,7 @@ import logging
 from uuid import uuid4
 
 from fastapi import HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from sqlalchemy.orm import Session
 
 from backend.core.matching import MatchContext
@@ -13,6 +13,9 @@ from backend.schemas.contracts import (
     JD,
     DiagnosisInput,
     DiagnosisResult,
+    JDData,
+    JDFields,
+    JDInput,
     MatchResult,
     PairInput,
     Resume,
@@ -36,6 +39,17 @@ def invoke(provider, method: str, schema: type[BaseModel], *args):
         # Do not put resume text, provider URLs or credentials in error responses/logs.
         logger.error("Provider %s failed (%s)", method, type(error).__name__)
         raise HTTPException(502, "模块执行失败或返回值不符合公共契约") from error
+
+
+def parse_job_data(provider, data):
+    """Keep the legacy JDInput port; confirmed HTTP metadata wins over parser suggestions."""
+    parse_input = JDInput(**data.model_dump(include=set(JDInput.model_fields)))
+    result = invoke(provider, "parse", JDData, parse_input)
+    supplied = data.model_dump(include=data.model_fields_set & set(JDFields.model_fields))
+    try:
+        return JDData.model_validate({**result.model_dump(), **supplied})
+    except ValidationError as error:
+        raise HTTPException(422, "确认字段与解析结果不符合 JD 契约") from error
 
 
 def require_row(session: Session, table, identifier: str):

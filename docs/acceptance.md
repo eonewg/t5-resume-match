@@ -6,10 +6,10 @@
 
 | 模块 | Owner | 当前实现 | 验收状态与待办 |
 | --- | --- | --- | --- |
-| Resume | A | 真实保守解析、preview 草稿、确认后保存/读取及原文保留 | API 链路通过，专用结构化编辑器 UI 待完成 |
+| Resume | A | 保守解析、受保护结构化编辑、确认保存/重读、历史版本及原文保留 | 本阶段 PASS；student-03 章节遗漏已修复，自动解析仍需人工核对 |
 | Jobs / Matching | D | PR #6 已集成；关键词基线、tools/薪资解析、可选语义增强及事务片段缓存 | 本阶段 PASS；semantic 默认 off，独立人工效果评估仍待完成 |
 | Diagnosis | D | 已有服务、公共 provider 与前端挂载、离线测试 | 真实模型输出、延迟及 T5 全项待验证；不能据离线检查判定最终 PASS |
-| Analytics | A | 公共基础统计接口、Mock；无真实模块实现 | 待实现词云、薪资/技能分布、来源口径与观察说明并验收 |
+| Analytics | A | 真实统计、来源/日期筛选、词云/技能分布、分币种/周期薪资图与五份真实快照 | 本阶段 PASS；五份快照均为单雇主且薪资未知，扩大真实样本与人工效果评价待完成 |
 
 当前自动化检查见 [验证记录](validation.md)。功能目标与当前实现分别记录，不能把已接入、Mock 或测试通过等同于完整 T5 验收。
 
@@ -20,10 +20,10 @@
 | 门槛 | Owner | 当前差距 / 所需证据 |
 | --- | --- | --- |
 | 问题定义 | A 汇总、D 分析 | 至少 2 款招聘 APP 对比、5 份真实 JD、3 份学生简历，脱敏、来源与表达/技能 gap；痛点报告待提交验收 |
-| Level 1 resume | A | 原文粘贴→解析→结构化展示→编辑→保存→重新读取；缺失字段留空 |
+| Level 1 resume | A | 本阶段 PASS：原文粘贴→解析→结构化编辑→保存→重新读取；保护用户确认值，缺失字段留空 |
 | Level 1 jobs/matching | D，A 提供持久化 | JD 输入保存复用、技能/工具提取、关键词基线、0–100 分数、matched/missing/gap 及一致解释；只有向量评分不通过 |
 | Level 2 | D，A 串联 | 平淡经历 STAR、JD 定向关键词/经历建议、量化补充提示、不虚构事实；真实/Mock 与失败行为区分；真实模型待验证 |
-| Level 3 | A，D 解析 JD | 已录入 JD 聚合的近期技能词云、薪资分布、技能要求分布、观察/职业建议；来源、样本量、时间范围和缺失值口径 |
+| Level 3 | A，D 解析 JD | 本阶段 PASS：词云/技能分布、分组薪资图、观察与来源口径；真实五份 JD 分析已提供，真实薪资样本仍缺失 |
 | PostgreSQL + pgvector | A，D 提供参数 | 公共设施及 PR #6 事务片段缓存已真实复验 PASS；最终部署复现仍待完成 |
 | NLP 与向量 | D | 固定 MiniLM revision、384 维 cosine 与关键词组合已集成；默认 off，质量金标准与独立效果评估待完成 |
 | 全链路演示与 E2E | A/D | 按 T5 对照表十步演示，包括原始/优化简历对比、全部图表；无未解释关键失败 |
@@ -42,6 +42,15 @@
 - 待实现/待验收：尚无完整交付或未执行验收，不预填结论。
 
 A 自有模块执行相同门槛；新增提交重新检查，集成失败保留证据并停止后续合并。最终只通过 feat/core-a → main PR 交付。
+
+## 2026-09-08：A Resume / Analytics 产品阶段
+
+- A 基线 `ee983782ef7c8af411869b52a55422267be54b96`，包含已验收 PR #6 merge `79e35a9de94245c466e9218ef132643d92c1eb0a`。本条记录随本阶段功能提交，最终源 SHA 可由该提交取得；不合 main，不集成 D 新分支。
+- 范围：A Resume/Analytics、公共 API/schema/services/config、来源迁移 5、前端普通导航与编辑入口、A 测试和共享文档。D Jobs/Embedding/Diagnosis 业务文件与测试无改动，公共旧 parse/match/diagnosis 协议兼容。
+- Resume：字段编辑/清空和确认均受保护，重解析建议逐项显式采用；保存后 GET 全字段比较，读取失败只重试 GET。student-03 从空 skills/experience 修复为原文支持的 Python 与 10 段经历；不推断未出现技能。
+- Analytics：五份真实 Canonical 快照，单雇主，频率按包含技能的岗位数统计。全部未知薪资，保留缺失统计，不填零。不同币种/周期独立分组；合成薪资图形验证与真实样本分离。详见 [报告](analytics-sample-analysis.md)。
+- 结果：真实 PostgreSQL 下 Python **264 passed、0 skipped**；frontend **53 passed**；锁定依赖、Ruff check/format、PG/pgvector smoke 通过。独立无头 Edge 完成编辑器→JD→Match、重解析保护、保存重读/刷新、移动端和 Analytics 验证，见 [验证记录](validation.md)。
+- 结论：Resume / Analytics **PASS（本阶段范围）**。最终缺口仍包括 D Diagnosis 新 PR 与真实输出/延迟/事实边界验收、人工效果评估、竞品/痛点报告、完整十步演示与最终 fresh install；真实薪资和更多雇主样本需补充。不得据此标记全系统最终 PASS。
 
 ## 2026-09-08：PR #5 Level 1 正式集成与公共基础设施
 

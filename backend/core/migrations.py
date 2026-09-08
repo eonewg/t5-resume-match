@@ -3,7 +3,7 @@
 from sqlalchemy import Column, Integer, MetaData, Table, insert, select, text, update
 
 from backend.models.entities import Base, JDRow
-from backend.schemas.contracts import JDFields
+from backend.schemas.contracts import JDFields, JDSource
 
 versions = Table("schema_migrations", MetaData(), Column("version", Integer, primary_key=True))
 
@@ -46,3 +46,13 @@ def migrate(engine):
 
             FragmentVectorRow.__table__.create(connection, checkfirst=True)
             connection.execute(insert(versions).values(version=4))
+
+        if 5 not in applied:
+            defaults = JDSource().model_dump(mode="json")
+            for row in connection.execute(select(JDRow.id, JDRow.payload)).mappings():
+                connection.execute(
+                    update(JDRow)
+                    .where(JDRow.id == row["id"])
+                    .values(payload={**defaults, **row["payload"]})
+                )
+            connection.execute(insert(versions).values(version=5))

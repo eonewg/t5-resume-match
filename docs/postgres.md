@@ -62,6 +62,7 @@ uv run --locked python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 2. 非破坏性补齐旧 JD JSON 的 tools/薪资字段；既有 skills、原文、Mock 标记、ID/时间均保留。
 3. PostgreSQL 创建 vector extension、vector_spaces、document_vectors；SQLite 不应用此版本。
 4. PostgreSQL 新增 fragment_vectors，保留已有单向量数据、索引与 API；SQLite 不应用此版本。
+5. SQLite/PostgreSQL 为旧 JD JSON 补 source_type=unknown、source_url/source_name/collected_at=null，仅补缺失字段，保留已有来源、原文与确认值。
 
 不自动复制 SQLite 数据到 PostgreSQL，不删除旧库。迁移没有自动降级/删表命令，备份后可恢复原数据库。
 接口按创建后不可变的源记录工作；编辑简历生成新 ID，因此旧结果仍关联原始内容。

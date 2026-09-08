@@ -7,3 +7,10 @@ test('Jobs default navigation loads the reviewed module without preview', async 
   const module = await moduleSlots.jobs.load();
   assert.equal(typeof module.mount, 'function');
 });
+
+for (const key of ['resume', 'analytics']) {
+  test(`${key} is available through normal product navigation`, async () => {
+    const module = await moduleSlots[key].load();
+    assert.equal(typeof module.mount, 'function');
+  });
+}
