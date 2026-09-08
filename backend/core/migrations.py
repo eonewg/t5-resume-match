@@ -19,7 +19,7 @@ def migrate(engine):
         core_tables = [
             t
             for t in Base.metadata.sorted_tables
-            if t.name not in {"vector_spaces", "document_vectors"}
+            if t.name not in {"vector_spaces", "document_vectors", "fragment_vectors"}
         ]
         Base.metadata.create_all(connection, tables=core_tables)
         if 1 not in applied:
@@ -40,3 +40,9 @@ def migrate(engine):
                 connection, tables=[VectorSpaceRow.__table__, VectorRow.__table__]
             )
             connection.execute(insert(versions).values(version=3))
+
+        if postgres and 4 not in applied:
+            from backend.models.vectors import FragmentVectorRow
+
+            FragmentVectorRow.__table__.create(connection, checkfirst=True)
+            connection.execute(insert(versions).values(version=4))

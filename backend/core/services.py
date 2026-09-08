@@ -7,6 +7,7 @@ from fastapi import HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from backend.core.matching import MatchContext
 from backend.models.entities import DiagnosisRow, JDRow, MatchRow, ResumeRow
 from backend.schemas.contracts import (
     JD,
@@ -57,7 +58,12 @@ def load_pair(session: Session, pair: PairInput):
 def matching(session, providers, pair):
     resume, jd, input_mock = load_pair(session, pair)
     provider = providers["jobs"]
-    result = invoke(provider, "match", MatchResult, resume, jd)
+    if callable(getattr(provider.service, "match_with_context", None)):
+        result = invoke(
+            provider, "match_with_context", MatchResult, resume, jd, MatchContext(session)
+        )
+    else:
+        result = invoke(provider, "match", MatchResult, resume, jd)
     if result.resume_id != pair.resume_id or result.jd_id != pair.jd_id:
         raise HTTPException(502, "匹配模块返回了错误的关联 ID")
     row = MatchRow(

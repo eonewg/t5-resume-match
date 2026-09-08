@@ -90,3 +90,12 @@ node tests/core/jobs-default-smoke.cjs
 - 当前 A/D 映射、D 双模块要求、未知分支拒绝、PR 方向及目录边界均有回归覆盖。
 
 本轮不调用真实 AI，不执行数据库功能升级或模块集成；上表结果只覆盖自动化开发检查。
+
+
+## 2026-09-08：A 片段缓存公共适配
+
+基线 e3d1c16；D PR #6 5ce3dea 的片段/注入请求。范围与调用契约见 [交接](integration_requests/A-fragment-vector-handoff.md)。
+本地真实 PG 全量 Python 163 passed（无跳过）、前端 33 passed；锁定依赖、Ruff check/format、迁移、PG smoke、scope/member 检查通过。
+新增整组片段保存点、hash/空间隔离、重连、并发、级联、迁移升级和请求事务回滚证据；旧向量 API 回归通过。
+本地首次沙箱权限失败后在授权正常环境复验，不是业务测试失败。远端 CI 待该提交推送后核实，结果及 SHA 记录于 PR #6 交接评论。
+未合并 D PR #6，未处理 embedding/长文档算法，也不代表 T5 最终验收完成。

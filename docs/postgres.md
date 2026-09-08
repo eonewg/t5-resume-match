@@ -61,6 +61,7 @@ uv run --locked python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 1. 接纳既有 resumes/jobs/matches/diagnoses 或建立缺失的公共表。
 2. 非破坏性补齐旧 JD JSON 的 tools/薪资字段；既有 skills、原文、Mock 标记、ID/时间均保留。
 3. PostgreSQL 创建 vector extension、vector_spaces、document_vectors；SQLite 不应用此版本。
+4. PostgreSQL 新增 fragment_vectors，保留已有单向量数据、索引与 API；SQLite 不应用此版本。
 
 不自动复制 SQLite 数据到 PostgreSQL，不删除旧库。迁移没有自动降级/删表命令，备份后可恢复原数据库。
 接口按创建后不可变的源记录工作；编辑简历生成新 ID，因此旧结果仍关联原始内容。
@@ -120,3 +121,52 @@ D 明确选择 `approximate=True` 后允许使用 HNSW；结果可能减少或�
 使用 schema_translate_map 防止公共 schema 的已有表被误用于测试；结束只删除本次创建的 schema。
 未设 T5_TEST_DATABASE_URL 时这组数据库测试明确跳过，不能记作通过；CI postgres job 必须设置该变量，执行全量 pytest 和 smoke。
 `scripts/smoke_postgres.py` 对真实 PG 验证扩展/迁移/向量/索引及 Resume → JD → keyword match，结束清理本次记录，不调用 AI。
+
+
+## 有序片段缓存与 Jobs 事务入口（2026-09-08）
+
+新增 `FragmentSetWrite`、`FragmentVector`，仍从 `backend.core.vectors` 导入。
+
+```python
+vectors.register_space(specification)  # 完整 VectorSpace，由 D 指定
+cached = vectors.get_fragments(
+    specification, kind="jd", document_id=jd.id, source_hash=input_hash,
+)
+if cached is None:
+    cached = vectors.replace_fragments(FragmentSetWrite(
+        space=specification, kind="jd", document_id=jd.id,
+        source_hash=input_hash, fragments=encoded_vectors,
+    ))
+values = [fragment.values for fragment in cached]
+```
+
+- `get_fragments(space, *, kind, document_id, source_hash)`：单条 SELECT 返回一致快照；未缓存、已清空或 hash 不符返回 `None`。未知空间或空间完整配置不符报 `ValueError`，调用前应 register_space。不会筛选单个 hash 后返回部分片段。
+- `replace_fragments(batch)`：按输入列表顺序生成连续 `index=0..n-1`，返回 `list[FragmentVector]`。每项包含 `space_id/kind/document_id/source_hash/index/values`。`fragments=[]` 原子清空，后续读取为 `None`；不缓存空数组命中。
+- 整组共享一个 hash，由 D 对**实际编码的完整有序输入**计算。顺序、片段边界或内容改变须换 hash；公共层不保存片段原文，也不生成 embedding。model/revision/preprocessing 变化使用新 space.id，并在 model 中保留完整身份。读写都比较完整空间配置，拒绝以旧 ID 套用新配置。
+- 每个向量检查维度、有限 float32、cosine 非零；读回同样验证，拒绝混合 hash 或非连续 index。值为 pgvector float32，未归一化。调用方若还需要确认业务预期片段数量，应与当前输入数量比较。
+- 新表 `fragment_vectors` 与旧 `document_vectors` 隔离。唯一键分别为 `(space_id,resume_id,index)` 和 `(space_id,jd_id,index)`；源类型互斥、维度复合外键、源和空间删除级联。D 只使用 repository，不依赖表结构。
+- 替换在 SAVEPOINT 中锁定源文档行，再删旧组、批量写新组；并发首次写入也串行化。同 hash 写入仍为整组替换，命中时调用方应直接复用。并发竞争是最后成功写入组生效，读取必须始终传当前 hash。多文档写入统一先 Resume 后 JD、同类按 ID 排序，避免交叉加锁。
+- 不做隐式 commit；保存点成功后仍受外层事务控制，外层回滚会撤销整组替换。数据库语句失败会回滚替换保存点。旧 upsert/nearest/HNSW 仅操作整篇单向量，接口与 cosine 距离 `1 - similarity` 不变。
+
+Jobs 可选实现公开同步方法：
+
+```python
+from backend.core.matching import MatchContext
+
+def match_with_context(self, resume, jd, context: MatchContext):
+    with context.vector_repository() as vectors:
+        if vectors is not None:
+            # 在此 register_space/get_fragments/replace_fragments。
+            # 模型生成、缓存命中后评分及降级策略全部留在 D。
+            pass
+    return self.match(resume, jd)
+```
+
+该示例仅说明调用形状；实际接入由 D 实现。公共 `TransactionalJobsProvider` Protocol 位于 `backend.core.ports`。
+无参装载及原 `match(resume,jd)` 保持；仅当存在 `match_with_context` 才由编排层优先调用，启动时验证同步与三参数签名。
+Context 每次调用新建，不写到共享 provider 实例；禁止在调用结束后保留 Context/repository，不自行开 Session/commit/rollback。
+Resume/JD 读取、缓存访问、MatchRecord 保存均使用 HTTP 请求同一个 Session/事务；workflow 后续 diagnosis 失败时缓存和匹配记录共同回滚。
+`context.vector_repository()` 在 PostgreSQL 上开嵌套保存点并提供 repository；SQLite 明确提供 `None`。
+数据库异常在保存点退出回滚后继续向 D 抛出，D 可在 `with` **外部**捕获并执行自己的内存/关键词降级，不应在保存点内部吞掉 SQL 错误。
+连接本身中断或外层事务不可用不能靠保存点恢复，仍由公共错误处理失败返回；不声称所有数据库故障都可继续提交。
+SQLAlchemy 进入保存点会先 flush 外层待写对象，因此公共编排在此入口前不放置待写 MatchRecord；外层已有数据错误不属于可忽略缓存故障。

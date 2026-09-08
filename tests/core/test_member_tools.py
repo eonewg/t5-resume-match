@@ -164,3 +164,25 @@ def test_owner_mapping_covers_current_modules():
         "D": ("jobs", "diagnosis"),
     }
     assert set(MODULES) == {"resume", "jobs", "diagnosis", "analytics"}
+
+
+@pytest.mark.parametrize("invalid", ["async", "signature", "noncallable"])
+def test_invalid_transactional_jobs_hook_rejected(monkeypatch, invalid):
+    class Jobs:
+        def parse(self, data):
+            return data
+
+        def match(self, resume, jd):
+            return None
+
+    async def async_hook(self, resume, jd, context):
+        return None
+
+    def wrong_hook(self, resume, jd):
+        return None
+
+    Jobs.match_with_context = {"async": async_hook, "signature": wrong_hook, "noncallable": None}[
+        invalid
+    ]
+    with pytest.raises(TypeError):
+        provider_class("jobs", module_with(monkeypatch, Jobs))

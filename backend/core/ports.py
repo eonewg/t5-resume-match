@@ -2,6 +2,7 @@
 
 from typing import Protocol
 
+from backend.core.matching import MatchContext
 from backend.schemas.contracts import (
     JD,
     AnalysisResult,
@@ -23,6 +24,10 @@ class ResumeProvider(Protocol):
 class JobsProvider(Protocol):
     def parse(self, data: JDInput) -> JDData: ...
     def match(self, resume: Resume, jd: JD) -> MatchResult: ...
+
+
+class TransactionalJobsProvider(JobsProvider, Protocol):
+    def match_with_context(self, resume: Resume, jd: JD, context: MatchContext) -> MatchResult: ...
 
 
 class DiagnosisProvider(Protocol):
