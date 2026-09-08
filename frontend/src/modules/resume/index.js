@@ -1,3 +1,4 @@
+import {userText} from '../../core/presentation.js';
 import {connectResume} from './controller.js';
 
 // Keep unsaved edits across in-app navigation, without writing personal text to browser storage.
@@ -5,16 +6,16 @@ let retainedDraft = null;
 
 export function mount(container, context) {
   const node = (tag, text = '', className = '') => {
-    const element = document.createElement(tag); element.textContent = text; element.className = className; return element;
+    const element = document.createElement(tag); element.textContent = userText(text); element.className = className; return element;
   };
   const button = (text, className = 'button secondary') => {
     const element = node('button', text, className); element.type = 'button'; return element;
   };
   const style = node('link'); style.rel = 'stylesheet'; style.href = new URL('./styles.css', import.meta.url).href;
   const heading = node('div', '', 'section-heading');
-  const intro = node('div'); intro.append(node('p', '先确认事实，再开始匹配', 'eyebrow'), node('h1', '简历编辑'));
+  const intro = node('div'); intro.append(node('p', '先确认事实，再开始匹配', 'eyebrow'), node('h1', '我的简历'));
   const newButton = button('新建简历'); newButton.id = 'resume-new'; heading.append(intro, newButton);
-  const description = node('p', '解析只提供草稿。你编辑或确认过的字段会被保护；保存生成新版本，保留历史记录。', 'resume-lead');
+  const description = node('p', '导入原文后，核对姓名、教育、技能和经历。保存后即可选择目标岗位。', 'resume-lead');
   const history = node('section', '', 'card resume-history');
   const historyLabel = node('label', '已保存版本'); historyLabel.htmlFor = 'resume-history';
   const selection = node('select'); selection.id = 'resume-history';
@@ -24,16 +25,16 @@ export function mount(container, context) {
   history.append(historyLabel, selection, load, refresh, previous, next);
 
   const grid = node('div', '', 'resume-grid');
-  const sourcePanel = node('section', '', 'card resume-source');
-  sourcePanel.append(node('h2', '01 · 原始简历'));
+  const sourcePanel = node('details', '', 'card resume-source');
+  sourcePanel.open = true; sourcePanel.append(node('summary', '导入简历原文'));
   const rawLabel = node('label', '粘贴完整原文'); rawLabel.htmlFor = 'resume-raw';
-  const raw = node('textarea'); raw.id = 'resume-raw'; raw.maxLength = 50000; raw.rows = 22;
+  const raw = node('textarea'); raw.id = 'resume-raw'; raw.maxLength = 50000; raw.rows = 10;
   raw.placeholder = '粘贴姓名、教育背景、技能和项目 / 工作经历…';
   const count = node('p', '', 'resume-help');
-  const parse = button('解析为草稿', 'button primary'); parse.id = 'resume-parse';
+  const parse = button('整理简历内容', 'button primary'); parse.id = 'resume-parse';
   sourcePanel.append(rawLabel, raw, count, parse,
     node('p', '原文会随当前版本保存。只保留明确表达的信息；未识别字段请核对原文后补充。', 'resume-help'));
-  const editPanel = node('section', '', 'card resume-fields'); editPanel.append(node('h2', '02 · 核对结构化内容'));
+  const editPanel = node('section', '', 'card resume-fields'); editPanel.append(node('h2', '核对简历内容'));
   const inputs = {}, badges = {}, proposals = {}, applyButtons = {};
   const labels = {name: '姓名', education: '教育背景', skills: '技能 / 工具', experience: '项目 / 工作经历'};
   let experienceRows = [];
@@ -53,7 +54,7 @@ export function mount(container, context) {
       if (key === 'skills') group.append(node('p', '每行一项，可补充或删除。只填写你确认具备的技能；清空也会保留。', 'resume-help'));
     }
     const suggestion = node('details', '', 'resume-suggestion'); suggestion.id = 'resume-suggestion-' + key;
-    const summary = node('summary', '查看新解析建议');
+    const summary = node('summary', '发现新的建议');
     const content = node('pre'); applyButtons[key] = button('采用这项建议');
     applyButtons[key].dataset.field = key;
     suggestion.append(summary, content, applyButtons[key]); group.append(suggestion);
@@ -65,9 +66,9 @@ export function mount(container, context) {
   status.setAttribute('aria-live', 'polite');
   const confirmLabel = node('label', '', 'resume-confirm');
   const confirm = node('input'); confirm.type = 'checkbox'; confirm.id = 'resume-reviewed';
-  confirmLabel.append(confirm, node('span', '我已核对以上结构化内容，未确认的信息保持空白。'));
+  confirmLabel.append(confirm, node('span', '我已核对以上简历内容，未确认的信息保持空白。'));
   const save = button('确认并保存', 'button primary'); save.id = 'resume-save';
-  const nextLink = node('a', '前往岗位匹配 →', 'button secondary'); nextLink.href = '#jobs'; nextLink.id = 'resume-next'; nextLink.hidden = true;
+  const nextLink = node('a', '选择目标岗位 →', 'button secondary'); nextLink.href = '#jobs'; nextLink.id = 'resume-next'; nextLink.hidden = true;
   const actions = node('div', '', 'resume-actions'); actions.append(save, nextLink);
   const footer = node('section', '', 'card resume-save-panel'); footer.append(confirmLabel, status, actions);
   container.className = 'resume-editor'; container.replaceChildren(style, heading, description, history, mode, grid, footer);
@@ -103,7 +104,7 @@ export function mount(container, context) {
     if (!experienceRows.length) experiences.replaceChildren(node('p', '未填写经历。可根据原文补充，也可以保持空白。', 'resume-help'));
     for (const key of Object.keys(labels)) {
       const protectedField = state.protectedFields.includes(key);
-      badges[key].textContent = protectedField ? '已保护' : '待确认'; badges[key].dataset.protected = String(protectedField);
+      badges[key].textContent = protectedField ? (state.reviewed ? '已确认' : '已修改') : '待确认'; badges[key].dataset.protected = String(protectedField);
       const differs = state.candidate && JSON.stringify(state.candidate[key]) !== JSON.stringify(state.values[key]);
       proposals[key].details.hidden = !differs;
       if (differs) proposals[key].content.textContent = (Array.isArray(state.candidate[key])
@@ -122,14 +123,15 @@ export function mount(container, context) {
     addExperience.disabled = locked || state.values.experience.length >= 500;
     previous.disabled = Boolean(state.busy) || state.offset === 0;
     next.disabled = Boolean(state.busy) || state.rows.length < 20;
+    previous.hidden = next.hidden = state.rows.length < 20 && state.offset === 0;
     confirm.checked = state.reviewed;
     save.disabled = Boolean(state.busy) || !state.reviewed || !state.values.raw_text.trim();
     save.textContent = state.busy === 'save' ? '保存并核对中…' : state.pendingSave ? '重试读取已保存版本' : '确认并保存';
-    parse.textContent = state.busy === 'parse' ? '正在解析…' : '解析为草稿';
-    status.textContent = state.error || state.notice || (state.busy ? '正在读取记录…' : '核对后确认保存，原文和编辑结果会一起保存。');
+    parse.textContent = state.busy === 'parse' ? '正在解析…' : '整理简历内容';
+    status.textContent = userText(state.error || state.notice || (state.busy ? '正在读取记录…' : '核对后确认保存，原文和编辑结果会一起保存。'));
     status.dataset.error = String(Boolean(state.error));
     mode.hidden = state.parseMock !== true;
-    mode.textContent = '当前草稿/记录来自 Mock。请自行核对事实，不把演示字段当作真实解析结果。';
+    mode.textContent = '演示数据：请自行核对事实，不把示例内容当作真实经历。';
     nextLink.hidden = !state.savedId || state.dirty || Boolean(state.pendingSave);
   }, retainedDraft);
   raw.addEventListener('input', () => controller.edit('raw_text', raw.value));

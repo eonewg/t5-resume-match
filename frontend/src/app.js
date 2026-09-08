@@ -1,3 +1,4 @@
+import { userText } from "./core/presentation.js";
 import { createApi } from "./core/api.js";
 import { runWorkflow } from "./core/workflow.js";
 import { createWorkspace } from "./core/workspace.js";
@@ -14,14 +15,14 @@ let busy = false;
 
 function showError(message) {
   const banner = byId("workflow-error");
-  banner.textContent = message;
+  banner.textContent = userText(message);
   banner.hidden = !message;
 }
 
 function renderTags(id, values) {
   const elements = values.map((value) => {
     const element = document.createElement("span");
-    element.textContent = value;
+    element.textContent = userText(value);
     return element;
   });
   if (!elements.length) {
@@ -36,7 +37,7 @@ function renderTags(id, values) {
 function renderList(id, values) {
   byId(id).replaceChildren(...values.map((value) => {
     const item = document.createElement("li");
-    item.textContent = value;
+    item.textContent = userText(value);
     return item;
   }));
 }
@@ -44,8 +45,8 @@ function renderList(id, values) {
 function renderResult(data) {
   const { match, diagnosis } = data.result;
   byId("match-score").textContent = data.isMock ? "—" : Number(match.score).toFixed(0);
-  byId("score-caption").textContent = data.isMock ? "演示结果，不展示真实匹配分数" : "匹配度 / 100";
-  byId("result-mode").textContent = data.isMock ? "Mock 演示结果" : "诊断已完成";
+  byId("score-caption").textContent = data.isMock ? "演示结果，不展示真实匹配分数" : "综合匹配度 / 100";
+  byId("result-mode").textContent = data.isMock ? "演示数据" : "诊断已完成";
   byId("result-mode").dataset.real = String(!data.isMock);
   renderTags("matched-skills", match.matched_skills);
   renderTags("missing-skills", match.missing_skills);
@@ -135,7 +136,7 @@ async function refreshStatus() {
     byId("mode-banner").hidden = !hasMock;
     const mockNames = Object.entries(data).filter(([, module]) => module.is_mock)
       .map(([key]) => moduleSlots[key]?.title || key);
-    byId("mode-banner").textContent = `当前仍使用 Mock 的模块：${mockNames.join("、")}。请以各项结果的 Mock 标识为准。`;
+    byId("mode-banner").textContent = `演示数据：${mockNames.join("、")}使用演示服务，请以各项结果标识为准。`;
   } catch {
     byId("connection-status").textContent = "服务暂不可用";
     byId("connection-status").dataset.status = "error";
@@ -153,8 +154,8 @@ async function navigate() {
   navigation = new AbortController();
   const signal = navigation.signal;
   const requested = location.hash.slice(1);
-  const key = Object.hasOwn(moduleSlots, requested) ? requested : "workspace";
-  byId("page-label").textContent = key === "workspace" ? "诊断工作台" : moduleSlots[key].title;
+  const key = requested === "workspace" ? requested : Object.hasOwn(moduleSlots, requested) ? requested : "resume";
+  byId("page-label").textContent = key === "workspace" ? "快捷原文分析" : moduleSlots[key].title;
   document.querySelectorAll("[data-view]").forEach((link) => {
     if (link.dataset.view === key) link.setAttribute("aria-current", "page");
     else link.removeAttribute("aria-current");
@@ -168,13 +169,13 @@ async function navigate() {
   byId("module-view").append(container);
   const preview = new URLSearchParams(location.search).get("preview") === key;
   try {
-    const cleanup = await mountSlot(key, container, { api, ...workspace, signal }, preview);
+    const cleanup = await mountSlot(key, container, { api, ...workspace, signal, view: key }, preview);
     if (signal.aborted) cleanup();
     else disposeModule = cleanup;
   } catch {
     if (signal.aborted) return;
     container.className = "error-banner";
-    container.textContent = preview ? "模块预览未能加载，请按前端接入文档检查自己的入口。" : "页面暂时无法加载，请返回工作台后重试。";
+    container.textContent = preview ? "模块预览未能加载，请按前端接入文档检查自己的入口。" : "页面暂时无法加载，请重新选择页面或刷新后重试。";
   }
 }
 window.addEventListener("hashchange", navigate);
