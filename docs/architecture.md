@@ -4,7 +4,7 @@
 
 依据本地实验指导要求 T5：Level 1 简历编辑/文本解析与关键词匹配；Level 2 STAR 与定向 AI 优化；Level 3 就业市场分析。A 负责公共平台、数据库、resume 编辑器与 analytics；D 负责 JD/匹配算法及诊断 Prompt。完整要求见 [T5 对照表](../T5_REQUIREMENTS_MATRIX.md)。
 
-当前 A 已集成 diagnosis，resume、jobs、analytics 尚无真实模块实现；四个 provider 默认仍为 Mock。Mock 只验证传输和持久化，固定分数不能当真实评分。`/ready` 判断配置是否全部替换了 Mock，不对算法质量或外部 AI 服务可用性作保证。
+当前已集成 diagnosis 与 Jobs Level 1；Resume/Jobs 默认使用真实规则实现，Diagnosis/Analytics 默认仍为 Mock。Resume 支持预览草稿、确认后保存/读取，专用编辑器 UI 待完成。`/ready` 判断配置是否全部替换了 Mock，不对算法质量或外部 AI 服务可用性作保证。
 
 ## 分层与责任映射
 
@@ -17,8 +17,8 @@
 | `tests/core/`、`scripts/smoke.py` | A，公共集成验证 |
 | `examples/`、`scripts/check_member.py`、`scripts/check_scope.py` | A，合成样例、成员接入自检与范围检查 |
 | `frontend/index.html`、`frontend/src/core/`、`frontend/src/app.js`、全局样式 | A，同源公共壳、API 客户端、导航、状态及流程编排 |
-| `backend/modules/resume/` | A，简历解析与编辑，尚未创建业务实现 |
-| `backend/modules/jobs/` | D，预留 JD 与匹配实现 |
+| `backend/modules/resume/` | A，保守规则解析；编辑保存通过公共 API，专用 UI 待完成 |
+| `backend/modules/jobs/` | D，已集成 JD 关键词与可解释匹配 |
 | `backend/modules/diagnosis/` | D，已集成诊断实现，真实模型待验证 |
 | `backend/modules/analytics/` | A，预留市场分析实现 |
 
@@ -44,7 +44,7 @@
 
 ## 数据库与事务
 
-当前 SQLite 是零服务演示默认方案，SQLAlchemy 2 提供 PostgreSQL 连接入口。最终必须真实落地 PostgreSQL + pgvector；D 提供模型/维度/距离，A 负责 vector 字段、扩展、索引、读写查询 adapter、迁移和集成测试。这些仍是待实现/验证项。当前四张公共表：
+SQLite 保留为零服务演示默认方案；PostgreSQL + pgvector 已落地并真实测试。D 提供模型/维度/距离，A 提供空间隔离、vector 字段、索引、VectorRepository 和显式版本迁移，详见 [数据库契约](postgres.md)。基础公共表：
 
 | 表 | 字段与关系 |
 | --- | --- |
@@ -52,10 +52,13 @@
 | `jobs` | `id` 主键、`payload` JSON（JDData）、`is_mock`、`created_at` UTC |
 | `matches` | 公共字段 + `resume_id`/`jd_id` 外键与索引，payload 为 MatchResult |
 | `diagnoses` | 公共字段 + 两个外键与索引，payload 为 DiagnosisResult |
+| `schema_migrations` | 已应用的非破坏性迁移版本 |
+| `vector_spaces`（PG） | 不可混用的模型/预处理标识、维度、距离 |
+| `document_vectors`（PG） | vector 列、空间/源外键、source_hash，按空间和源类型隔离 |
 
 关系字段独立列，业务结构存 JSON，以支持初期可变字段；尚无需要数据库级筛选的技能查询。UUID 由 A 生成。SQLite 每连接启用外键。创建记录后不提供原地更新/删除，以保留结果关联的原始输入；编辑器应复用 POST /resumes 保存编辑后的新记录并重新读取，再生成新结果；当前尚无编辑器 UI。保留 raw_text，不能重解析覆盖用户编辑。后续更新/删除或版本关联扩展由 A 明确后写入契约。
 
-每请求一个 session/事务，在 HTTP 响应发送前完成提交；错误自动回滚。`/workflow` 内匹配与诊断同事务，诊断失败不会留下半条流程结果。服务启动创建缺失表并在退出时释放连接。`create_all` 不是迁移工具；现有表变更需另行提交显式迁移，不自动重建数据。
+每请求一个 session/事务，在 HTTP 响应发送前完成提交；错误自动回滚。`/workflow` 内匹配与诊断同事务，诊断失败不会留下半条流程结果。服务启动调用 migrate(engine) 并在退出时释放连接。迁移 1 接纳旧表，迁移 2 补 JD 可选 JSON 字段，迁移 3 仅在 PG 创建扩展与向量表；不自动重建或删除数据。
 
 简历/JD 来源为 Mock 时，后续结果继续标记 Mock，即使计算 provider 已换为真实实现。解析记录通过响应头暴露 Mock 状态；结果直接带 `is_mock`。
 

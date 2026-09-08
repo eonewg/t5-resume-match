@@ -20,11 +20,38 @@ CI 运行 Windows/Ubuntu × Python 3.11/3.13，D 分支要求 Jobs/Matching 和 
 
 现有测试覆盖公共 API、Mock 流程、持久化、关联 ID、事务回滚、provider 契约、前端调用与生命周期、Diagnosis 离线故障处理及 A/D 工作流限制。共享 examples/providers/ 四个示例用于当前模块契约和公共 Mock 演示，不是独立 owner 交付。
 
-PostgreSQL/pgvector、真实模型质量与延迟、完整 T5 浏览器演示、最终版本的 clean clone / fresh install 仍需独立验证。模块完整状态见 [验收台账](acceptance.md)。自动测试通过不代表这些项目已完成。
+PostgreSQL/pgvector 与 Jobs 默认浏览器链路本阶段已独立验证；真实模型质量与延迟、完整 T5 浏览器演示、最终版本的 clean clone / fresh install 仍待后续。模块完整状态见 [验收台账](acceptance.md)。自动测试通过不代表全部系统已完成。
 
 Windows 如遇 uv 缓存访问限制，可设置 UV_CACHE_DIR 为项目 .verification/uv-cache。pytest 临时目录或 Node 子进程权限受限时，需要在允许相应本地操作的执行环境运行，不能通过删测试规避失败。
 
 ## 本次结果
+
+### 2026-09-08：Level 1 集成、JD 契约、PostgreSQL/pgvector、独立材料
+
+- 当前分支 feat/core-a。用户明确确认原有未提交 Resume 修改可作为基线并一并提交；修复其 Windows 超长 pytest 参数名（不改变 50001 字符测试输入）及格式问题，93 passed，提交 `c4ef397`。
+- PR #5 准确源 `fe3dfbb65ec5fe46852a6fb9ddd0a42adf2c92f5` 相对 `844b89c` 审查：无 A 公共层越界；D 集成请求要求默认导航与 JD 可选字段，旧文档阻塞已经修正。
+- 源提交独立 worktree 实测：Python 104 passed、前端 32 passed。合并前 GitHub 8 个检查 SUCCESS，PR 为 MERGEABLE/非 draft。合入 feat/core-a 的准确 merge commit 为 `ebbe251`，未触及 main。
+- 默认 Resume/Jobs provider 与 JDCreate 适配后，共 142 项 Python tests 通过（设置 T5_TEST_DATABASE_URL，数据库项无跳过）；包含 D Jobs 28、Diagnosis 44 离线回归。未读取或调用真实模型密钥。
+- 前端统一测试 33 passed。Jobs 正式注册并能经普通导航进入；公共 Mock 提示按模块列出，避免把真实关键词结果误标为 Mock。
+- 原生 PostgreSQL 17.6（MSVC）+ pgvector 0.8.1（官方源 `778dacf20c07caf904557a88705142631818d8cb`）真实启动于 127.0.0.1:55432；不注册系统服务、不改变系统 PATH。
+- `scripts.migrate` 和 `scripts.smoke_postgres` 实际通过扩展、迁移、HNSW、向量写入/查询以及 PostgreSQL Resume → JD → keyword match。DB 测试验证三种距离、重连持久化、隔离、错误输入、维度/外键、回滚、级联和幂等迁移。
+- Browser 插件运行时引用缺失的 26.901.51231 目录，本机仅有 26.825.51511，无法连接。读取 Browser 技能并诊断后，使用项目已有风格的独立 Playwright / 无头 Edge 回退验证；不是对用户已登录浏览器的操作。
+- `tests/core/jobs-default-smoke.cjs` 在真实 PG/FastAPI 上通过：无 preview 默认导航、Resume 预览后确认编辑/保存、JD 输入解析、33.33% 及 gap、502 恢复、390px 无横向溢出、跨模块选择保留与重复导航不重复请求。简历输入为明确合成 fixture；只验证编辑后保存 API，不声称专用 Resume UI 已交付。
+- 独立材料在 `data/holdout/2026-09-08`：5 个新真实 Canonical JD、3 份作者公开的学生时期简历，含来源快照/哈希/固定 Git 版本/MIT 许可与去标识化说明。`scripts.validate_holdout` 通过，未与旧 JD URL/原文重复，不调整 D 词表；尚无独立人工金标准或泛化指标。
+- 原有 `scripts.validate_data` 与 jobs/diagnosis 成员自检通过。两个既有 Starlette/httpx/AnyIO 弃用提示仍保留，未降检查标准。
+- 变更范围：公共 API/schema/config/注册与提示、数据库/迁移/repository、依赖/CI/启动-smoke-材料脚本、A tests、独立数据、共享说明。D 算法文件无修改，仅其测试显式指定旧 Mock 来源 fixture。
+- 本阶段尚未完成：D 独立 tools/薪资自动提取、Embedding/评分、真实 AI 输出质量；A Resume 编辑器 UI/Analytics 与最终系统集成。不提前合 main。
+- 补充复验：修正全仓格式后 Ruff check/format、uv sync --locked、git diff --check 通过；CI 模式范围/公共契约自检通过。原生数据库停止/重启后 smoke 再次通过。浏览器测试记录已按准确 ID 清理，本地 PostgreSQL 运行目录保留，供 D 后续使用。
+
+浏览器 smoke 的可复现命令（先在独立测试数据库启动默认配置的 API，默认 8765）：
+
+```powershell
+npm install --prefix .verification/browser --no-save --package-lock=false playwright
+$env:NODE_PATH = "$PWD/.verification/browser/node_modules"
+node tests/core/jobs-default-smoke.cjs
+```
+
+需要本机 Edge。脚本使用明确合成 fixture，记录 ID 到 `.verification/jobs-default-records.json`；结束后针对该测试库清理对应记录。截图在 `.verification/jobs-default-desktop.png` 与 `jobs-default-mobile.png`；本轮已查看桌面/手机截图。
 
 ### 2026-09-07（三）：第二批简历样本与第二轮人工 baseline
 

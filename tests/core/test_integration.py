@@ -14,7 +14,10 @@ from backend.models.entities import DiagnosisRow, MatchRow
 def app(tmp_path):
     return create_app(
         Settings(
-            _env_file=None, database_url=f"sqlite:///{tmp_path / 'test.db'}", resume_provider="mock"
+            _env_file=None,
+            database_url=f"sqlite:///{tmp_path / 'test.db'}",
+            resume_provider="mock",
+            jobs_provider="mock",
         )
     )
 
