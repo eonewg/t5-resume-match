@@ -42,3 +42,8 @@ CI 普通矩阵未配置 PostgreSQL 时会跳过 PG 专项；CI postgres job 和
 merge `a41a31d22dac3b31cb7cac8303f63cdd799ecab4`：全新 clone/venv/空依赖缓存安装 32 包，新数据库两次迁移通过。完整 Python 396 passed/0 skipped（23.32 秒）、frontend 57 passed、Ruff（全仓库格式 147 文件）、scope/公开契约与 PG/pgvector smoke 通过。GitHub [合并 CI](https://github.com/eonewg/t5-resume-match/actions/runs/34237691949)成功。
 
 真实浏览器首次 502（服务端 TemporaryLLMError），第二次 53.757 秒真实 STAR/JD 输出成功；两个尝试都保留。普通应用重启后 18 条 API 记录逐项不变，浏览器刷新载入、Desktop/390px 五页与演示/失败回归通过。完整边界、命令和机器可读摘要见 [fresh install](fresh-install.md)。不以合成浏览器成功代替固定评估改写质量。
+
+
+## 补充验证收尾（文档与评估材料）
+
+在 ac952ff 上新增独立批次，两组完整原文项目/相关 JD 真实请求均为 TemporaryLLMError，93.133 / 94.140 秒，无可评价 STAR；每组一次外层验证、三次既有内部尝试。原固定评估所有文件哈希不变，产品、Prompt、配置、依赖不变。检查新增 run.py 的 Ruff、输入/来源/hash、JSON 和报告链接，独立 Agent 核验证据；不重复付费调用或完整 fresh install。提交后既有 GitHub CI 仍执行完整测试。
