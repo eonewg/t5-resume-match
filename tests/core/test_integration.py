@@ -18,6 +18,7 @@ def app(tmp_path):
             database_url=f"sqlite:///{tmp_path / 'test.db'}",
             resume_provider="mock",
             jobs_provider="mock",
+            diagnosis_provider="mock",
         )
     )
 
