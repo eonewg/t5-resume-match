@@ -52,3 +52,16 @@ merge `a41a31d22dac3b31cb7cac8303f63cdd799ecab4`：全新 clone/venv/空依赖�
 ## 2026-09-09：人工体验文档更新
 
 归档用户提供的两款竞品人工记录，关闭此前人工体验材料缺口。仅文档变更；既有产品、Prompt、原固定/补充评估及依赖不变。核对文档链接和 diff，由本次提交的 CI 确认；不重复 fresh install，不增加模型调用。AI 效果限制保持。
+
+## 2026-09-09：Diagnosis 最终修复后的 CI 收尾核对
+
+产品 SHA `29af3ab03bc8a306cb2d1f5a375f9e5bc772780b`。本地 Diagnosis 243 passed，
+Python 576 passed / 39 skipped，frontend 77 passed，Ruff check/format PASS；三组真实
+DeepSeek 与一次真实 Edge 页面通过，详见 [迁移记录](diagnosis-siliconflow.md)。
+
+远端 push run [34326170422](https://github.com/eonewg/t5-resume-match/actions/runs/34326170422)
+与 PR run [34326175644](https://github.com/eonewg/t5-resume-match/actions/runs/34326175644)
+共 10 项 SUCCESS，覆盖 Ubuntu/Windows × Python 3.11/3.13、PG 迁移/完整测试/pgvector smoke。
+这是准确产品 SHA 的当前验证；历史安装和质量评估保持原记录，不将本地跳过项算作已执行。
+PR #9 实际已 Ready for review，保持当前状态，不合 main。本次收尾只同步文档和 PR 描述，
+没有额外模型调用、产品修改或重复全量测试。

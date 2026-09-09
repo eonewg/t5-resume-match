@@ -1,8 +1,19 @@
 # 最终交付状态与已知限制
 
-截至 2026-09-09，分支 feat/core-a，PR #5/#6/#7/#8 已集成。PR #8 merge 为 **a41a31d22dac3b31cb7cac8303f63cdd799ecab4**。技术集成与 clean clone 验收已完成。补充 STAR 验证已执行并保留失败限制；两款竞品人工体验记录已补齐。最终 [PR #9](https://github.com/eonewg/t5-resume-match/pull/9) 更新供用户审查，不合 main。
+截至 2026-09-09，当前产品基线 `29af3ab03bc8a306cb2d1f5a375f9e5bc772780b`，
+分支 `feat/core-a`。Diagnosis 最后一轮修复和真实验收 PASS：严格 schema 后逐条过滤违规 STAR，
+三组 DeepSeek 各一次均成功，原 content_filter 组合保留合法诊断并过滤数字违规条目。
+正式 Diagnosis 为 `SiliconFlow / deepseek-ai/DeepSeek-V4-Flash`；Resume 保持 Ling3-flash。
 
-## 已完成
+[PR #9](https://github.com/eonewg/t5-resume-match/pull/9) 当前实际状态为 **Ready for review**，
+已核对 head 为上述 SHA；push/PR 两轮共 10 项检查 SUCCESS，含 PostgreSQL job。
+可以进入整体最终收尾；不等同所有质量门槛通过，不自动合 main。
+
+下面旧 PR #8 数据为历史验收范围；最新完整安装记录为
+[559118d 集成验收](release-acceptance-results.md)，最新 Diagnosis 证据见
+[SiliconFlow 最终验收](diagnosis-siliconflow.md#逐条-star-严格校验与最终验收)。
+
+## PR #8 历史验收
 
 | 范围 | 实际结果 |
 | --- | --- |
@@ -15,7 +26,7 @@
 | 完整检查 | Python 396 passed/0 skipped，frontend 57 passed，Ruff/四模块契约/scope/PG/pgvector/合并 CI 成功 |
 | 交付材料 | README、台账、测试记录、AI 报告、两款人工竞品记录与设计对照、痛点报告与五页演示脚本已整理 |
 
-准确范围与记录见 [PR #8 审查](pr8-review.md)、[fresh install](fresh-install.md)、[测试](test-results.md)、[演示脚本](demo-script.md)。后续收尾仅改文档、验收脚本和无密钥摘要，不改变已安装验证的产品实现。
+准确范围与记录见 [PR #8 审查](pr8-review.md)、[fresh install](fresh-install.md)、[测试](test-results.md)、[演示脚本](demo-script.md)。此后 Resume/Diagnosis 有独立修复，不将旧安装结果当作最新产品的全量重验。
 
 ## 样本口径
 
@@ -28,11 +39,24 @@
 1. 原固定独立 AI 评估保持原样：两响应完成但 STAR 为空、一请求失败。新增 [补充 STAR 验证](star-supplement.md)已用两段完整经历执行；两组均为 TemporaryLLMError，分别 93.133/94.140 秒，未获可评价结果，四质量维度均 null。按用户指示只记限制，不改 Prompt/配置、不重跑美化。原解析均分 3/5、keyword 与主观适配 Spearman 0.27557 不作为准确率；仍无改写质量提升结论。
 2. BOSS直聘与智联招聘的 [体验报告](../competitor-analysis.md)已补入用户 2026-09-09 的人工记录，包含简历、诊断/优化、岗位推荐与结果展示，以及优点、问题和设计对照；竞品体验证据缺口关闭。公开资料与人工观察分开，不声称 A 自行操作或竞品完全没有匹配解释。
 
-指定的补充验证和两款竞品体验证据已完成，**PR #9 保留草稿供用户最终审查**，不自动合 main。技术验收和竞品体验材料通过；STAR 调用可用性与改写效果证据不足仍列为已知限制，不标为质量 PASS。后续是否合并由用户决定，本轮不再修改系统或重跑模型。
+历史固定评估与补充失败保持原样；最新 Diagnosis 三组与浏览器验收已关闭本轮调用可用性阻塞，
+不把少量成功或原文/数字保护当作独立语义质量 PASS。PR #9 当前 Ready for review，未合并。
+
+## 当前收尾清单
+
+- 已完成：Diagnosis 243 项定向测试；本地 Python 576 passed / 39 skipped；frontend 77 passed；
+  Ruff check/format；三组真实服务和一次真实 Edge 页面；过滤页面离线边界；最新 push/PR 十项 CI。
+- CI PostgreSQL job 已执行新建服务、锁定依赖安装、迁移、完整 pytest 和 pgvector smoke，全部成功。
+  [push CI](https://github.com/eonewg/t5-resume-match/actions/runs/34326170422)、
+  [PR CI](https://github.com/eonewg/t5-resume-match/actions/runs/34326175644)均对应上述产品 SHA。
+- 整体尚未复跑：普通应用 API 快照→重启→逐路径比较；Canonical + 补充五份的十条/六雇主/
+  四 USD 年薪口径。旧基线存在 PASS，559118d 执行记录明确留待后续，不能由 Diagnosis PASS 替代。
+- 无需为本轮 Diagnosis 收尾重跑旧 S1/S2 或新增 Resume 付费调用；当前用户指定的三组已完成。
+- 最终 main 合并及合并后启动/核心链路复核尚未执行；当前仍保留不合 main 的范围。
 
 ## 运行限制
 
-- 默认 Diagnosis 为明确演示服务；真实模型需要服务端配置。本轮真实联网仅 custom/openai_chat；另外两协议为离线适配覆盖，不声称全部厂商实测。
+- 当前本机已配置正式 Diagnosis SiliconFlow / DeepSeek-V4-Flash；干净安装需自行提供服务端密钥。真实联网仅 custom/openai_chat；另外两协议仍是离线适配覆盖。
 - Fresh install 真实调用首次上游 TemporaryLLMError/502、第二次 53.757 秒成功。功能可用不等于模型服务稳定性已经达标；保留失败分母。
 - 规则解析依赖格式/词表，需核对草稿。关键词覆盖不衡量熟练度、年限、硬条件或录用概率；语义模型为可选依赖，默认不下载、不启用。
 - 数字/原文守卫不能证明所有语义事实；生成建议、待补量化和新增技能必须核实。模型原文中的技术词不会为了固定 UI 文案清理而被改写。
