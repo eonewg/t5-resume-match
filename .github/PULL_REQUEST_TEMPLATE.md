@@ -1,21 +1,22 @@
 ## 本次交付
 
-- 角色与源分支：
-- 目标分支：成员交付指向 `feat/core-a`，A 的公共交付/最终集成按相应授权处理。
-- 待验收提交 SHA：
-- 实现的最小功能：
-- 尚未实现或仍为 Mock 的部分：
+- Owner 与源分支（A：feat/core-a；D：feat/intelligence-d）：
+- 目标分支（D → feat/core-a；最终交付仅 feat/core-a → main）：
+- 待验收提交 SHA / A 基线：
+- 对应 T5 条目（问题定义 / Level 1 / Level 2 / Level 3 / 基础设施）：
+- 模块（resume / jobs-matching / diagnosis / analytics）与本次完成行为：
+- 尚未实现、仍为 Mock 或需公共适配的内容：
 
-## 公开入口与复现
+## 公开入口与证据
 
-- 公开 `module:Class`：
-- 输入样例、预期结果（优先引用 `examples/fixtures/team.json`）：
-- 测试/自检命令与实际结果：
-- 前端入口（如有）及截图：
-- 依赖、环境变量及公共修改需求（链接 `docs/integration_requests/角色-主题.md`）：
+- 公开 module:Class、输入和预期输出：
+- 模块自检、测试命令与实际结果：
+- 前端入口、截图/浏览器复现：
+- 依赖、配置或契约请求（docs/integration_requests/D-主题.md）：
+- 数据来源、脱敏及事实边界（如涉及样本/AI）：
 
-## 已知问题
+## 限制与验收
 
-列出异常、边界和未验证项。D 区分离线替身测试与真实 AI 验证，不附真实密钥。
+区分离线替身、Mock 与真实 AI/数据库验证；不附真实密钥。不虚构实验结果。
 
-自检通过不替代 A 验收。A 将准确提交的 PASS/BLOCKED/ADAPT 及后续集成结果写入 `docs/acceptance.md`。
+A 按准确提交记录 PASS/BLOCKED/ADAPT。D 的 Jobs/Matching（含 Embedding）与 Diagnosis 分别验收，每项提供准确证据。最终 PR 还需提供 PostgreSQL/pgvector、完整演示、E2E、README 和 clean clone / fresh install 证据。

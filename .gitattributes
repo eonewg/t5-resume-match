@@ -1,0 +1,2 @@
+# Preserve received evaluator evidence byte-for-byte on Windows and Linux.
+data/evaluation/**/reviewer-ai.json -text

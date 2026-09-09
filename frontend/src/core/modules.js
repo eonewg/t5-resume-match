@@ -1,9 +1,10 @@
 // A registers reviewed frontend entrypoints here. Members edit only their own module directory.
 export const moduleSlots = {
-  resume: { title: "简历编辑", load: null },
-  jobs: { title: "岗位匹配", load: null },
-  diagnosis: { title: "AI 诊断", load: null },
-  analytics: { title: "市场分析", load: null },
+  matching: { title: "匹配分析", load: () => import("../modules/jobs/index.js") },
+  resume: { title: "我的简历", load: () => import("../modules/resume/index.js") },
+  jobs: { title: "目标岗位", load: () => import("../modules/jobs/index.js") },
+  diagnosis: { title: "简历优化", load: () => import("../modules/diagnosis/index.js") },
+  analytics: { title: "市场洞察", load: () => import("../modules/analytics/index.js") },
 };
 
 // Explicit local preview lets members work before A registers their finished module.

@@ -1,0 +1,37 @@
+{
+  "id": "resume-05",
+  "raw_text_anonymized": "姓名：（略）\n求职意向：大数据开发 / 数仓工程师\n教育经历：某高校 软件工程专业 本科 2022.09-2026.06。主修课程：数据库系统、数据仓库与数据挖掘、计算机网络。\n实习经历：某互联网公司 数据平台组 大数据开发实习生 2025.07-2025.12\n- 参与数仓 DWD 层若干 HiveSQL 清洗任务的维护\n- 协助排查一次数据质量告警，补齐空值校验规则\n- 日常使用 SQL 与 Linux Shell\n项目经历：教务数据离线分析课程设计 2024.09-2025.01\n- 使用 Hive 对脱敏教务数据建模，完成出勤与成绩主题的指标统计\n- 输出维度建模设计文档\n技能：SQL、Hive、Hadoop（了解）、Spark（了解）、Linux、Python\n语言：英语 CET-4\n证书：CET-4",
+  "education": {
+    "degree": "本科",
+    "major": "软件工程",
+    "school_generalized": "某高校",
+    "period": "2022.09-2026.06"
+  },
+  "experiences": [
+    {
+      "role": "大数据开发实习生",
+      "org_generalized": "某互联网公司",
+      "period": "2025.07-2025.12",
+      "highlights": [
+        "参与数仓 DWD 层若干 HiveSQL 清洗任务的维护",
+        "协助排查一次数据质量告警，补齐空值校验规则",
+        "日常使用 SQL 与 Linux Shell"
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "name_generalized": "教务数据离线分析课程设计",
+      "role": "课程项目",
+      "period": "2024.09-2025.01",
+      "description": "使用 Hive 对脱敏教务数据建模，完成出勤与成绩主题的指标统计，输出维度建模设计文档",
+      "tech": ["Hive", "SQL"]
+    }
+  ],
+  "skills": ["SQL", "Hive", "Hadoop", "Spark", "Linux", "Python", "数仓分层", "维度建模", "数据质量"],
+  "languages": ["英语 CET-4"],
+  "certificates": ["CET-4"],
+  "source_type": "synthetic",
+  "anonymized": true,
+  "notes": "合成演示简历，非真实学生。构造时即按脱敏规则处理：无姓名/电话/邮箱/学号，学校与公司均使用泛化名称。"
+}

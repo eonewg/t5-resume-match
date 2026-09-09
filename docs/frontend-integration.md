@@ -4,16 +4,16 @@
 
 运行 `start.ps1`，打开 `http://127.0.0.1:8000/`。公共壳由 FastAPI 同源提供，使用 HTML、CSS 和原生 JavaScript ES modules；无需 npm 安装或构建。Node 22+ 只用于 `node scripts/check_frontend.mjs` 开发检查。
 
-首页已接通合成样例填充、简历/JD 保存、匹配与诊断、错误反馈、Mock 标签和当前选择状态。四个业务页面目前是占位入口，不是成员业务页面已经完成。`/docs` 与 `/openapi.json` 继续保留。
+四个前端模块均可从普通导航进入，无需 preview。Resume `/#resume` 提供受保护字段编辑、保存后重读与历史版本；Jobs `/#jobs` 消费已确认的版本；Analytics `/#analytics` 提供来源/日期筛选、真实快照导入、技能词云和分布、分币种/周期薪资图及来源表。Diagnosis 前端维持既有版本，新协议待 D PR 验收。`/docs` 与 `/openapi.json` 继续保留。
 
 ## 自己的目录与入口
 
 | 角色 | 目录 | 预览 URL |
 | --- | --- | --- |
-| B | `frontend/src/modules/resume/` | `/?preview=resume#resume` |
-| C | `frontend/src/modules/jobs/` | `/?preview=jobs#jobs` |
+| A | `frontend/src/modules/resume/` | `/?preview=resume#resume` |
+| D | `frontend/src/modules/jobs/` | `/?preview=jobs#jobs` |
 | D | `frontend/src/modules/diagnosis/` | `/?preview=diagnosis#diagnosis` |
-| E | `frontend/src/modules/analytics/` | `/?preview=analytics#analytics` |
+| A | `frontend/src/modules/analytics/` | `/?preview=analytics#analytics` |
 
 在自己的目录创建 `index.js`，可复制 [最小面板示例](../examples/frontend-panel.js) 的结构。公开导出：
 
@@ -29,7 +29,7 @@ export function mount(container, { api, getState, updateSelection, subscribe, si
 }
 ```
 
-无需改公共注册表即可用上表 URL 在本地预览，限定四个固定模块路径。A 验收前普通导航仍显示占位页面；验收后由 A 在 `frontend/src/core/modules.js` 设置对应 `load: () => import('../modules/<模块>/index.js')` 正式挂载。
+无需改公共注册表即可用上表 URL 在本地预览，限定四个固定模块路径。尚未验收的模块在普通导航仍显示占位页面；验收后由 A 在 `frontend/src/core/modules.js` 设置对应 `load: () => import('../modules/<模块>/index.js')` 正式挂载。
 
 预览只验证 UI 接入，不意味着后端已切换为真实 provider。需要联调时用本地 `.env` 配置自己的后端公开类，其余模块可保留 Mock。
 
@@ -49,6 +49,6 @@ export function mount(container, { api, getState, updateSelection, subscribe, si
 
 至少检查：正常返回、输入缺失、服务失败后可重试、长文本、390px 窄屏无整页横向溢出、切换页面不会残留事件订阅。组件可在成员自己的测试目录或前端模块目录放 `*.test.mjs`，使用 Node 内置测试；公共命令和 CI 自动发现 frontend/tests、frontend/src/modules 和 tests 下的全部此类文件。DOM/交互验证提供真实截图和复现步骤，由 A 结合接口验收。
 
-后台已有记录不会因前端失败被自动删除：简历和 JD 是独立创建请求，workflow 的匹配/诊断才在一个事务中。重试可能创建新的简历/JD，当前没有幂等上传和历史选择界面，后续由对应成员与 A 对齐。
+后台已有记录不会因前端失败被自动删除：简历和 JD 是独立创建请求，workflow 的匹配/诊断才在一个事务中。重试可能创建新的简历/JD，当前没有幂等上传和历史选择界面。A 须完成简历结构化编辑与保存读取、公共选择联动；D 完成 jobs/diagnosis 界面。
 
 公共导航、首页编排、API 客户端、共享状态、全局样式和静态路由属于 A；成员不要另起前端服务器或自行改这些文件。需要共享组件或依赖时先提交集成请求。

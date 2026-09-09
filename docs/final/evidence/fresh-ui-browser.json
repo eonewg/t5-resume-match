@@ -1,0 +1,24 @@
+{
+  "checks": [
+    "parse → edit → reparse preserves confirmed facts; save and reread exact",
+    "real keyword result 33.33%; raw Python not restored; result survives navigation",
+    "model error clears output; retry; explicit demo provenance; STAR comparison preserves text and XSS remains text",
+    "market source/date/sample coverage and missing salary retained; archived import works",
+    "secondary raw workflow still available on mobile; demonstration results remain explicit",
+    "desktop/mobile five-page navigation, no overflow/engineering terms, empty selection, API error and refresh recovery"
+  ],
+  "screens": [
+    ".verification/ui-refresh/resume-1440.png",
+    ".verification/ui-refresh/jobs-1440.png",
+    ".verification/ui-refresh/matching-1440.png",
+    ".verification/ui-refresh/diagnosis-1440.png",
+    ".verification/ui-refresh/analytics-1440.png",
+    ".verification/ui-refresh/resume-390.png",
+    ".verification/ui-refresh/jobs-390.png",
+    ".verification/ui-refresh/matching-390.png",
+    ".verification/ui-refresh/diagnosis-390.png",
+    ".verification/ui-refresh/analytics-390.png"
+  ],
+  "model": "explicit demonstration fixture; no paid API",
+  "status": "passed"
+}

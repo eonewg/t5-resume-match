@@ -1,25 +1,42 @@
-# 团队通用协作约定
+# A / D 开发协作规则
 
-本文件描述项目共用边界，不分配 Agent 角色，也不根据分支替成员选择角色。各成员在自己的工作目录维护个人 `AGENTS.md`；根目录该文件已加入 `.gitignore`，不提交、不覆盖其他成员的版本。
+项目由两个开发 owner 负责，课程小组组织按课程要求执行。功能范围见 [T5 需求](../T5_REQUIREMENTS_MATRIX.md)，任务分配见 [两人分工](../T5_TWO_PERSON_ALLOCATION_STRICT.md)。本文件维护公共流程，[A](roles/A.md) 和 [D](roles/D.md) 说明具体职责。个人 AGENTS.md 仅留本地。
 
-## 责任与接口
+## Ownership
 
-- A 负责公共架构、配置、Schema、数据库、路由挂载、验收和集成；B/C/D/E 负责各自业务目录。
-- 分工说明见 `docs/roles/`，这是共享交接资料，不替代个人角色指令。分支与启动方式见 [团队上手说明](team-onboarding.md)。
-- 跨模块通过 [接口契约](api-contract.md)、`backend/schemas/contracts.py` 和 `backend/core/ports.py` 交互，不调用其他成员内部实现。
-- 公共依赖、根配置、公共前端壳、数据库和 Schema 的修改需求由成员提交到 `docs/integration_requests/`，A 负责处理。
-- A 可以检查成员代码；业务 Bug 退回成员修复，公共兼容问题由 A 适配。不为代码统一重构其他模块。
-- 尚未交付的模块使用明确标注的 Mock，不把占位结果视为真实验收通过。
+| Owner | 责任 | 分支 |
+| --- | --- | --- |
+| A | public/core、Resume、Analytics、quality/QA、PostgreSQL/pgvector、公共前端、CI、最终集成与交付 | feat/core-a；A 专项分支用 feat/*-a |
+| D | Jobs、Matching、Embedding、Diagnosis，以及对应前端与模块测试 | feat/*-d（如 feat/intelligence-d、feat/ui-refresh-d） |
 
-## Git 与集成
+模块通过 [API 契约](api-contract.md)、公共 Schema 和 ports 交互，不调用其他模块内部实现。D 的匹配与 embedding 代码放在 jobs 模块中，四个公开 provider 保持 resume、jobs、diagnosis、analytics。
 
-- 操作前检查工作区及 origin，fetch 最新状态；未知修改不覆盖、删除、stash 或 reset。只提交本次明确修改的文件，禁止 `git add .`、force push、hard reset 和擅自重写历史。
-- Agent 按个人角色指令完成本分支的 commit/push，不直接修改或推送其他成员分支。
-- A 对成员准确提交验收，结果记入 [验收台账](acceptance.md)：PASS 可集成，BLOCKED 退回修复，ADAPT 需公共适配并复验。
-- 成员先逐个合入 `feat/core-a`，每次运行相关测试；失败时停止后续集成，不删除功能规避失败。业务内部冲突由成员处理，公共冲突由 A 处理。
-- 完整系统合入 main 前须通过四成员验收、真实核心链路、E2E、启动与数据库检查、README 和 clean clone / fresh install 验证，并处于用户授权范围内。公共基线合并不代表真实业务最终交付。
-- 不绕过分支保护；认证、权限或不安全 Git 状态需明确说明。交付记录提交、文件、验收/集成分支、测试与未解决项。
+A 负责公共数据库、依赖和配置；D 决定向量化对象、模型、维度、距离及评分策略。D 将公共修改需求写入 docs/integration_requests/D-*.md，A 实施并复验。A 可审查全部代码，D 业务问题由 D 修复，公共兼容问题由 A 适配。
 
-## 验证与记录
+## Git 流程
 
-按改动运行有效检查，文档改动检查链接和一致性；业务变动验证边界、异常与回滚。保护原始文件，清理本次无用临时文件。记录真实发生的架构决策、验收问题、适配、冲突和环境差异，不编造过程。
+1. 开始前检查仓库、origin、工作区，fetch 后确认本 owner 分支。未知未提交修改不得覆盖、删除、stash 或 reset，停止并说明。
+2. A 固定 feat/core-a。D 首次从最新 origin/feat/core-a 创建 feat/intelligence-d；已存在时切换或跟踪现有分支，通过 merge 同步基线，保护已有工作。
+3. 独立任务验证后自动 commit/push，只暂存明确文件。禁止 git add .、force push、hard reset、擅自 rebase 已推送提交或推送其他 owner 分支。
+4. feature 分支按命名规则识别 owner：A 用 feat/*-a，D 用 feat/*-d；PR 一律指向 feat/core-a，feature 分支不得直接指向 main。同 owner 分支使用相同 D 路径限制并要求 Jobs/Diagnosis 测试；UI 专项 feat/ui-refresh-d 权限单独定义如下。CI 不维护分支白名单，不符合命名规则的分支在 scope 检查明确失败。A 验收前重新 fetch，确认 A 分支且工作区干净，记录准确源 SHA 和集成基线。
+5. 按 Resume、Jobs/Matching、Diagnosis、Analytics 验收，结果记入 [台账](acceptance.md)。PASS 可集成；BLOCKED 必须修复；ADAPT 需 A 公共适配并复验 PASS。新增提交和需求必须重新检查。
+6. 一次集成一个已 PASS 的交付，立即运行相关模块与公共测试。失败停止后续集成，保留诊断证据，不删除功能规避测试。D 业务内部冲突交 D 处理，公共冲突由 A 解决。
+7. 最终仅通过 feat/core-a → main PR 合并，满足 [系统门槛](acceptance.md#最终系统门槛)。不直接 push main，不绕过分支保护；合并后核对提交并验证启动和核心链路。
+
+不重写 Git 提交历史。权限、认证或无法安全处理的 Git 状态须明确说明。未要求后台监控时，不自动创建监控任务。
+
+## 验证与证据
+
+每项功能对应 T5 要求，按 Level 1 → Level 2 → Level 3 推进，测试随开发同步。未交付模块可用明确标记的 Mock，不把 Mock 视为真实验收通过。
+
+保留原文和事实；无法解析的字段为空，不虚构经历、技能或量化成果。真实采样、课程样本、合成演示分别标注，个人信息脱敏、密钥不入库。图表注明来源、样本量、时间范围与缺失值口径，不将少量 JD 外推整个市场。
+
+收尾列出分支、commit、文件、模块验收与集成、实际检查和待办。AI 需求拆解、设计、编码、测试、文档及联调过程仅记录实际证据，不编造结果。
+
+## D UI 专项（2026-09-08 授权）
+
+`feat/ui-refresh-d` 从最新 `origin/feat/core-a` 创建，PR 只指向 A。仅允许 `frontend/**`、`docs/ui/**/*.md`、`docs/frontend-integration.md`、`docs/integration_requests/D-ui-refresh.md`。其他前端设计文档先放入 `docs/ui/`；此限制不会把整个 docs 目录开放。
+
+禁止改 backend、数据库、Matching/Diagnosis 算法、公共 API 契约、CI 或权限脚本。前端调用保持现有契约，不通过前端复制/替换后端评分算法。CI 路径检查不能判断文档语义，A 审查时仍核对设计相关性和行为边界。保留旧 D 业务分支权限；新 UI 分支不会继承业务文件写权限。
+
+CI 继续执行完整 pytest、前端检查及四模块公开契约检查（Diagnosis 离线）；本地 `python -m scripts.check_scope D` 自动按当前分支应用规则。A 在 UI 重构期间避免修改 frontend。收到 UI PR 后检查准确 SHA、范围、交互与回归，再集成；最后统一 fresh install。本轮只推 A，不合 main。

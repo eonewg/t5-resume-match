@@ -1,0 +1,772 @@
+{
+  "persistence": {
+    "status": "PASS",
+    "code_head": "9952baf688e114cd7095faa1b5924e19dde9c1dd",
+    "database": "t5_fresh_20260908_1421",
+    "postgres": "17.6",
+    "pgvector": "0.8.1",
+    "health": {
+      "status": "ok",
+      "version": "0.1.0"
+    },
+    "ready": {
+      "status": "ready"
+    },
+    "tables_before": {
+      "diagnoses": {
+        "count": 3,
+        "business_sha256": "85ac74046e819d60cd97e0a8090de6c3734da948b633a107ae041ecfcdbdf361"
+      },
+      "document_vectors": {
+        "count": 0,
+        "business_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "fragment_vectors": {
+        "count": 0,
+        "business_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "jobs": {
+        "count": 15,
+        "business_sha256": "0ca9878f72fa1a0ec19dcb94835db7e06fd1ee4aba3ebf3b11731ab74ea79942"
+      },
+      "matches": {
+        "count": 5,
+        "business_sha256": "371fc64c0d88e7b29a2a05da249beec7119565ac4e3c2e736fc529e4db891647"
+      },
+      "resumes": {
+        "count": 5,
+        "business_sha256": "dc8f0011c765cfb4548b45408bb51743b3ea641d8c6ad68a88eb3922066a6a56"
+      },
+      "schema_migrations": {
+        "count": 5,
+        "business_sha256": "1cf5cf9ccf6761015bf04ffefec42cde9390fd9ccaa42bcb5623296cbca7e4e7"
+      },
+      "vector_spaces": {
+        "count": 0,
+        "business_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    "tables_after": {
+      "diagnoses": {
+        "count": 3,
+        "business_sha256": "85ac74046e819d60cd97e0a8090de6c3734da948b633a107ae041ecfcdbdf361"
+      },
+      "document_vectors": {
+        "count": 0,
+        "business_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "fragment_vectors": {
+        "count": 0,
+        "business_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "jobs": {
+        "count": 15,
+        "business_sha256": "0ca9878f72fa1a0ec19dcb94835db7e06fd1ee4aba3ebf3b11731ab74ea79942"
+      },
+      "matches": {
+        "count": 5,
+        "business_sha256": "371fc64c0d88e7b29a2a05da249beec7119565ac4e3c2e736fc529e4db891647"
+      },
+      "resumes": {
+        "count": 5,
+        "business_sha256": "dc8f0011c765cfb4548b45408bb51743b3ea641d8c6ad68a88eb3922066a6a56"
+      },
+      "schema_migrations": {
+        "count": 5,
+        "business_sha256": "1cf5cf9ccf6761015bf04ffefec42cde9390fd9ccaa42bcb5623296cbca7e4e7"
+      },
+      "vector_spaces": {
+        "count": 0,
+        "business_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    "api_records": [
+      {
+        "path": "/api/v1/diagnoses/diagnosis_502c25fc5d544ecf9831dd06d1eaf0a7",
+        "before_sha256": "876196b4010663b1832f2ff899d7966cbed9df49895a1bcff889ff750b23feb6",
+        "after_sha256": "876196b4010663b1832f2ff899d7966cbed9df49895a1bcff889ff750b23feb6"
+      },
+      {
+        "path": "/api/v1/diagnoses/diagnosis_cd9f019905a64bf5b5859616c89884c7",
+        "before_sha256": "481036b7eaefa691f10b01ec382509170b661dc94b9d511dc566837a6e42a2ab",
+        "after_sha256": "481036b7eaefa691f10b01ec382509170b661dc94b9d511dc566837a6e42a2ab"
+      },
+      {
+        "path": "/api/v1/diagnoses/diagnosis_f7abb558caaf4191a07e3f5bc251f14d",
+        "before_sha256": "cdb5723159829ba34dd8b5fb8a96a699ecab4cca830669f24d1d2479bf5c85c9",
+        "after_sha256": "cdb5723159829ba34dd8b5fb8a96a699ecab4cca830669f24d1d2479bf5c85c9"
+      },
+      {
+        "path": "/api/v1/jobs/jd_2edf85b52d6542848b526e78e3cb8d3a",
+        "before_sha256": "95d65a314bc62bfeffc24be5aa9d8842597005ce515df3f7c4a89081a122a629",
+        "after_sha256": "95d65a314bc62bfeffc24be5aa9d8842597005ce515df3f7c4a89081a122a629"
+      },
+      {
+        "path": "/api/v1/jobs/jd_3acdfafb360747aeb7a9f79e95e7601c",
+        "before_sha256": "56a0f47bf40e8bf75268491d9737080253a6c3d58e72cc019a2d6ed4859b0063",
+        "after_sha256": "56a0f47bf40e8bf75268491d9737080253a6c3d58e72cc019a2d6ed4859b0063"
+      },
+      {
+        "path": "/api/v1/jobs/jd_50b1d4431e7249e39806412d46d05e59",
+        "before_sha256": "3a1ef889afe792dc0e84a9de7dfa00638b68a5946c34af4e11d4ce89bef4d261",
+        "after_sha256": "3a1ef889afe792dc0e84a9de7dfa00638b68a5946c34af4e11d4ce89bef4d261"
+      },
+      {
+        "path": "/api/v1/jobs/jd_8a45d0b05f294c47be897cee2fe49a72",
+        "before_sha256": "3bbb0195f0c397afa30bf6b0a6e7e890ae077660a027990ebfc21e9ffaf0996a",
+        "after_sha256": "3bbb0195f0c397afa30bf6b0a6e7e890ae077660a027990ebfc21e9ffaf0996a"
+      },
+      {
+        "path": "/api/v1/jobs/jd_8c49da9407d94b1584520b8f0a8b3bdb",
+        "before_sha256": "7bd771e84b6208ef3a13b28913fadc66d863144f3f78df13b0ad8367162a135b",
+        "after_sha256": "7bd771e84b6208ef3a13b28913fadc66d863144f3f78df13b0ad8367162a135b"
+      },
+      {
+        "path": "/api/v1/jobs/jd_market_2fb2ce67f423c94cb92078a9caf83f1b",
+        "before_sha256": "242ae7a70c8698257c23339a903a43f6d6ae18dd1573ecc6326aa197439b91a0",
+        "after_sha256": "242ae7a70c8698257c23339a903a43f6d6ae18dd1573ecc6326aa197439b91a0"
+      },
+      {
+        "path": "/api/v1/jobs/jd_market_8940d21e9e68397750f333e8d4fcabed",
+        "before_sha256": "ad7b27ecc8c74335e4627e1346b84caad50ba7d6c4e9b06665dfc4c63a59ebd8",
+        "after_sha256": "ad7b27ecc8c74335e4627e1346b84caad50ba7d6c4e9b06665dfc4c63a59ebd8"
+      },
+      {
+        "path": "/api/v1/jobs/jd_market_d48e428ec65140bfbfb608d7cafc2628",
+        "before_sha256": "32b77b6d6635f613c8b5978edf9f3584f1c346cfbc1d6b748f8233cbd72cc8f2",
+        "after_sha256": "32b77b6d6635f613c8b5978edf9f3584f1c346cfbc1d6b748f8233cbd72cc8f2"
+      },
+      {
+        "path": "/api/v1/jobs/jd_market_e3dea52cf8bd3d152ded8c22710ab422",
+        "before_sha256": "b0e7391f6545ec9377f2157c17d0007d7f9161cfab836169f098b2737d304256",
+        "after_sha256": "b0e7391f6545ec9377f2157c17d0007d7f9161cfab836169f098b2737d304256"
+      },
+      {
+        "path": "/api/v1/jobs/jd_market_e5fe89f1d52917059ae6b16abc4f4775",
+        "before_sha256": "119e8dbbd86365fec94504b8ba53a11d31c62c65478c9b781c10400cbefdc3b9",
+        "after_sha256": "119e8dbbd86365fec94504b8ba53a11d31c62c65478c9b781c10400cbefdc3b9"
+      },
+      {
+        "path": "/api/v1/jobs/jd_market_final_328d3ac8dbc6b7c828542549",
+        "before_sha256": "fffa499c0f4b121a9be69341d496472fad18550f9ca68c8aa0f19ebd5556486b",
+        "after_sha256": "fffa499c0f4b121a9be69341d496472fad18550f9ca68c8aa0f19ebd5556486b"
+      },
+      {
+        "path": "/api/v1/jobs/jd_market_final_50ae773a2e2fd1995dc51cf3",
+        "before_sha256": "380c64687194ec5e68b5e5d5d4283678334fc18576e7a47af8ceefb8bed94f4e",
+        "after_sha256": "380c64687194ec5e68b5e5d5d4283678334fc18576e7a47af8ceefb8bed94f4e"
+      },
+      {
+        "path": "/api/v1/jobs/jd_market_final_582979493d65ffcec6701f32",
+        "before_sha256": "aeea3ddd38a427d104815ca900acc1be8da1d2251a060a632e89e13ed0fa6fec",
+        "after_sha256": "aeea3ddd38a427d104815ca900acc1be8da1d2251a060a632e89e13ed0fa6fec"
+      },
+      {
+        "path": "/api/v1/jobs/jd_market_final_92e843801affc402fd813a09",
+        "before_sha256": "fe0498e80c2ec49a8f9f308122424c8abd81b0da256520dc30a11037421b9ff9",
+        "after_sha256": "fe0498e80c2ec49a8f9f308122424c8abd81b0da256520dc30a11037421b9ff9"
+      },
+      {
+        "path": "/api/v1/jobs/jd_market_final_a1d88fdbb3b21b5abaa9daee",
+        "before_sha256": "a610bfd91a34da0bf10979ecaacbea3c1afe68a9d2ed6330b1ae48670effa8b1",
+        "after_sha256": "a610bfd91a34da0bf10979ecaacbea3c1afe68a9d2ed6330b1ae48670effa8b1"
+      },
+      {
+        "path": "/api/v1/matches/match_1afb1909e01a406f934442eacc140278",
+        "before_sha256": "f28e2ba83ba17d3005030cf1407b1ca9418e8ec7cf83b960d6b6479faf560153",
+        "after_sha256": "f28e2ba83ba17d3005030cf1407b1ca9418e8ec7cf83b960d6b6479faf560153"
+      },
+      {
+        "path": "/api/v1/matches/match_3355742c47a248d5808404250fbfc246",
+        "before_sha256": "f3fbd3159eb0c0929169620254245b7ba75111972a1bd30abcc8fbae53492c2a",
+        "after_sha256": "f3fbd3159eb0c0929169620254245b7ba75111972a1bd30abcc8fbae53492c2a"
+      },
+      {
+        "path": "/api/v1/matches/match_56634b7e237f47048f897e780ebc88d8",
+        "before_sha256": "536899e5bc9b79370e4b67da5f0c8f2566011a4545dc72b6f0236cd0406a7755",
+        "after_sha256": "536899e5bc9b79370e4b67da5f0c8f2566011a4545dc72b6f0236cd0406a7755"
+      },
+      {
+        "path": "/api/v1/matches/match_67be89127b7a469fa3439441d9a1d7cb",
+        "before_sha256": "9c50d0991d5a51856363480fb46317736537ab41043eb2e3e4d69c8c39fc21e2",
+        "after_sha256": "9c50d0991d5a51856363480fb46317736537ab41043eb2e3e4d69c8c39fc21e2"
+      },
+      {
+        "path": "/api/v1/matches/match_9978813a6a224010a650cd86630413b4",
+        "before_sha256": "8e282f3619ff65dbaba5c16e967fa2b9bb3de53061493291ebff94a6acedc2dc",
+        "after_sha256": "8e282f3619ff65dbaba5c16e967fa2b9bb3de53061493291ebff94a6acedc2dc"
+      },
+      {
+        "path": "/api/v1/resumes/resume_0ab627a5f8954f628c492d42c95d91c5",
+        "before_sha256": "4e540d582f92a76bcabf3247e33720b24adc47ab85d4cd4d6a997689af288ef5",
+        "after_sha256": "4e540d582f92a76bcabf3247e33720b24adc47ab85d4cd4d6a997689af288ef5"
+      },
+      {
+        "path": "/api/v1/resumes/resume_477ac70808d849b2a068688dcdddd955",
+        "before_sha256": "cd9e9051c8d212d94850180740801f403c5dce7c17e69fbc643ac53eb12b5365",
+        "after_sha256": "cd9e9051c8d212d94850180740801f403c5dce7c17e69fbc643ac53eb12b5365"
+      },
+      {
+        "path": "/api/v1/resumes/resume_6cfea8654a574d4c9b7b1d65eced886c",
+        "before_sha256": "0e93f3ed3d5683bd74a7b59de0b98fb58a51cb8973304b84b9ea3d71616a6f74",
+        "after_sha256": "0e93f3ed3d5683bd74a7b59de0b98fb58a51cb8973304b84b9ea3d71616a6f74"
+      },
+      {
+        "path": "/api/v1/resumes/resume_9593a5e13c6d4e78a461f64681a41a06",
+        "before_sha256": "9f9735e1ab9655ad355197edd7c82518f44a2cf00a76ee616e7f8f4b5a680ea3",
+        "after_sha256": "9f9735e1ab9655ad355197edd7c82518f44a2cf00a76ee616e7f8f4b5a680ea3"
+      },
+      {
+        "path": "/api/v1/resumes/resume_cf386806c524460a86a1ab0e1a99d8dd",
+        "before_sha256": "da19fe7301466503b0c7b87fa57920176c9869d322f45fe9f596788207d8899c",
+        "after_sha256": "da19fe7301466503b0c7b87fa57920176c9869d322f45fe9f596788207d8899c"
+      },
+      {
+        "path": "/api/v1/analytics",
+        "before_sha256": "aacc0f4b9def36d65feab807ec0de1a78f02a7a623ff4e7798df9a6a03b70b28",
+        "after_sha256": "aacc0f4b9def36d65feab807ec0de1a78f02a7a623ff4e7798df9a6a03b70b28"
+      },
+      {
+        "path": "/api/v1/analytics?source_type=real",
+        "before_sha256": "d2c3f3a76fd3faf7a1f1c63d8529fa8cfedc67e2fadf4dae036b6e183c0bcca6",
+        "after_sha256": "d2c3f3a76fd3faf7a1f1c63d8529fa8cfedc67e2fadf4dae036b6e183c0bcca6"
+      },
+      {
+        "path": "/api/v1/analytics?source_type=real&date_from=2026-09-08&date_to=2026-09-08",
+        "before_sha256": "f13e69d9f585083be3c025a51f5ea753f22c7551194deb64ce5f078df2d0a345",
+        "after_sha256": "f13e69d9f585083be3c025a51f5ea753f22c7551194deb64ce5f078df2d0a345"
+      }
+    ],
+    "associations": [
+      {
+        "id": "diagnosis_502c25fc5d544ecf9831dd06d1eaf0a7",
+        "resume_id": "resume_0ab627a5f8954f628c492d42c95d91c5",
+        "jd_id": "jd_2edf85b52d6542848b526e78e3cb8d3a",
+        "is_mock": false
+      },
+      {
+        "id": "diagnosis_cd9f019905a64bf5b5859616c89884c7",
+        "resume_id": "resume_0ab627a5f8954f628c492d42c95d91c5",
+        "jd_id": "jd_2edf85b52d6542848b526e78e3cb8d3a",
+        "is_mock": false
+      },
+      {
+        "id": "diagnosis_f7abb558caaf4191a07e3f5bc251f14d",
+        "resume_id": "resume_6cfea8654a574d4c9b7b1d65eced886c",
+        "jd_id": "jd_3acdfafb360747aeb7a9f79e95e7601c",
+        "is_mock": true
+      },
+      {
+        "id": "match_1afb1909e01a406f934442eacc140278",
+        "resume_id": "resume_0ab627a5f8954f628c492d42c95d91c5",
+        "jd_id": "jd_2edf85b52d6542848b526e78e3cb8d3a",
+        "is_mock": false
+      },
+      {
+        "id": "match_3355742c47a248d5808404250fbfc246",
+        "resume_id": "resume_cf386806c524460a86a1ab0e1a99d8dd",
+        "jd_id": "jd_8c49da9407d94b1584520b8f0a8b3bdb",
+        "is_mock": false
+      },
+      {
+        "id": "match_56634b7e237f47048f897e780ebc88d8",
+        "resume_id": "resume_477ac70808d849b2a068688dcdddd955",
+        "jd_id": "jd_50b1d4431e7249e39806412d46d05e59",
+        "is_mock": false
+      },
+      {
+        "id": "match_67be89127b7a469fa3439441d9a1d7cb",
+        "resume_id": "resume_9593a5e13c6d4e78a461f64681a41a06",
+        "jd_id": "jd_8a45d0b05f294c47be897cee2fe49a72",
+        "is_mock": false
+      },
+      {
+        "id": "match_9978813a6a224010a650cd86630413b4",
+        "resume_id": "resume_6cfea8654a574d4c9b7b1d65eced886c",
+        "jd_id": "jd_3acdfafb360747aeb7a9f79e95e7601c",
+        "is_mock": false
+      }
+    ],
+    "new_records": {
+      "resume": "resume_cf386806c524460a86a1ab0e1a99d8dd",
+      "jd": "jd_8c49da9407d94b1584520b8f0a8b3bdb",
+      "match": "match_3355742c47a248d5808404250fbfc246"
+    },
+    "model_calls": 0,
+    "diagnosis_provenance": "Previously saved PostgreSQL records; two real and one historical Mock, all labels preserved."
+  },
+  "market": {
+    "status": "PASS",
+    "sample_size": 10,
+    "company_count": 6,
+    "complete_salary_range_count": 5,
+    "comparable_usd_year_count": 4,
+    "missing_range_count": 5,
+    "missing_unit_count": 1,
+    "companies": [
+      "anthropic",
+      "canonical",
+      "sage",
+      "scale ai",
+      "scopely",
+      "the new york times"
+    ],
+    "source_facts_equal_saved": true,
+    "skill_counts_independently_verified": true,
+    "api": {
+      "summary": "当前筛选包含 10 条已录入 JD、6 家已知雇主；18 种技能/工具关键词，4 条薪资可按同币种、同周期比较。",
+      "skills": {
+        "Python": 8,
+        "Go": 6,
+        "Linux": 6,
+        "Kubernetes": 4,
+        "C++": 3,
+        "React": 3,
+        "TypeScript": 3,
+        "Docker": 2,
+        "Git": 2,
+        "Java": 2,
+        "JavaScript": 2,
+        "SQL": 2,
+        "C#": 1,
+        "CSS": 1,
+        "Excel": 1,
+        "HTML": 1,
+        "Tableau": 1,
+        "数据分析": 1
+      },
+      "market": {
+        "sample_size": 10,
+        "company_count": 6,
+        "unknown_company_count": 0,
+        "source_counts": {
+          "real": 10,
+          "course": 0,
+          "synthetic": 0,
+          "unknown": 0
+        },
+        "collected_from": "2026-09-08",
+        "collected_to": "2026-09-08",
+        "undated_count": 0,
+        "skill_frequency": [
+          {
+            "skill": "Python",
+            "job_count": 8,
+            "share_percent": 80.0
+          },
+          {
+            "skill": "Go",
+            "job_count": 6,
+            "share_percent": 60.0
+          },
+          {
+            "skill": "Linux",
+            "job_count": 6,
+            "share_percent": 60.0
+          },
+          {
+            "skill": "Kubernetes",
+            "job_count": 4,
+            "share_percent": 40.0
+          },
+          {
+            "skill": "C++",
+            "job_count": 3,
+            "share_percent": 30.0
+          },
+          {
+            "skill": "React",
+            "job_count": 3,
+            "share_percent": 30.0
+          },
+          {
+            "skill": "TypeScript",
+            "job_count": 3,
+            "share_percent": 30.0
+          },
+          {
+            "skill": "Docker",
+            "job_count": 2,
+            "share_percent": 20.0
+          },
+          {
+            "skill": "Git",
+            "job_count": 2,
+            "share_percent": 20.0
+          },
+          {
+            "skill": "Java",
+            "job_count": 2,
+            "share_percent": 20.0
+          },
+          {
+            "skill": "JavaScript",
+            "job_count": 2,
+            "share_percent": 20.0
+          },
+          {
+            "skill": "SQL",
+            "job_count": 2,
+            "share_percent": 20.0
+          },
+          {
+            "skill": "C#",
+            "job_count": 1,
+            "share_percent": 10.0
+          },
+          {
+            "skill": "CSS",
+            "job_count": 1,
+            "share_percent": 10.0
+          },
+          {
+            "skill": "Excel",
+            "job_count": 1,
+            "share_percent": 10.0
+          },
+          {
+            "skill": "HTML",
+            "job_count": 1,
+            "share_percent": 10.0
+          },
+          {
+            "skill": "Tableau",
+            "job_count": 1,
+            "share_percent": 10.0
+          },
+          {
+            "skill": "数据分析",
+            "job_count": 1,
+            "share_percent": 10.0
+          }
+        ],
+        "jobs": [
+          {
+            "source_type": "real",
+            "source_url": "https://job-boards.greenhouse.io/thenewyorktimes/jobs/4724948005",
+            "source_name": "The New York Times · Greenhouse",
+            "collected_at": "2026-09-08",
+            "jd_id": "jd_market_final_92e843801affc402fd813a09",
+            "title": "Software Engineer, Reflections",
+            "company": "The New York Times",
+            "skills": [
+              "CSS",
+              "Docker",
+              "Go",
+              "HTML",
+              "JavaScript",
+              "Kubernetes",
+              "React",
+              "SQL",
+              "TypeScript"
+            ],
+            "salary": "annual base pay: $110,000 - $130,000 USD",
+            "salary_status": "comparable"
+          },
+          {
+            "source_type": "real",
+            "source_url": "https://job-boards.greenhouse.io/sage49/jobs/6152678004",
+            "source_name": "Sage · Greenhouse",
+            "collected_at": "2026-09-08",
+            "jd_id": "jd_market_final_328d3ac8dbc6b7c828542549",
+            "title": "Senior/Staff Software Engineer - Edge",
+            "company": "Sage",
+            "skills": [
+              "C#",
+              "C++",
+              "Go",
+              "Java",
+              "Linux",
+              "Python"
+            ],
+            "salary": "expected annual salary: $190,000–245,000 USD",
+            "salary_status": "comparable"
+          },
+          {
+            "source_type": "real",
+            "source_url": "https://job-boards.greenhouse.io/anthropic/jobs/5400153008",
+            "source_name": "Anthropic · Greenhouse",
+            "collected_at": "2026-09-08",
+            "jd_id": "jd_market_final_50ae773a2e2fd1995dc51cf3",
+            "title": "Software Engineer, Business Technology",
+            "company": "Anthropic",
+            "skills": [
+              "Python",
+              "React",
+              "TypeScript"
+            ],
+            "salary": "Annual Salary: $320,000 - $405,000 USD",
+            "salary_status": "comparable"
+          },
+          {
+            "source_type": "real",
+            "source_url": "https://job-boards.greenhouse.io/scopely/jobs/5301857008",
+            "source_name": "Scopely · Greenhouse",
+            "collected_at": "2026-09-08",
+            "jd_id": "jd_market_final_582979493d65ffcec6701f32",
+            "title": "Data Analyst - MARVEL Strike Force",
+            "company": "Scopely",
+            "skills": [
+              "Git",
+              "Python",
+              "SQL",
+              "Tableau",
+              "数据分析"
+            ],
+            "salary": "CA, CO, NJ, NY, WA Annual Salary Range: $91,300 - $140,000 USD",
+            "salary_status": "comparable"
+          },
+          {
+            "source_type": "real",
+            "source_url": "https://job-boards.greenhouse.io/scaleai/jobs/4730836005",
+            "source_name": "Scale AI · Greenhouse",
+            "collected_at": "2026-09-08",
+            "jd_id": "jd_market_final_a1d88fdbb3b21b5abaa9daee",
+            "title": "Software Engineer - New Grad",
+            "company": "Scale AI",
+            "skills": [
+              "Python",
+              "React",
+              "TypeScript"
+            ],
+            "salary": "San Francisco base salary range: $124,000 - $162,000 USD; period unconfirmed",
+            "salary_status": "missing_unit"
+          },
+          {
+            "source_type": "real",
+            "source_url": "https://job-boards.greenhouse.io/canonical/jobs/8142329",
+            "source_name": "Canonical · Greenhouse 公开招聘快照",
+            "collected_at": "2026-09-08",
+            "jd_id": "jd_market_e5fe89f1d52917059ae6b16abc4f4775",
+            "title": "Graduate Software Engineer, Open Source and Linux, Canonical Ubuntu",
+            "company": "Canonical",
+            "skills": [
+              "C++",
+              "Go",
+              "Java",
+              "JavaScript",
+              "Kubernetes",
+              "Linux",
+              "Python"
+            ],
+            "salary": null,
+            "salary_status": "missing_range"
+          },
+          {
+            "source_type": "real",
+            "source_url": "https://job-boards.greenhouse.io/canonical/jobs/5370815",
+            "source_name": "Canonical · Greenhouse 公开招聘快照",
+            "collected_at": "2026-09-08",
+            "jd_id": "jd_market_e3dea52cf8bd3d152ded8c22710ab422",
+            "title": "Junior Linux Kernel Engineer - Ubuntu",
+            "company": "Canonical",
+            "skills": [
+              "Git",
+              "Linux",
+              "Python"
+            ],
+            "salary": null,
+            "salary_status": "missing_range"
+          },
+          {
+            "source_type": "real",
+            "source_url": "https://job-boards.greenhouse.io/canonical/jobs/6707669",
+            "source_name": "Canonical · Greenhouse 公开招聘快照",
+            "collected_at": "2026-09-08",
+            "jd_id": "jd_market_2fb2ce67f423c94cb92078a9caf83f1b",
+            "title": "Junior Ubuntu Software Engineer",
+            "company": "Canonical",
+            "skills": [
+              "C++",
+              "Go",
+              "Linux",
+              "Python"
+            ],
+            "salary": null,
+            "salary_status": "missing_range"
+          },
+          {
+            "source_type": "real",
+            "source_url": "https://job-boards.greenhouse.io/canonical/jobs/2969042",
+            "source_name": "Canonical · Greenhouse 公开招聘快照",
+            "collected_at": "2026-09-08",
+            "jd_id": "jd_market_d48e428ec65140bfbfb608d7cafc2628",
+            "title": "Distributed Systems Testing Software Engineer, Python / Go",
+            "company": "Canonical",
+            "skills": [
+              "Go",
+              "Kubernetes",
+              "Linux",
+              "Python"
+            ],
+            "salary": null,
+            "salary_status": "missing_range"
+          },
+          {
+            "source_type": "real",
+            "source_url": "https://job-boards.greenhouse.io/canonical/jobs/6980706",
+            "source_name": "Canonical · Greenhouse 公开招聘快照",
+            "collected_at": "2026-09-08",
+            "jd_id": "jd_market_8940d21e9e68397750f333e8d4fcabed",
+            "title": "Junior Product Manager",
+            "company": "Canonical",
+            "skills": [
+              "Docker",
+              "Excel",
+              "Go",
+              "Kubernetes",
+              "Linux"
+            ],
+            "salary": null,
+            "salary_status": "missing_range"
+          }
+        ],
+        "salary_coverage": {
+          "comparable_count": 4,
+          "missing_range_count": 5,
+          "missing_unit_count": 1
+        },
+        "salary_groups": [
+          {
+            "currency": "USD",
+            "period": "year",
+            "sample_size": 4,
+            "ranges": [
+              {
+                "jd_id": "jd_market_final_92e843801affc402fd813a09",
+                "title": "Software Engineer, Reflections",
+                "lower": 110000.0,
+                "upper": 130000.0
+              },
+              {
+                "jd_id": "jd_market_final_328d3ac8dbc6b7c828542549",
+                "title": "Senior/Staff Software Engineer - Edge",
+                "lower": 190000.0,
+                "upper": 245000.0
+              },
+              {
+                "jd_id": "jd_market_final_50ae773a2e2fd1995dc51cf3",
+                "title": "Software Engineer, Business Technology",
+                "lower": 320000.0,
+                "upper": 405000.0
+              },
+              {
+                "jd_id": "jd_market_final_582979493d65ffcec6701f32",
+                "title": "Data Analyst - MARVEL Strike Force",
+                "lower": 91300.0,
+                "upper": 140000.0
+              }
+            ]
+          }
+        ],
+        "observations": [
+          "统计单位为已录入的 JD 记录；同一 JD 的同名技能仅计一次，tools 不额外计数。百分比分母为当前筛选全部 JD，技能之间可重叠。",
+          "日期代表资料采集日期，不是职位发布日期；无日期的记录不进入有日期边界的筛选。快照不代表岗位当前仍在招聘。",
+          "薪资图展示招聘区间原值，按币种和周期分别绘制；不折汇、不折算年/月薪，不把未披露或单位不明的薪资记成零。",
+          "样本内出现最多的关键词是 Python（8/10 条 JD）。可作为目标岗位对照清单；仅在确有经历时补充对应技能和证据，不据频率宣称已掌握。",
+          "5 条没有完整薪资区间，1 条缺少可比较的币种/周期。这些记录仍计入样本量与技能统计，但不进入薪资区间图。",
+          "这是当前录入样本的描述性分析，存在来源、岗位和时间选择偏差，不能外推整个就业市场。"
+        ]
+      },
+      "is_mock": false,
+      "scope": {
+        "source_type": "real",
+        "date_from": null,
+        "date_to": null,
+        "available_count": 15,
+        "selected_count": 10,
+        "mock_count": 0,
+        "excluded_mock_count": 0
+      }
+    },
+    "canonical_sha256": "f5b80d8fecff4807e8f4cc68b02e09636c123a24f6648786361ab2e903d18ef8"
+  },
+  "browser": {
+    "status": "PASS",
+    "browser": "headless Microsoft Edge / existing Playwright QA runtime",
+    "url": "http://127.0.0.1:8000/#analytics",
+    "metrics": [
+      "10",
+      "6",
+      "Python",
+      "4"
+    ],
+    "salary_heading": "USD / 年 · 4 条",
+    "salary_ranges": [
+      "Software Engineer, Reflections110,000–130,000",
+      "Senior/Staff Software Engineer - Edge190,000–245,000",
+      "Software Engineer, Business Technology320,000–405,000",
+      "Data Analyst - MARVEL Strike Force91,300–140,000"
+    ],
+    "missing_range_count": 5,
+    "missing_unit_count": 1,
+    "desktop_mobile": true,
+    "page_errors": [],
+    "post_requests": [],
+    "api_equal": true,
+    "visible_text": "岗位样本\n\n10\n当前筛选 / 已录入 15 条\n\n已知雇主\n\n6\n按当前样本中的公司计数\n\n热门技能\n\nPython\n共 18 项技能 / 工具\n\n可比较薪资\n\n4\n未知或单位不明 6 条\n\n来源：真实采样 10。采集日期：2026-09-08 至 2026-09-08；无日期 0 条。已知雇主 6 家。\n\n热门技能\n\n当前 10 条岗位中的技能要求分布 · 前 10 项\n\nPython\n8 条 · 80%\nGo\n6 条 · 60%\nLinux\n6 条 · 60%\nKubernetes\n4 条 · 40%\nC++\n3 条 · 30%\nReact\n3 条 · 30%\nTypeScript\n3 条 · 30%\nDocker\n2 条 · 20%\nGit\n2 条 · 20%\nJava\n2 条 · 20%\n查看全部 18 项技能频率\n热门技能词云\n\n字号随出现该技能的 岗位 数量变化。展示前 18 项。\n\nPython\n8 条\nGo\n6 条\nLinux\n6 条\nKubernetes\n4 条\nC++\n3 条\nReact\n3 条\nTypeScript\n3 条\nDocker\n2 条\nGit\n2 条\nJava\n2 条\nJavaScript\n2 条\nSQL\n2 条\nC#\n1 条\nCSS\n1 条\nExcel\n1 条\nHTML\n1 条\nTableau\n1 条\n数据分析\n1 条\n如何理解这份分布\n\n同一岗位可能要求多种技能，比例不相加。样本数量有限，请结合目标岗位选择学习重点。\n\n岗位薪资分布\n\n原始招聘区间 · 按币种与周期分组\n\nUSD / 年 · 4 条\n0\n405,000\nSoftware Engineer, Reflections\n110,000–130,000\nSenior/Staff Software Engineer - Edge\n190,000–245,000\nSoftware Engineer, Business Technology\n320,000–405,000\nData Analyst - MARVEL Strike Force\n91,300–140,000\n薪资口径与缺失值\n\n分组内从 0 起画，不同币种、周期各用独立刻度，不求跨组平均值。\n\n没有完整区间 5 条；币种/周期未确认或不支持 1 条。这些记录仍参与技能统计，不以零薪资进入下图。\n\n样本观察与使用边界\n统计单位为已录入的 岗位要求 记录；同一 岗位要求 的同名技能仅计一次，tools 不额外计数。百分比分母为当前筛选全部 岗位要求，技能之间可重叠。\n日期代表资料采集日期，不是职位发布日期；无日期的记录不进入有日期边界的筛选。快照不代表岗位当前仍在招聘。\n薪资图展示招聘区间原值，按币种和周期分别绘制；不折汇、不折算年/月薪，不把未披露或单位不明的薪资记成零。\n样本内出现最多的关键词是 Python（8/10 条 岗位要求）。可作为目标岗位对照清单；仅在确有经历时补充对应技能和证据，不据频率宣称已掌握。\n5 条没有完整薪资区间，1 条缺少可比较的币种/周期。这些记录仍计入样本量与技能统计，但不进入薪资区间图。\n这是当前录入样本的描述性分析，存在来源、岗位和时间选择偏差，不能外推整个就业市场。\n岗位与来源明细\n\n统计单位是已保存 岗位 记录；重复手动录入会分别计数。固定快照导入会去重。来源标签来自录入资料，不等于独立事实核验。\n\n查看 10 条岗位来源"
+  },
+  "imports": [
+    {
+      "created": 0,
+      "existing": 5,
+      "jd_ids": [
+        "jd_market_e5fe89f1d52917059ae6b16abc4f4775",
+        "jd_market_e3dea52cf8bd3d152ded8c22710ab422",
+        "jd_market_2fb2ce67f423c94cb92078a9caf83f1b",
+        "jd_market_d48e428ec65140bfbfb608d7cafc2628",
+        "jd_market_8940d21e9e68397750f333e8d4fcabed"
+      ]
+    },
+    {
+      "created": 0,
+      "existing": 5,
+      "jd_ids": [
+        "jd_market_final_92e843801affc402fd813a09",
+        "jd_market_final_328d3ac8dbc6b7c828542549",
+        "jd_market_final_50ae773a2e2fd1995dc51cf3",
+        "jd_market_final_582979493d65ffcec6701f32",
+        "jd_market_final_a1d88fdbb3b21b5abaa9daee"
+      ]
+    },
+    {
+      "created": 0,
+      "existing": 5,
+      "jd_ids": [
+        "jd_market_final_92e843801affc402fd813a09",
+        "jd_market_final_328d3ac8dbc6b7c828542549",
+        "jd_market_final_50ae773a2e2fd1995dc51cf3",
+        "jd_market_final_582979493d65ffcec6701f32",
+        "jd_market_final_a1d88fdbb3b21b5abaa9daee"
+      ]
+    },
+    {
+      "created": 0,
+      "existing": 5,
+      "jd_ids": [
+        "jd_market_e5fe89f1d52917059ae6b16abc4f4775",
+        "jd_market_e3dea52cf8bd3d152ded8c22710ab422",
+        "jd_market_2fb2ce67f423c94cb92078a9caf83f1b",
+        "jd_market_d48e428ec65140bfbfb608d7cafc2628",
+        "jd_market_8940d21e9e68397750f333e8d4fcabed"
+      ]
+    }
+  ],
+  "process_restart": {
+    "command": "uv run --locked python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000",
+    "before_pid": 46300,
+    "after_pid": 5936,
+    "stop": "Ctrl+C; Application shutdown complete; Finished server process [46300]",
+    "stopped_health_probe": "ConnectTimeout before new process startup (no HTTP response)",
+    "same_database": true
+  },
+  "checks": {
+    "targeted": "14 passed, 2 warnings in 3.51s",
+    "python": "615 passed, 0 skipped, 2 warnings in 29.48s",
+    "frontend": "77 passed, 0 failed, 0 skipped",
+    "ruff_check": "All checks passed",
+    "ruff_format": "109 files already formatted",
+    "postgres_smoke": "PASS: PostgreSQL + pgvector extension, migration, index, upsert, query, Resume -> JD -> keyword match",
+    "new_model_calls": 0
+  }
+}

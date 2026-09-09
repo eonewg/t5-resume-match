@@ -1,0 +1,70 @@
+.analytics-page { min-width: 0; }
+.analytics-lead, .analytics-scope { color: var(--muted); font-size: 14px; }
+.analytics-filter-panel { margin: 0 0 8px; }
+.analytics-filter-panel > summary { width: fit-content; margin-left: auto; color: var(--muted); }
+.analytics-filters { display: flex; align-items: end; gap: 12px; flex-wrap: wrap; padding: 16px; margin: 0 0 8px; background: #edf2ef; box-shadow: none; }
+.analytics-filters > div { flex: 1; min-width: 140px; }
+.analytics-filters label { font-size: 12px; color: var(--muted); }
+.analytics-library { font-size: 13px; color: var(--muted); margin: 28px 0 12px; border-top: 1px solid var(--border); padding-top: 12px; }
+.analytics-library summary { color: var(--muted); }
+.analytics-metrics { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 0; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); overflow: hidden; margin-top: 18px; }
+.analytics-metric { padding: 20px; border: 0; border-radius: 0; box-shadow: none; }
+.analytics-metric:not(:last-child) { border-right: 1px solid var(--border); }
+.analytics-metric p { font-size: 13px; color: var(--muted); margin: 0; }
+.analytics-metric strong { display: block; color: var(--ink); font-size: 34px; line-height: 1.3; font-weight: 650; margin: 8px 0; font-variant-numeric: tabular-nums; }
+.analytics-metric:first-child strong { color: var(--accent); }
+.analytics-metric small { font-size: 12px; color: var(--muted); line-height: 1.6; display: block; }
+.analytics-scope { margin: 12px 0 22px; font-size: 12px; }
+.analytics-chart-grid { display: grid; grid-template-columns: minmax(0,1.25fr) minmax(0,1fr); gap: 22px; align-items: start; }
+.analytics-card { min-width: 0; padding: 22px; margin-bottom: 22px; }
+.analytics-card h2 { font-size: 18px; margin: 0 0 8px; }
+.analytics-help { color: var(--muted); font-size: 12px; margin: 8px 0 18px; }
+.analytics-cloud-panel { border-top: 2px solid var(--accent); padding-top: 8px; }
+.analytics-cloud-panel > summary { font-size: 16px; font-weight: 600; color: var(--ink); }
+.analytics-cloud-panel .analytics-card { border: 0; padding: 0; background: none; box-shadow: none; }
+.analytics-cloud-panel h2 { display: none; }
+.analytics-cloud { list-style: none; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 14px 0; margin: 0; }
+.analytics-cloud-word { color: var(--accent); display: inline-flex; align-items: baseline; gap: 4px; max-width: 100%; overflow-wrap: anywhere; }
+.analytics-cloud-word small { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.analytics-insight { border-top: 1px solid var(--border); padding-top: 18px; }
+.analytics-insight h3 { font-size: 13px; margin-bottom: 8px; }
+.analytics-insight p { font-size: 13px; color: var(--muted); }
+.analytics-bars { list-style: none; padding: 0; margin: 0; }
+.analytics-bars li { margin: 13px 0; }
+.analytics-bar-label { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; font-size: 13px; margin-bottom: 7px; }
+.analytics-bar-label span:first-child { overflow-wrap: anywhere; }
+.analytics-bar-label span:last-child { flex-shrink: 0; color: var(--muted); font-size: 12px; }
+.analytics-bar-track { height: 6px; border-radius: 3px; background: #edf2ef; overflow: hidden; }
+.analytics-bar-fill { height: 100%; border-radius: inherit; background: var(--accent); }
+.analytics-details { font-size: 13px; margin-top: 16px; }
+.analytics-salary-group { margin: 20px 0; padding-top: 14px; border-top: 1px solid var(--border); }
+.analytics-salary-group h3 { font-size: 14px; }
+.analytics-salary-axis { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin: 10px 0 18px; }
+.analytics-salary-row { margin: 16px 0; }
+.analytics-salary-track { position: relative; height: 14px; margin: 9px 4px; }
+.analytics-salary-track::before { content: ''; position: absolute; top: 6px; left: 0; right: 0; height: 2px; background: var(--border); }
+.analytics-salary-range { position: absolute; top: 2px; height: 10px; border-radius: 3px; background: var(--accent); }
+.analytics-salary-range.is-point { min-width: 6px; height: 6px; top: 4px; transform: translateX(-3px); border-radius: 50%; }
+.analytics-empty-salary { background: #f4f6f3; color: var(--muted); padding: 18px; border-radius: 7px; font-size: 14px; }
+.analytics-table-scroll { overflow-x: auto; max-width: 100%; }
+.analytics-table-scroll table { width: 100%; min-width: 620px; border-collapse: collapse; font-size: 13px; }
+.analytics-table-scroll th { text-align: left; font-weight: 500; color: var(--muted); background: #f6f8f6; }
+.analytics-table-scroll th, .analytics-table-scroll td { padding: 12px; vertical-align: top; border-bottom: 1px solid var(--border); min-width: 105px; overflow-wrap: anywhere; }
+.analytics-table-scroll small, .analytics-table-scroll a { display: block; font-size: 12px; color: var(--muted); font-weight: 400; margin-top: 6px; }
+.analytics-table-scroll a { color: var(--accent); }
+#analytics-observations { padding: 0 0 20px; border: 0; border-bottom: 1px solid var(--border); background: none; box-shadow: none; border-radius: 0; }
+#analytics-observations ul { padding-left: 18px; color: var(--muted); font-size: 13px; line-height: 1.85; columns: 2; column-gap: 32px; }
+#analytics-observations li { margin: 0 0 8px; break-inside: avoid; }
+#analytics-sources { padding: 0; background: none; border: 0; box-shadow: none; }
+@media (max-width: 1100px) { .analytics-metrics { grid-template-columns: repeat(2,minmax(0,1fr)); } .analytics-metric:nth-child(2) { border-right: 0; } .analytics-metric:nth-child(-n+2) { border-bottom: 1px solid var(--border); } }
+@media (max-width: 760px) {
+  .analytics-chart-grid { grid-template-columns: minmax(0,1fr); gap: 0; }
+  .analytics-metric { padding: 16px; }
+  .analytics-metric strong { font-size: 29px; }
+  .analytics-card { padding: 18px; }
+  .analytics-filters { padding: 14px; gap: 12px; }
+  .analytics-filters .button { width: 100%; }
+  .analytics-bar-label { flex-wrap: wrap; gap: 3px 10px; }
+  .analytics-side { margin-bottom: 22px; }
+  #analytics-observations ul { columns: 1; }
+}

@@ -4,14 +4,18 @@ import logging
 from uuid import uuid4
 
 from fastapi import HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from sqlalchemy.orm import Session
 
+from backend.core.matching import MatchContext
 from backend.models.entities import DiagnosisRow, JDRow, MatchRow, ResumeRow
 from backend.schemas.contracts import (
     JD,
     DiagnosisInput,
     DiagnosisResult,
+    JDData,
+    JDFields,
+    JDInput,
     MatchResult,
     PairInput,
     Resume,
@@ -34,7 +38,20 @@ def invoke(provider, method: str, schema: type[BaseModel], *args):
     except Exception as error:
         # Do not put resume text, provider URLs or credentials in error responses/logs.
         logger.error("Provider %s failed (%s)", method, type(error).__name__)
+        if method == "diagnose" and getattr(error, "phase", None) == "content_filter":
+            raise HTTPException(502, "上游模型内容过滤，未生成简历诊断") from error
         raise HTTPException(502, "模块执行失败或返回值不符合公共契约") from error
+
+
+def parse_job_data(provider, data):
+    """Keep the legacy JDInput port; confirmed HTTP metadata wins over parser suggestions."""
+    parse_input = JDInput(**data.model_dump(include=set(JDInput.model_fields)))
+    result = invoke(provider, "parse", JDData, parse_input)
+    supplied = data.model_dump(include=data.model_fields_set & set(JDFields.model_fields))
+    try:
+        return JDData.model_validate({**result.model_dump(), **supplied})
+    except ValidationError as error:
+        raise HTTPException(422, "确认字段与解析结果不符合 JD 契约") from error
 
 
 def require_row(session: Session, table, identifier: str):
@@ -57,7 +74,12 @@ def load_pair(session: Session, pair: PairInput):
 def matching(session, providers, pair):
     resume, jd, input_mock = load_pair(session, pair)
     provider = providers["jobs"]
-    result = invoke(provider, "match", MatchResult, resume, jd)
+    if callable(getattr(provider.service, "match_with_context", None)):
+        result = invoke(
+            provider, "match_with_context", MatchResult, resume, jd, MatchContext(session)
+        )
+    else:
+        result = invoke(provider, "match", MatchResult, resume, jd)
     if result.resume_id != pair.resume_id or result.jd_id != pair.jd_id:
         raise HTTPException(502, "匹配模块返回了错误的关联 ID")
     row = MatchRow(
@@ -73,7 +95,22 @@ def matching(session, providers, pair):
 def diagnosing(session, providers, pair):
     resume, jd, input_mock = load_pair(session, pair)
     provider = providers["diagnosis"]
-    data = DiagnosisInput(resume_text=resume.raw_text, jd_text=jd.jd_text)
+    # The saved structured version is the confirmed input. The raw document remains an archive,
+    # not a fallback that can restore facts the user removed in the editor.
+    sections = []
+    if resume.name:
+        sections.append("姓名：" + resume.name)
+    if resume.education:
+        sections.append("教育：" + resume.education)
+    if resume.skills:
+        sections.append("技能：" + "、".join(resume.skills))
+    if resume.experience:
+        sections.append("经历：\n" + "\n\n".join(resume.experience))
+    confirmed = "\n".join(sections) or "用户确认的简历未提供姓名、教育、技能或经历。"
+    try:
+        data = DiagnosisInput(resume_text=confirmed, jd_text=jd.jd_text)
+    except ValidationError as error:
+        raise HTTPException(422, "确认后的简历内容过长，请精简后再诊断；原版本已保留。") from error
     result = invoke(provider, "diagnose", DiagnosisResult, data)
     row = DiagnosisRow(
         id=new_id("diagnosis"),

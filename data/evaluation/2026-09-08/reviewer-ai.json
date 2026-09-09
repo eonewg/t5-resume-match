@@ -1,0 +1,155 @@
+{
+  "reviewer": "AI 盲评员（独立评审，未接触实现/模型信息）",
+  "ratings": {
+    "P1": {
+      "score": "2",
+      "scoreB": "",
+      "supported": "忠实保留的事实：教育块逐字完整（BS Computer Science、Expected December 2018、Arizona State University [Tempe, AZ]、3.68/4.0）；四个项目 SafeDevils、SFLE Knowledgebase（含两条 bullet）、Sound Waves（含 EPICS Catalyst Award）、OneLap（含 C/FRDM-KL25Z/线扫相机细节）与 Teaching Assistant（含两条 bullet）全部保留且与原文逐字一致；技能中的 C（OneLap 项目标注）与 MySQL（SFLE 项目标注）确为原文明确出现；未发现编造事实。",
+      "issues": "漏项严重：1) Leadership 板块整体缺失——Student Facilitator（为 80 名学生主持 conflict resolution、cultural adjustment 等工作坊）与 Vice President（协调 58 名学生干部、举办 5 场大型活动、覆盖 6000+ 学生、监督内部运营与项目管理）；2) Technical Skills 几乎全部漏掉：原文 Languages 9 项（JavaScript (ES6), Java, C#, SQL, HTML, CSS/Sass, C/C++, Python, Matlab）、Frameworks 8 项（Bootstrap, .NET, Node, jQuery, Jekyll, Express, React, Angular）、Tools 9 项（Photoshop, Illustrator, Bash, Git, Gulp, WordPress, Axure RP, Amazon AWS, LaTeX）仅存 C，另加项目括号中的 MySQL；3) Summary 中明确写到的 JavaScript (ES6)、ExpressJS、MongoDB、full stack 经验未体现。无误填事实。",
+      "notes": "教育与项目部分忠实完整，但漏掉整段 Leadership 经历和 26+ 项明确技能（含 Summary 点名的 ExpressJS/MongoDB），漏项属于'明确技能/经历'范畴且数量大，准确性记 2。原文证据：Technical Skills 三组清单与 Leadership 两条经历均见于 raw_text。"
+    },
+    "P2": {
+      "score": "3",
+      "scoreB": "",
+      "supported": "忠实保留的事实：教育块逐字完整（SWPU、GPA 4.13/5.0、Major Ranking 1/66）；项目与科研经历全部逐字保留——Tecorigin（Work+Result，含 93.1% 瓶颈、1820.78ms→489.18ms、3.7x、国家三等奖）、Sunway PCG（Work+Result，40+ 轮迭代、1287s→32.5s、39.6x）、Oil Spill（Work+Result，2482.14x、决赛第 5、国家三等奖）、IPPC Lab 头部及 3D 超声（11.11x、16.32s→0.22s、约 73x）与 CUDA 预训练（8192×8192、A100、3.16s、13.0x、2.35x、69.1x）两条；数字与表述零改动；未发现编造事实。",
+      "issues": "漏项集中在技能与奖项：1) Parallel Computing 整类漏掉（CUDA、HIP、OpenMP、MPI、Sunway、CPU/GPU architecture and Sunway platform）——对该简历这是核心技能栈；2) Programming Languages 漏 Fortran；3) Optimization 类（Operator, memory access, communication, performance bottleneck analysis）漏掉；4) CET-6 English (478) 漏掉；5) Awards 板块漏掉 ASC2025 International Second Prize、SC24 IndySCC 邀请参赛、天翼云息壤杯 Provincial Second、蓝桥杯 National Third、奖学金（其中两个国家三等奖因在项目 Result 中出现而部分保留）；6) Core Courses 五门课及分数漏掉。",
+      "notes": "经历与教育零遗漏、数字零改动、无编造，但技能清单从原文四大类缩到 3 个语言项，漏掉的恰是并行计算核心栈，且漏掉 ASC2025 国际二等奖等明确奖项。按'漏掉明确技能'记 3。"
+    },
+    "P3": {
+      "score": "4",
+      "scoreB": "",
+      "supported": "忠实保留的事实：教育三块（University of Washington 含 Honors/Minor/GPA 3.97/奖学金、Brown、Kinglee High School）逐字完整；全部 10 段经历逐字保留——Undergraduate Research Assistant（4 条 bullet，含 3 datasets、Python API、102 slices/24.5 hr）、Summer Undergraduate Research Scholar（4 条，含 gold nanorods、UV-visible/Raman spectroscopy、Python 分析）、Calculus Teaching Assistant、Webmaster、Secretary、Research and Development Officer、Maple Hall Council SEED Representative、Peer Tutor、Student Council Historian and Secretary、Lab Peer Supervisor，bullet 无一遗漏；未发现编造事实。",
+      "issues": "技能仅提取 Python；bullet 中明确点名的 image processing、machine learning、confocal microscope、UV-visible spectroscopy、Raman spectroscopy、brightfield microscopy 等方法/技能未进入技能清单（原文无独立技能栏，属轻度漏提）。无误填事实。",
+      "notes": "经历与教育零漏零错、无编造，仅技能抽取偏保守，漏掉正文中明确出现的若干技能。原文证据：URA 首条 'using image processing and machine learning methods'。记 4。"
+    },
+    "M01": {
+      "score": "3",
+      "scoreB": "",
+      "supported": "已证实技能：JD 要求在 Python/Rust/C/C++/Golang/JavaScript/Java 中具备一门即可——R1 有 JavaScript (ES6) 项目级证据（SafeDevils 用 JavaScript/NodeJS/PugJS；SFLE 用 NodeJS）与 C 的嵌入式项目证据（OneLap：C 自主导航算法、FRDM-KL25Z、线扫相机）；课程外个人项目充分（SafeDevils、OneLap、Sound Waves）；学术成绩 3.68/4.0 良好；TA（40 名新生）与社团领导支持沟通力要求。",
+      "issues": "缺失/未证实与硬条件：JD 硬性要求 'Experience with Ubuntu or another Linux distribution'，全文零证据（仅 Tools 列 Bash）；'hiring 2025 and 2026 Graduate Software Engineers' 与原文 'Expected December 2018 / Seeking a Summer 2018 Internship' 届别明显不符；上游开源贡献（nice-to-have）仅 'open-source database' 一处弱信号；Rust/Go 无；Python 无项目证据。",
+      "notes": "语言、个人项目、英语等关键要求有证据，但 Linux 硬条件零证据、届别不符、开源参与弱——部分符合，记 3。原文证据：OneLap 条目与 Technical Skills 清单；JD 的 Linux 要求与 2025/2026 招聘表述。"
+    },
+    "M02": {
+      "score": "2",
+      "scoreB": "",
+      "supported": "已证实技能：C 有项目证据（OneLap，2015 年 4-6 月，C 语言自主导航、单片机平台）；Git 在 Tools 中列出；CS 本科符合学历方向；TA 经历支持沟通协作。",
+      "issues": "缺失/未证实与硬条件：核心要求 'Understanding of operating system kernel fundamentals' 无任何课程或项目证据；Rust 无；kernel patching/debugging、device drivers/BSP、Ubuntu/Debian 打包均无；版本控制仅有列名无使用证据；Python 仅列名、Bash 仅工具列名；'recent university graduates' 届别（2018）与当前招聘语境错位。",
+      "notes": "除嵌入式 C 与 Git 列名外，JD 关键要求（内核基础、Rust、补丁、驱动）全部缺证据——多数要求缺证据，记 2。原文证据：OneLap 条目、Technical Skills；JD 'What we are looking for' 列表。"
+    },
+    "M03": {
+      "score": "3",
+      "scoreB": "",
+      "supported": "已证实技能：C/C++ 有 OneLap 项目证据，Python 在列；CS 学位符合；课程外项目丰富，'Drive and a track record of going above and beyond expectations' 有支撑；英语（美式高校）与沟通（TA、80 人工作坊）有证据。",
+      "issues": "缺失/未证实与硬条件：'A passion for open source software' 证据薄弱（仅 SFLE 一处自称 open-source database，无社区贡献）；Linux 熟悉度（nice-to-have）零证据；Rust/Go/Flutter 无；3.68/4.0 达不到 JD 强调的 'exceptional academic track record from both high school and university'；届别（Expected December 2018）与 2025/2026 招聘语境错位。",
+      "notes": "硬性项大多能对上但证据深度一般、开源热情弱、届别错位——介于部分符合与大体符合之间，取 3。原文证据：Technical Skills 与项目条目；JD 要求清单。"
+    },
+    "M04": {
+      "score": "2",
+      "scoreB": "",
+      "supported": "已证实技能：Python、Java、C# 在技能清单中列出（后两者可视为 OO 基础的可能来源）；Web 全栈项目体现一般工程能力。",
+      "issues": "缺失/未证实与硬条件：JD 核心要求几乎全部缺证据——现代测试流程/策略无；Python 或 Go 的项目级证据无（Python 仅列名）；strong object oriented development skills 无；CI 工具（Jenkins/CircleCI/GitHub Actions）无；网络基础无；Linux 系统架构理解无（仅 Tools 列 Bash）；分布式系统测试经验无从谈起。",
+      "notes": "除技能列名外，无任何与测试、CI、分布式系统相关的经历证据——多数要求缺证据，记 2。原文证据：Technical Skills 清单；JD 'What we are looking for in you' 列表。"
+    },
+    "M05": {
+      "score": "3",
+      "scoreB": "",
+      "supported": "已证实技能：领导与协调证据强——Vice President（协调 58 名学生干部、5 场大型活动、覆盖 6000+ 学生，并 'Supervised all internal operations... such as project management and conducting strategic reviews'）、Student Facilitator；应用开发理解充分（SafeDevils、SFLE、Sound Waves 等多个项目）；英语与沟通证据充分；项目/TA/社团多线并行符合 'manage multiple projects'。",
+      "issues": "缺失/未证实与硬条件：JD 要求 'Understanding of Linux and the wider open source software community'——仅一处 open-source database 弱信号，Linux 零证据；'Passion to write about technologies' 无证据；地点硬条件：'home based in the EMEA time zone' 与 R1 所在 Tempe, AZ（AMER）不符；届别（2018）错位。",
+      "notes": "软性 PM 素质（领导、协调、沟通、多项目）证据充分，但 Linux/开源社区理解弱、EMEA 地点硬条件不符——部分符合，记 3。原文证据：Leadership 两条；JD 地点与要求清单。"
+    },
+    "M06": {
+      "score": "4",
+      "scoreB": "",
+      "supported": "已证实技能：语言要求充分满足——C/C++ 有多个项目级证据（Tecorigin 算子优化：SPM 管理、双缓冲、async pipeline、SIMD 重排；Sunway PCG：SpMV/点积/预条件并行化）；Python 有证据（HDE 预训练管线封装为 Python 可调用模块）；'Exceptional academic track record' 有硬证据（GPA 4.13/5.0、Major Ranking 1/66）；课程外项目与 'Track record of going above-and-beyond' 证据强（40+ 轮优化迭代、ASC2025 International Second Prize、SC24 IndySCC 邀请、多项国家级奖）。",
+      "issues": "缺失/未证实与硬条件：'Experience with Ubuntu or another Linux distribution' 无明示（超算/HPC 集群工作强烈暗示但原文未直书）；上游开源贡献无；Rust/Go 无；CET-6 (478) 距 'Professional written and spoken English' 有距离；本科 2023 级（约 2027 届）与 'hiring 2025 and 2026 Graduate Software Engineers' 不完全对齐。",
+      "notes": "语言深度、学业卓越、超额成果三项核心要求证据充分，主要缺口在 Linux 明示、开源贡献与英语强度——大体符合，记 4。原文证据：三个项目 Work/Result、Awards 列表；JD 要求清单。"
+    },
+    "M07": {
+      "score": "3",
+      "scoreB": "",
+      "supported": "已证实技能：C 语言证据极强（Tecorigin/PCG/访存优化，234KB SPM 管理、double buffering、floatv16 SIMD、DMA/LDM 数据搬运）；底层硬件体系结构理解深（Sunway 64-core slave-core、CPU/GPU 架构）；Python 有（HDE 模块封装）。",
+      "issues": "缺失/未证实与硬条件：'Understanding of operating system kernel fundamentals' 无直接证据（工作属性能/并行优化而非内核开发）；git/版本控制全篇未提及；kernel patching/debugging、驱动/BSP、Ubuntu/Debian/Snap 打包均无；Rust 无；CET-6 (478) 一般。",
+      "notes": "底层系统能力与内核岗位相邻且真实，但内核专项要求与版本控制证据缺失，关键要求仅部分满足——记 3。原文证据：项目 Work 条目；JD 要求与 nice-to-have 列表。"
+    },
+    "M08": {
+      "score": "4",
+      "scoreB": "",
+      "supported": "已证实技能：C/C++/Python 证据充分（CUDA、MPI、OpenMP 多项目）；'exceptional academic track record' 有硬证据（Major Ranking 1/66、GPA 4.13/5.0、多项国家级/国际奖）；'Drive and a track record of going above and beyond' 证据强（40+ 轮迭代、1287s→32.5s 39.6x、2482.14x 加速）；STEM 学位符合。",
+      "issues": "缺失/未证实与硬条件：开源热情/贡献无证据（竞赛与实验室工作不等于开源社区参与）；Linux 熟悉度（nice-to-have）未明示；Rust/Go/Flutter 无；英语 CET-6 (478) 平平；届别约 2027 与当前 junior 招聘语境有错位。",
+      "notes": "语言、学业、drive 三大硬性项证据充分，开源与英语是主要缺口——大体符合，记 4。原文证据：项目与奖项清单；JD 要求清单。"
+    },
+    "M09": {
+      "score": "3",
+      "scoreB": "",
+      "supported": "已证实技能：Python 有项目证据（CUDA 预训练管线 'packaging the workflow as a Python-callable module'）；Linux 系统架构与底层理解强（Sunway 平台、VTune 瓶颈分析、DMA/LDM、访存优化——与 JD 'Solid understanding of the Linux system architecture' 方向高度相关）；分布式内存并行经验（MPI+OpenMP 混合并行，Oil Spill 模型）；质量意识（'Passed official correctness verification'）。",
+      "issues": "缺失/未证实与硬条件：'Solid background in modern test processes and strategies' 无；测试自动化与 CI 工具（Jenkins/CircleCI/GitHub Actions）无；strong object oriented development skills 无（工作以 C/CUDA 过程式为主）；Go 无；网络技术基础无；云平台（OpenStack/Kubernetes/Terraform/AWS）无。",
+      "notes": "系统与分布式计算底子真实，但 JD 的测试学科、CI、OO、网络四项关键要求缺证据——部分符合，记 3。原文证据：Oil Spill 与 HDE 条目；JD 要求清单。"
+    },
+    "M10": {
+      "score": "3",
+      "scoreB": "",
+      "supported": "已证实技能：'Exceptional academic results' 有硬证据（GPA 4.13/5.0、Major Ranking 1/66、奖学金）；领导力有证据（两次担任队长：Tecorigin Operator Development Challenge、Marine Computing Challenge Finals）；'Understanding of computer architecture' 证据深（算子、访存、通信、体系结构级优化）；持续学习与钻研习惯有证据（40+ 轮优化迭代）。",
+      "issues": "缺失/未证实与硬条件：'Understanding of Linux and the wider open source software community' 仅隐含（HPC 集群），无明示与社区参与；'Passion to write about technologies' 无证据；英语 CET-6 (478) 离 'Outstanding communications skills in English' 有距离；地点硬条件：'home based in the EMEA time zone' 与成都不符；产品/商业兴趣无痕迹。",
+      "notes": "学业、架构、带队三项强，但开源/写作/英语/地点多项缺口——部分符合，记 3。原文证据：项目条目与 Awards；JD 地点与要求清单。"
+    },
+    "M11": {
+      "score": "3",
+      "scoreB": "",
+      "supported": "已证实技能：Python 有研究级证据（'Developed Python API for data analysis for modular integration'、显微镜视频数据分析）；STEM 学位符合（ChemE + Nanoscience option + 应用数学/化学 minor，属 JD 'another STEM discipline with programming courses'）；'Exceptional academic track record' 有硬证据（GPA 3.97、Mary Gates Research Scholarship、2 次 Dan Evans 奖）；研究工具型项目可算课程外项目。",
+      "issues": "缺失/未证实与硬条件：硬条件 'Experience with Ubuntu or another Linux distribution' 零证据；六大语言中仅 Python 一项有证据，C/C++/Rust/Go/JavaScript/Java 全无；上游开源贡献无；Expected Graduation June 2023 与 'hiring 2025 and 2026' 届别不符；软件工程深度证据有限。",
+      "notes": "学业卓越与 Python 真实，但语言面窄、Linux 硬条件缺失、届别错位——部分符合，记 3。原文证据：URA 条目、Education；JD 要求清单。"
+    },
+    "M12": {
+      "score": "2",
+      "scoreB": "",
+      "supported": "已证实技能：无直接对应技能；可迁移项为学业优异（GPA 3.97、奖学金）与研究严谨性（3 datasets 量化形态学、文献调研、共聚焦成像）。",
+      "issues": "缺失/未证实与硬条件：'Programming experience in C and/or Rust' 无（仅 Python）；'Understanding of operating system kernel fundamentals' 无；git/版本控制未提及；kernel patching/debugging、驱动/BSP、Ubuntu/Debian 打包、Rust 兴趣均无；'recent university graduates' 届别（June 2023）与当前招聘语境错位。",
+      "notes": "与内核工程师岗所需技术栈（C/Rust、内核、驱动、版本控制）无交集，仅学业与科研素养可迁移——多数要求缺证据，记 2。原文证据：全文技能仅 Python；JD 要求清单。"
+    },
+    "M13": {
+      "score": "3",
+      "scoreB": "",
+      "supported": "已证实技能：Python 有研究证据（Python API、图像/视频数据分析）；STEM 学位符合且 JD 允许 'a compelling narrative about your alternative path'（科研+编程路径可讲）；'exceptional academic track record' 有硬证据（GPA 3.97、多项奖学金与竞赛名次）；drive 与超额表现有支撑；沟通与社区组织证据多。",
+      "issues": "缺失/未证实与硬条件：开源热情证据弱（组织过 Wiki-edit-a-thon、维护网站与博客，但无代码贡献）；Rust/Go/Flutter/C++ 无；Linux 熟悉度（nice-to-have）无；编程深度一般；Expected Graduation June 2023 与当前招聘语境有错位。",
+      "notes": "语言仅 Python 一项且深度一般，学业与 drive 强、开源弱——部分符合，记 3。原文证据：URA 条目、社团经历；JD 要求清单。"
+    },
+    "M14": {
+      "score": "2",
+      "scoreB": "",
+      "supported": "已证实技能：Python 有真实研究使用（显微镜视频数据分析、共聚焦图像处理）。",
+      "issues": "缺失/未证实与硬条件：'Solid background in modern test processes and strategies' 无；测试自动化/CI 管线无；strong object oriented development skills 无；网络技术基础无；'Solid understanding of the Linux system architecture' 无；Go 无；分布式系统经验无；云平台无。",
+      "notes": "除 Python 数据分析外与分布式系统测试岗要求几乎无交集——多数要求缺证据，记 2。原文证据：URA 与 Summer Scholar 条目；JD 要求清单。"
+    },
+    "M15": {
+      "score": "3",
+      "scoreB": "",
+      "supported": "已证实技能：'Exceptional academic results' 有硬证据（GPA 3.97、Mary Gates 与 2 次 Dan Evans 奖学金、C-HACK 名次）；英语书面/口头沟通证据强（400+ 成员双周报、会议纪要、活动提案、网站与社媒运营）；领导与跨团队协调证据多（AIChE Webmaster、WiC Secretary、CSSA R&D Officer、Hall Council 等多职务与活动执行、募款 1000+ CNY 与 200+ 本书）；'Ability to manage multiple projects' 有支撑（学业+科研+多组织并行）。",
+      "issues": "缺失/未证实与硬条件：'Understanding of Linux and the wider open source software community' 弱（仅 Wiki-edit-a-thon、博客维护，无 Linux 证据）；'Understanding of computer architecture, application development, datacenters, cloud or devices' 证据薄（仅 Python 研究编程与网站管理）；JD 称 PM 为 'technology professionals with a software engineering background'，R3 无软件工程背景；地点硬条件：EMEA 时区常驻与 Seattle 不符。",
+      "notes": "沟通、组织、学业三项强，但技术理解与 SWE 背景弱、EMEA 地点不符——部分符合，记 3。原文证据：Other Experience 各条；JD 地点与要求清单。"
+    },
+    "D1": {
+      "score": "",
+      "scoreB": "2",
+      "supported": "B 与'选定经历'原文逐字一致（SafeDevils / JavaScript, NodeJS, PugJS / May 2018），无新增技能、职责、数字或成果，事实忠实度无问题。",
+      "issues": "A 为空字符串，无改写输出，疑似模型调用失败——按要求保持失败状态，不补评（score 留空）。B 完全未改写：针对 J1（开源/Linux 方向 Graduate SWE）的定向调整为零，甚至未纳入原简历中该项目的描述句（'integrates the SafeTrek API to invoke emergency services...'），作为简历条目信息量不足。新增技能/职责/数字/成果：无。",
+      "notes": "按清晰度/针对性/事实忠实度衡量：B 忠实但零针对性、内容过薄（仅标题行）导致清晰度受限，记 2；A 缺失不评分。岗位建议（10 条，涉及 Linux 经验、个人项目、开源参与、英语证明等）与 JD 对应准确，供参考但不在 A/B 评分范围内。"
+    },
+    "D2": {
+      "score": "",
+      "scoreB": "2",
+      "supported": "B 与选定经历原文逐字一致（项目名+起止时间 'June 2024 -- December 2024'），无新增事实，忠实。",
+      "issues": "A 为空字符串，疑似模型调用失败——保持失败状态，不补评（score 留空）。B 原样返回标题与日期，针对 J4（分布式系统测试，Python/Go、CI、Linux）的改写为零，且未利用原简历中该项目的 Work/Result 丰富内容（93.1% I/O 瓶颈、234KB SPM、3.7x 加速、国家三等奖）。新增技能/职责/数字/成果：无。",
+      "notes": "B 忠实但零改写、零定向、信息量极薄，记 2；A 缺失。岗位建议（7 条：测试策略/CI 经历、Python/Go 语言、分布式与云组件、Linux 与网络、量化结果等）与 JD 对应合理，供参考。"
+    },
+    "D3": {
+      "score": "",
+      "scoreB": "2",
+      "supported": "B 为选定经历四条 bullet 的逐字副本（含量化细节 3 datasets、102 slices/24.5 hr、Python API、文献调研），事实忠实度完好，原文本身表达清楚。",
+      "issues": "A 的输出为页面标注的失败提示（'本次模型请求失败，没有可评分的改写…'），按要求记为调用失败，A 不评分（score 留空），状态亦为 failed。B 未做任何针对 J3（Ubuntu 软件工程师，Rust/Go/Python/C++、开源）的改写或重组，针对性为零；无新增技能/职责/数字/成果；岗位建议为空。",
+      "notes": "按三个维度：B 清晰度继承原文（尚可）、针对性最低档（逐字副本、与 JD 无关联）、事实忠实度满分，综合记 2；A 调用失败保持缺失，未补写。"
+    }
+  },
+  "input_sha256": "7dc4b99404d8bb8e54bb3a1a2864ad4d68c09c7ecbd3ce3acda50cad1510b2e2",
+  "exported_at": "2026-09-08T13:18:44Z",
+  "status": "human_submission"
+}

@@ -1,0 +1,165 @@
+{
+  "evaluation_kind": "supplemental_star_validation",
+  "review_type": "AI Agent independent evidence review (not human/blind)",
+  "reviewer": "independent verifier agent /root/verify_star_supplement",
+  "code_sha": "ac952ff63e37214392f66fb42fe4446026556c81",
+  "scope": "Review of existing local evidence and code; no model/network rerun; only independent-review.json created.",
+  "verdict": "evidence_consistent_quality_not_evaluable",
+  "checks": {
+    "head_matches_record": true,
+    "current_frozen_configuration_matches": true,
+    "original_evaluation_file_set_and_hashes_match": true,
+    "tracked_diagnosis_code_and_original_evaluation_unchanged": true,
+    "S1": {
+      "resume_file_hash_matches": true,
+      "jd_file_hash_matches": true,
+      "source_snapshot_git_blob_hash_matches": true,
+      "source_snapshot_lf_normalized_hash_matches": true,
+      "resume_exact_contiguous_source_excerpt": true,
+      "jd_exact_source_text": true,
+      "input_hash_matches": true,
+      "reviewer_material_matches_operator": true,
+      "failed_without_result": true,
+      "three_internal_error_records": true
+    },
+    "S2": {
+      "resume_file_hash_matches": true,
+      "jd_file_hash_matches": true,
+      "source_snapshot_git_blob_hash_matches": true,
+      "source_snapshot_lf_normalized_hash_matches": true,
+      "resume_exact_contiguous_source_excerpt": true,
+      "jd_exact_source_text": true,
+      "input_hash_matches": true,
+      "reviewer_material_matches_operator": true,
+      "failed_without_result": true,
+      "three_internal_error_records": true
+    }
+  },
+  "original_evaluation_verified_hashes": {
+    "data/evaluation/2026-09-08/ai-summary.json": "6dd329a3e2cc7ba01ad247bbfaa1e75a2fd298d21c4c7612c26846bbb6e2028d",
+    "data/evaluation/2026-09-08/operator-record.json": "8559ce87126dca6bd47365770dcc7e55c7c9b5991433aa11436283dff5780318",
+    "data/evaluation/2026-09-08/reviewer-ai.json": "1880893480cd84fb2bf00a6641a9d5d1b9c5deb0e673b6f6089270a6c9ef8269",
+    "data/evaluation/2026-09-08/reviewer.html": "30ff5774f4d2ad5ad497c885601950a0530f8938d57a649c4ebb2db0226216f2"
+  },
+  "configuration_verified": {
+    "llm_vendor": "custom",
+    "api_style": "openai_chat",
+    "model": "glm-5.2",
+    "reasoning_effort": null,
+    "timeout_seconds": 30.0,
+    "max_attempts": 3,
+    "max_tokens": 4096,
+    "cache_size": 128,
+    "cache_ttl_seconds": 600.0,
+    "endpoint_sha256": "323337a9c57cae460e4104650d5754f5d7a05f224e45ee5c6e195bd4e1cb0b0f",
+    "prompt_version": "d-v1",
+    "prompt_sha256": "2d33685ee87b272e54e16eb77a2a1dd7673338fe3965fb001ebd63516fb53117"
+  },
+  "method_notes": [
+    "run.py uses real create_client(settings) and DiagnosisService.diagnose_detail, asserts non-Mock, creates a fresh service per case, and does not call the resume parser or modify prompts.",
+    "Both inputs are fixed before the loop. Started status is persisted before invocation; all non-pending cases are skipped; failures are retained without fabricated results.",
+    "Client callbacks record error status in finally. DiagnosisService retries TemporaryLLMError up to max_attempts with 1s then 2s backoff. Durations support three approximately 30s attempts plus 3s backoff per case.",
+    "Two outer case invocations and six internal requests are supported by records and runner control flow. They are not six evaluation cases.",
+    "Current configuration/endpoint/prompt hashes match the supplemental frozen record. The original fixed evaluation also records glm-5.2 and openai_chat."
+  ],
+  "cases": [
+    {
+      "id": "S1",
+      "input_sha256": "0676e776aa1bf9f508d7a7e16837b4d69f7d82b62a410b6a2a5d5d61e814d7a7",
+      "source_excerpt_offsets_zero_based": [
+        853,
+        1203
+      ],
+      "source_boundary_review": "Complete project title/date and both body bullets, ending before the next project. Exact archived raw_text excerpt; TeX formatting was removed in the pre-existing archive.",
+      "source_snapshot": "data/holdout/2026-09-08/sources/student-01.tex",
+      "source_snapshot_lines": [
+        47,
+        55
+      ],
+      "source_snapshot_worktree_sha256": "ab94f0c8145ef13ac8ca119cfc5fb440e5085f9b73de107f4a71c26aaef49bb9",
+      "source_snapshot_recorded_lf_sha256": "9cf2c22b8698383d67c89e6d72c7a5768e27a34b31acabb13c2714f40f108f3e",
+      "outcome": "TemporaryLLMError; no Diagnosis result obtained",
+      "outer_attempt_count": 1,
+      "internal_attempt_count": 3,
+      "internal_attempt_statuses": [
+        "error",
+        "error",
+        "error"
+      ],
+      "latency_seconds": 93.133,
+      "retry_backoff_residual_seconds": 3.004,
+      "quality_dimensions": {
+        "source_fidelity": null,
+        "added_facts_or_numbers": null,
+        "jd_targeting": null,
+        "rewrite_usability": null
+      },
+      "not_evaluable_reason": "No successful model response or STAR rewrite was obtained. Request failure is not a successful empty STAR response. All four quality dimensions are unassessable.",
+      "added_fact_or_number_evidence": null
+    },
+    {
+      "id": "S2",
+      "input_sha256": "36d78ce7c074453cf7c84716fcb0c34c80552d85ca069c0ca8a53f77e98ee894",
+      "source_excerpt_offsets_zero_based": [
+        465,
+        993
+      ],
+      "source_boundary_review": "Complete project title/date and both body bullets, ending before the next project. Exact archived raw_text excerpt; TeX formatting was removed in the pre-existing archive.",
+      "source_snapshot": "data/holdout/2026-09-08/sources/student-02.tex",
+      "source_snapshot_lines": [
+        12,
+        16
+      ],
+      "source_snapshot_worktree_sha256": "ca2b40e905259353d707024bd615f394395480709ed6bfe17fe1c2f1903c816a",
+      "source_snapshot_recorded_lf_sha256": "72a61c518a0e5023c3438c22953c4521d45c434ebd9458e1ff7619eaebc3148a",
+      "outcome": "TemporaryLLMError; no Diagnosis result obtained",
+      "outer_attempt_count": 1,
+      "internal_attempt_count": 3,
+      "internal_attempt_statuses": [
+        "error",
+        "error",
+        "error"
+      ],
+      "latency_seconds": 94.14,
+      "retry_backoff_residual_seconds": 3.005,
+      "quality_dimensions": {
+        "source_fidelity": null,
+        "added_facts_or_numbers": null,
+        "jd_targeting": null,
+        "rewrite_usability": null
+      },
+      "not_evaluable_reason": "No successful model response or STAR rewrite was obtained. Request failure is not a successful empty STAR response. All four quality dimensions are unassessable.",
+      "added_fact_or_number_evidence": null
+    }
+  ],
+  "findings": [],
+  "limitations": [
+    {
+      "kind": "missing_evidence",
+      "description": "Neither case obtained successful STAR output; all four quality dimensions remain null."
+    },
+    {
+      "kind": "evidence_scope",
+      "description": "TemporaryLLMError covers timeout, connection failure, and retryable HTTP failure; recorded attempts omit underlying error details. Precise network root cause cannot be determined."
+    },
+    {
+      "kind": "evidence_scope",
+      "description": "Original fixed operator record lacks full configuration and endpoint/prompt hash, so equality of all settings to that earlier run cannot be independently proven; current and supplemental frozen configuration equality is verified."
+    },
+    {
+      "kind": "evidence_scope",
+      "description": "Local source provenance and record consistency do not establish truth of source authors claims, external provider receipt, or completeness of historical invocations. This review is AI evidence review, not human/blind quality evaluation."
+    },
+    {
+      "kind": "formatting_observation",
+      "description": "Archived TeX files use CRLF in this checkout. Their raw byte hashes differ from recorded source_sha256, but LF normalization and HEAD Git blob hashes match exactly for both. No source content change was found."
+    }
+  ],
+  "report_consistency_review": {
+    "files": [
+      "data/evaluation/star-supplement-2026-09-08/README.md",
+      "docs/final/star-supplement.md"
+    ],
+    "result": "Consistent with recorded two failed case invocations and six internal error attempts. Both reports explicitly distinguish request failure from a successful empty STAR result, prohibit quality scoring, and preserve the original evaluation denominator."
+  }
+}

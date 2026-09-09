@@ -1,0 +1,201 @@
+{
+  "kind": "single_formal_reliability_fix_round",
+  "started_at": "2026-09-09T01:17:41.379302+00:00",
+  "baseline": "ac79807846b2ec928aba0d77e439e8ff676d81b1",
+  "source": "data/evaluation/star-supplement-2026-09-08/operator-record.json",
+  "source_sha256": "e79bf9b045d6afca502988d844b37d9f9c84f26745a4d4f08fac423bc2ed1742",
+  "prompt_lf_sha256": "08493cf1edf9843d1fed3847904715bb0e1e74fd6ab55aa8d02f3d6d8c8d06d4",
+  "prompt_historical_crlf_sha256": "2d33685ee87b272e54e16eb77a2a1dd7673338fe3965fb001ebd63516fb53117",
+  "preflight_note": "First preflight stopped before any API call: historical fingerprint used CRLF; Git prompt content is identical. Both newline hashes verified.",
+  "code_hashes": {
+    "backend/modules/diagnosis/__init__.py": "ca2822ed0708740cc71fc47cc6944fe398f2840a175746f456aae63e17801602",
+    "backend/modules/diagnosis/capabilities.py": "c44aa043e863f1efebdc6b46d8ba86e516b44301a76b42e52ac06d3358a00ab0",
+    "backend/modules/diagnosis/client.py": "7f77c5ac5e95ba27645b04d63781a948651270c035dff67c1b88f54c2113851b",
+    "backend/modules/diagnosis/config.py": "fb288b2c6362debf18a66166772ccad84d9356e75c474d45863c7e243ee7ab58",
+    "backend/modules/diagnosis/errors.py": "d01278f6665dfdebadb7d0ba455305a43daf426ee3cef8551b090380e99853ac",
+    "backend/modules/diagnosis/mock.py": "76ff3e0ca47e826027a5739ac7b7b93c46450d16e9279e5fe08ec73399e83357",
+    "backend/modules/diagnosis/prompts.py": "08493cf1edf9843d1fed3847904715bb0e1e74fd6ab55aa8d02f3d6d8c8d06d4",
+    "backend/modules/diagnosis/public.py": "f384b10ba105b5d3eddf43c449a84beba4b966faae717e8071d4f9effa8dc829",
+    "backend/modules/diagnosis/schema.py": "a1179433dcf12afc5c2eeb13fc85eee17cbb3466f18d21467b55a2557dc83381",
+    "backend/modules/diagnosis/transport.py": "3736d80ed0434d445e0462deb3146c959fe35d3632af2611b615c72bd69e27b9",
+    "backend/modules/diagnosis/web.py": "9118b35d390a8c551a19c72047451984e3aadbc759d8c17e3c1bbd9f3b3e97d9"
+  },
+  "git_head": "ac79807846b2ec928aba0d77e439e8ff676d81b1",
+  "configuration": {
+    "llm_vendor": "custom",
+    "api_style": "openai_chat",
+    "model": "glm-5.2",
+    "reasoning_effort": null,
+    "timeout_seconds": 45.0,
+    "connect_timeout_seconds": 5.0,
+    "read_timeout_seconds": 40.0,
+    "total_timeout_seconds": 95.0,
+    "max_attempts": 2,
+    "output_retries": 0,
+    "backoff_seconds": 1.0,
+    "retry_after_cap_seconds": 5.0,
+    "max_tokens": 4096,
+    "cache_size": 128,
+    "cache_ttl_seconds": 600.0
+  },
+  "endpoint_sha256": "323337a9c57cae460e4104650d5754f5d7a05f224e45ee5c6e195bd4e1cb0b0f",
+  "worst_case_seconds": 95.0,
+  "cases": [
+    {
+      "id": "S1",
+      "input_sha256": "0676e776aa1bf9f508d7a7e16837b4d69f7d82b62a410b6a2a5d5d61e814d7a7",
+      "status": "failed",
+      "error_type": "TemporaryLLMError",
+      "error_category": "timeout",
+      "http_status": null,
+      "phase": "read",
+      "elapsed_seconds": 81.953,
+      "attempts": [
+        {
+          "vendor": "custom",
+          "model": "glm-5.2",
+          "attempt": 1,
+          "error_category": "timeout",
+          "http_status": null,
+          "phase": "read",
+          "status": "error",
+          "retry": true,
+          "backoff_seconds": 1.0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "elapsed_seconds": 40.516
+        },
+        {
+          "vendor": "custom",
+          "model": "glm-5.2",
+          "attempt": 2,
+          "error_category": "timeout",
+          "http_status": null,
+          "phase": "read",
+          "status": "error",
+          "retry": false,
+          "backoff_seconds": 0,
+          "input_tokens": null,
+          "output_tokens": null,
+          "elapsed_seconds": 40.437
+        }
+      ],
+      "transport_attempts": [
+        {
+          "input_tokens": null,
+          "output_tokens": null,
+          "status": "error",
+          "error_category": "timeout",
+          "http_status": null,
+          "phase": "read",
+          "vendor": "custom",
+          "model": "glm-5.2",
+          "attempt": 1,
+          "latency_seconds": 40.5
+        },
+        {
+          "input_tokens": null,
+          "output_tokens": null,
+          "status": "error",
+          "error_category": "timeout",
+          "http_status": null,
+          "phase": "read",
+          "vendor": "custom",
+          "model": "glm-5.2",
+          "attempt": 2,
+          "latency_seconds": 40.437000000150874
+        }
+      ]
+    },
+    {
+      "id": "S2",
+      "input_sha256": "36d78ce7c074453cf7c84716fcb0c34c80552d85ca069c0ca8a53f77e98ee894",
+      "status": "validated",
+      "result": {
+        "summary": "简历目前仅提供一段算子优化竞赛经历，展现了底层性能优化与问题解决能力，与 JD 重视的 Linux 系统、C/C++、性能优化方向相关；但缺少学历、开源贡献、Linux 发行版经验、社区协作及语言掌握情况，信息不足以全面评估匹配度。",
+        "star_rewrites": [
+          {
+            "original": "Team leader in the 2nd OpenAtom Tecorigin Operator Development Challenge; profiled the Conv forward operator, identified I/O as the 93.1% bottleneck, and designed 234KB SPM management, double buffering, async pipeline, and floatv16 SIMD data reordering.",
+            "optimized": "情境：参加第2届 OpenAtom Tecorigin 算子开发挑战赛并担任团队负责人。任务：对 Conv 前向算子进行性能分析与优化。行动：通过 profiling 定位 I/O 占 93.1% 的性能瓶颈；设计 234KB SPM 管理、双缓冲、异步流水线及 floatv16 SIMD 数据重排。结果：显著降低运行时间（详见成果段）。【待补充：团队规模与个人分工细节】",
+            "reason": "拆分 STAR 结构使行动与瓶颈定位更清晰；团队规模等细节缺失，需补充而非臆造。"
+          },
+          {
+            "original": "Reduced runtime from 1820.78ms to 489.18ms, achieving a 3.7x speedup; fixed the output layout mismatch between the GEMM library and NHWC format, and won National Third Prize.",
+            "optimized": "情境：在上述算子优化挑战赛中验证优化效果。任务：提升算子运行效率并修复输出布局不一致问题。行动：实现上述优化方案，并修复 GEMM 库与 NHWC 格式之间的输出布局不匹配。结果：将运行时间从 1820.78ms 降至 489.18ms，实现 3.7 倍加速，获全国三等奖。",
+            "reason": "将成果并入 STAR，结果量化清晰；奖项与数据均为原文事实，未新增信息。"
+          }
+        ],
+        "jd_targeted_suggestions": [
+          "补充学历与专业：JD 要求计算机科学、数学或相关 STEM 本科及编程课程，需在简历中明确学位、学校与相关课程。",
+          "突出 Linux/Ubuntu 使用经验：JD 明确要求相关经验，若有发行版使用、内核或驱动相关经历应补充具体项目与工具。",
+          "强调编程语言掌握：JD 重视 Python、Rust、C/C++、Golang 等，应列出熟练语言、项目用量与代码规模。",
+          "展示开源贡献：JD 将上游开源贡献列为加分项，若有 PR、issue、打包或发行版参与请具体说明仓库与贡献内容。",
+          "补充个人项目：JD 要求课程外技术项目，应列出与开源、性能、Linux 系统相关的个人项目及成果。",
+          "描述社区与协作能力：JD 重视代码审查、issue 跟踪与分布式协作，可补充团队协作、文档撰写或技术分享经历。",
+          "注明英语能力：JD 要求专业书面与口语英语，应写明英语考试或工作语言使用情况。",
+          "展示领导力与组织：JD 提及领导与组织能力，已有团队负责人经历可进一步说明组织、分工与协调过程。",
+          "补充安全意识：JD 提及软件设计中的安全意识，若有安全相关课程或实践可简要补充。"
+        ],
+        "keywords_to_strengthen": [
+          "Linux/Ubuntu 使用经验",
+          "C/C++ 项目经历",
+          "Python/Rust/Golang 掌握程度",
+          "开源社区贡献",
+          "代码审查与 issue 跟踪",
+          "性能优化方法论",
+          "分布式协作经验",
+          "学历与 STEM 专业",
+          "个人技术项目",
+          "英语专业沟通能力",
+          "安全软件设计",
+          "打包与发行版贡献"
+        ],
+        "risks": [
+          "请核实所有改写内容与原简历事实一致，未新增任何数字或成果。",
+          "简历缺少学历、学校与专业信息，无法评估 JD 所述学业要求，建议补充后再投递。",
+          "缺少 Linux/Ubuntu 使用经验描述，与 JD 核心要求不符，信息不足可能影响评估。",
+          "缺少编程语言掌握与项目规模信息，无法判断与 JD 语言栈的匹配度。",
+          "未见开源贡献记录，JD 将其列为重要加分项，建议明确是否具备相关经历。",
+          "缺少个人项目与课外技术实践，JD 明确要求课程之外的项目，信息不足。",
+          "未注明英语能力与远程协作经验，JD 要求专业英语与分布式工作能力，需补充。",
+          "仅一段竞赛经历，信息量不足以全面匹配 JD 的多团队、多技术领域要求。"
+        ]
+      },
+      "is_mock": false,
+      "automated_fact_number_guard": true,
+      "star_count": 2,
+      "elapsed_seconds": 29.657,
+      "attempts": [
+        {
+          "vendor": "custom",
+          "model": "glm-5.2",
+          "attempt": 1,
+          "error_category": null,
+          "http_status": 200,
+          "phase": null,
+          "status": "validated",
+          "retry": false,
+          "backoff_seconds": 0,
+          "input_tokens": 2300,
+          "output_tokens": 2005,
+          "elapsed_seconds": 29.657
+        }
+      ],
+      "transport_attempts": [
+        {
+          "input_tokens": 2300,
+          "output_tokens": 2005,
+          "status": "text",
+          "error_category": null,
+          "http_status": 200,
+          "phase": null,
+          "vendor": "custom",
+          "model": "glm-5.2",
+          "attempt": 1,
+          "latency_seconds": 29.656999999890104
+        }
+      ]
+    }
+  ],
+  "historical_evidence_unchanged": true
+}

@@ -1,55 +1,40 @@
-# A：架构、验收与集成负责人
+# A：平台、Resume、Analytics、数据库与最终交付
 
-固定分支：`feat/core-a`。团队约定见 [team-rules.md](../team-rules.md)。本文件是共享职责与验收说明，不替代个人本地 AGENTS.md，不重复维护公共 Schema。
+固定分支：`feat/core-a`。遵守 [协作规则](../team-rules.md) 和 [T5 需求](../../T5_REQUIREMENTS_MATRIX.md)。
 
-## 定位与修改边界
+## 责任范围
 
-A 是公共架构、公共代码、模块验收、多分支集成与最终合并负责人。负责骨架、数据库结构、统一 Schema、公共路由、模块入口、配置、依赖、统一启动、文档及 clean clone / fresh install 验证。
+A 负责 public/core、Resume、Analytics、quality/QA、PostgreSQL/pgvector、公共前端、CI、架构与最终集成。
 
-允许修改 `core/`、`backend/core/`、`backend/main.*`、公共路由挂载、`backend/models/`、`backend/schemas/`、根公共配置、`.env.example`、README、架构与接口契约、团队规则、集成请求与验收记录、公共测试及其他必要集成文件。目录不同先映射实际职责。
+| 范围 | 目录与内容 |
+| --- | --- |
+| 公共平台 | backend/main.py、backend/api/、backend/core/、backend/models/、backend/schemas/ |
+| Resume | backend/modules/resume/、frontend/src/modules/resume/、tests/resume/ |
+| Analytics | backend/modules/analytics/、frontend/src/modules/analytics/、tests/analytics/ |
+| 公共前端 | frontend/index.html、frontend/src/app.js、frontend/src/core/、全局样式 |
+| 质量与交付 | tests/core/、tests/quality/、scripts/、examples/、.github/、根配置/依赖、共享文档和交付材料 |
 
-可以读取和检查所有成员代码，默认不修改其业务实现。简历解析、匹配算法、AI Prompt、分析 Dashboard 内部 Bug 退回对应成员；公共层兼容问题由 A 编写 adapter 或 glue code。不为统一风格重构无关模块，不替成员完成未交付业务。
+## T5 交付
 
-## 验收前的 Git 检查
+- Resume：粘贴原文、自动结构化、字段展示与编辑、保存后重新读取、保留原文。字段缺失留空，不虚构事实；已有保存 API 不等于编辑器完成。
+- 公共链路：统一 API、Schema、ports/provider、简历/JD 选择与持久化、四模块挂载及流程串联；接口变化同步文档、兼容策略和测试。
+- Analytics：基于系统已录入 JD 展示近期热门技能词云、岗位薪资分布、技能要求分布和市场观察/职业规划说明，标明来源、样本量、时间范围及缺失值。
+- PostgreSQL/pgvector：连接、扩展、SQLAlchemy/pgvector 依赖、表与 vector 字段、索引、查询/读写 adapter、初始化/迁移及真实集成测试。D 明确模型、维度、距离和评分需求，A 实施数据库；SQLite 仅用于过渡演示。
+- 问题定义：组织至少 2 款招聘 APP 对比、5 份真实 JD、3 份学生简历及痛点报告，D 提供表达/技能 gap 分析。脱敏并注明来源，不能用合成材料补真实样本数量。
+- quality/QA：公共测试、系统 E2E、数据口径与异常检查、CI、README/环境说明、clean clone / fresh install、答辩演示和真实 AI 辅助过程记录。
 
-沿用根规则自动完成 Git 操作。每次验收成员分支前重新 `git fetch origin`，确认位于 `feat/core-a` 且工作区干净。未知未提交修改不覆盖、不删除、不 stash/reset，停止说明。只提交本次明确修改的文件，独立验证后 commit 并 push 到 A 分支。
+## 模块验收与集成
 
-不得直接提交、重写或推送到 B/C/D/E 分支；不得未经验收合入成员分支。认证失败、权限不足或无法安全处理的状态，停止相关 Git 操作并说明，不把普通 Git 工作转交用户。
+A 按 Resume、Jobs/Matching、Diagnosis、Analytics 验收自己的模块和 D 的交付，结果写入 [台账](../acceptance.md)。
 
-## 成员验收
+检查准确 SHA 相对共同祖先的变更并对比 A 基线，区分继承代码与越界修改；检查误提交、公开契约、模块测试、实际业务效果与未验证项。
 
-在当前任务得知成员阶段提交并 push 后主动验收，不盲目 merge。按需检查远端新提交；本规则不自动创建后台监控。
+Jobs/Matching 必须有关键词基线、0–100 分数、matched/missing 技能和一致的 gap 解释，不能只给向量分数。Diagnosis 必须有 STAR 增强、JD 定向建议、量化补充提示及事实边界，真实失败不能伪装为 Mock 成功。
 
-1. 记录成员分支、准确提交 SHA 和当前 A 基线，查看共同祖先以来的成员提交及文件变化，同时比较当前集成基线，区分继承的公共改动与成员自身越界修改。
-2. 检查责任范围：公共 core、Schema、主路由、根配置及其他成员目录是否被擅改。
-3. 检查是否误提交密钥、密码、`.env`、无关大文件、构建产物及临时调试文件。
-4. 按对应角色说明检查核心功能，验证输入输出是否符合 `docs/api-contract.md` 和公开 ports，运行已有模块测试或最小可运行验证。可在隔离 checkout/worktree 检查成员提交，不修改成员分支。
-5. 业务问题写明文件、复现方式、预期结果，记录为 BLOCKED，交由成员修复后重新验收；不直接发送外部消息，除非已获授权。
-6. 公共适配问题记录为 ADAPT，由 A 在公共层处理并补充必要验证；适配和复验通过后改为 PASS。
-7. 只有准确待合并提交已 PASS 才进入集成；分支新增提交后重新检查变化，旧 PASS 不自动覆盖新提交。
+D 业务错误写明文件、复现与预期并交 D 修复；公共兼容问题由 A 适配。ADAPT 复验 PASS 后才能集成，不擅自重写 D 算法。未经授权不代发外部消息。
 
-结果写入 [验收台账](../acceptance.md)：`PASS` 允许集成；`BLOCKED` 必须由成员解决的问题；`ADAPT` 需 A 公共适配，尚不能按已验收集成。未提交的模块标记“待提交”，不冒充已执行验收。
+## 最终验证与交付
 
-## 逐个集成
+执行 uv sync --locked、完整 pytest、Ruff check/format 和 node scripts/check_frontend.mjs；另外真实验证 PostgreSQL/pgvector、模型输出、浏览器 E2E、README 和 clean clone / fresh install，检查 .env.example 不含密钥。
 
-顺序：B `feat/resume-b` → C `feat/matching-c` → D `feat/diagnosis-d` → E `feat/analytics-qa-e`。成员分支先合入 `feat/core-a`，不直接合入 main。
-
-每次仅集成一个已 PASS 的准确提交，立即运行相关模块测试和公共集成测试。失败时停止后续合并，保留现场和证据；不删除功能、注释失败逻辑或删除成员代码来过测试。公共层、挂载及根配置冲突由 A 处理；业务目录内部冲突退回成员，不擅自重写。
-
-每次成功集成后 commit、push 到 A 分支，记录来源提交、集成提交和测试结果。公共接口变化同步记录 `docs/api-contract.md`；主动逐项处理 `docs/integration_requests/`。
-
-## 最终合入 main
-
-完整系统交付须同时满足：B/C/D/E 均 PASS 并集成到 A；主程序启动、数据库初始化、真实核心链路及 E2E 验证通过，无未解释关键失败；`.env.example` 完整无真实密钥；README 可复现；clean clone / fresh install 成功；A 最新版本已推送。
-
-满足条件且合并在用户授权范围内后，fetch 并确认准确 A 提交，执行完整测试，优先通过 `feat/core-a → main` PR 检查及合并，保留成员提交历史；不绕过保护规则。需要审批或权限时说明实际阻塞。仅在项目允许且已有授权时使用本地 main 更新、合并并 push 的方式。
-
-合并后核对远端 main 的合并提交，基于该提交执行关键启动与核心链路验证，再回到 A 分支继续工作。main 不能正常前进时不 force push 或 hard reset。
-
-本次 PR #1 是用户明确授权的公共骨架基线合并，供成员从 main 开发，不属于四个真实模块的最终交付。该一次性授权不降低上述最终系统验收标准；Mock 测试通过不能代替成员 PASS。
-
-## 收尾与个人报告
-
-交付报告列出当前分支、最新 commit、本次文件、已验收及已集成成员分支、测试结果、未解决事项和 main 合并状态。未验收/未集成时明确写“无”，不省略状态。
-
-记录实际发生的架构拆分与公共结构决策、接口差异、成员验收问题、退回与适配的区分、多分支冲突及解决、Agent 误改、环境差异、系统联调与合并过程，不编造案例。
+只有满足 [系统门槛](../acceptance.md#最终系统门槛) 后，才通过 feat/core-a → main PR 最终交付。收尾给出分支、commit、文件、验收/集成状态、验证结果及真实限制。

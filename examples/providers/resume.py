@@ -1,4 +1,4 @@
-"""Copy the class shape, then replace fixed fixtures with B's implementation."""
+"""Resume contract example owned by A; fixed fixtures are not a real parser."""
 
 from backend.schemas.contracts import ResumeData, TextInput
 from examples.fixtures import load_cases

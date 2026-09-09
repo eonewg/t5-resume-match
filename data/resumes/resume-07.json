@@ -1,0 +1,64 @@
+{
+  "id": "resume-07",
+  "raw_text_anonymized": "姓名：（略）\n求职意向：Java 后端开发工程师\n\n【教育经历】\n某高校  软件工程  本科  2022.09-2026.06\n主修课程：Java 程序设计、数据结构、数据库原理、计算机网络、操作系统、Web 应用开发、软件工程\n\n【实习经历】\n某企业服务公司  研发中心  Java 开发实习生  2025.12-2026.05\n- 参与公司 OA 系统后端迭代，负责请假与报销模块的接口开发，累计完成 12 个接口\n- 使用 Spring Boot + MyBatis-Plus 编写业务代码，配合前端联调，修复缺陷 20 余个\n- 补充所负责模块的单元测试，测试覆盖率由 45% 提升到 70%\n- 参与生产问题排查，学习使用 Arthas 定位接口超时\n- 负责部分技术文档的编写工作\n\n【项目经历】\n校园二手交易系统（团队课程项目，5 人）  2025.09-2025.12\n- 技术栈：Spring Boot、MySQL、Redis、RabbitMQ、Vue\n- 本人负责商品与订单模块，实现商品发布、搜索、下单与订单状态流转\n- 使用 Redis 缓存热门商品详情，减少数据库查询压力；使用 RabbitMQ 异步处理订单超时关闭\n- 完成课程答辩，成绩良好\n个人博客系统（个人练手项目）  2025.03-2025.05\n- 基于 Spring Boot + MyBatis + MySQL 实现文章管理、Markdown 渲染、评论与点赞功能\n- 使用 Nginx 做静态资源与反向代理，部署在一台云服务器上\n\n【技能】\nJava（集合、多线程、JVM 基础）、Spring Boot、Spring MVC、MyBatis / MyBatis-Plus、MySQL（索引、事务）、Redis、RabbitMQ、Linux 常用命令、Git、Maven、Postman、JUnit、了解 Docker、了解 Nginx\n\n【语言与证书】\n英语 CET-6；蓝桥杯全国软件和信息技术专业人才大赛（Java 组）省级二等奖\n\n【获奖】\n校二等奖学金（2024-2025 学年）",
+  "education": {
+    "degree": "本科",
+    "major": "软件工程",
+    "school_generalized": "某高校",
+    "period": "2022.09-2026.06"
+  },
+  "experiences": [
+    {
+      "role": "Java 开发实习生（研发中心）",
+      "org_generalized": "某企业服务公司",
+      "period": "2025.12-2026.05",
+      "highlights": [
+        "参与公司 OA 系统后端迭代，负责请假与报销模块的接口开发，累计完成 12 个接口",
+        "使用 Spring Boot + MyBatis-Plus 编写业务代码，配合前端联调，修复缺陷 20 余个",
+        "补充所负责模块的单元测试，测试覆盖率由 45% 提升到 70%",
+        "参与生产问题排查，学习使用 Arthas 定位接口超时",
+        "负责部分技术文档的编写工作"
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "name_generalized": "校园二手交易系统",
+      "role": "课程项目成员（负责商品与订单模块）",
+      "period": "2025.09-2025.12",
+      "description": "Spring Boot + MySQL + Redis + RabbitMQ + Vue；实现商品发布、搜索、下单与订单状态流转，用 Redis 缓存热门商品详情、RabbitMQ 异步处理订单超时关闭",
+      "tech": ["Spring Boot", "MySQL", "Redis", "RabbitMQ", "Vue"]
+    },
+    {
+      "name_generalized": "个人博客系统",
+      "role": "个人练手项目",
+      "period": "2025.03-2025.05",
+      "description": "基于 Spring Boot + MyBatis + MySQL 实现文章管理、Markdown 渲染、评论与点赞，使用 Nginx 做静态资源与反向代理并部署到云服务器",
+      "tech": ["Spring Boot", "MyBatis", "MySQL", "Nginx"]
+    }
+  ],
+  "skills": [
+    "Java",
+    "Spring Boot",
+    "Spring MVC",
+    "MyBatis",
+    "MyBatis-Plus",
+    "MySQL",
+    "Redis",
+    "RabbitMQ",
+    "Linux",
+    "Git",
+    "Maven",
+    "Postman",
+    "JUnit",
+    "Docker（了解）",
+    "Nginx（了解）",
+    "多线程",
+    "JVM"
+  ],
+  "languages": ["英语 CET-6"],
+  "certificates": ["CET-6", "蓝桥杯 Java 组省级二等奖", "校二等奖学金"],
+  "source_type": "synthetic",
+  "anonymized": true,
+  "notes": "合成演示简历，非真实学生；按脱敏规则构造（学校、公司泛化，竞赛仅保留通用赛事名）。质量档位：中。有真实感的实习与两个项目、部分量化（接口数、缺陷数、覆盖率 45%→70%），但深度与结果表达不足。刻意保留的诊断点：①“负责部分技术文档的编写工作”完全模糊，无对象、数量与结果；②“参与生产问题排查，学习使用 Arthas 定位接口超时”用弱动词“学习”，未写是否定位到根因、优化了多少耗时；③“完成课程答辩，成绩良好”无量化；④技能行写了 JVM、多线程、Docker、Redis、RabbitMQ，但 JVM 与多线程全篇零佐证，Redis/RabbitMQ 各只有一句无数据的功能描述，属“技能有但项目未体现”；⑤缺 JD 高频词“架构设计、高并发、性能优化、技术预研、方案选型”，且简历用具体产品名（Redis/RabbitMQ/MySQL）而 JD 用泛称“存储系统/中间件”，构成同义词不命中场景；⑥无并发量、QPS、数据规模等任何量级描述。"
+}

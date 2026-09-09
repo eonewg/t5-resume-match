@@ -1,0 +1,263 @@
+{
+  "description": "5 JD x 3 简历人工 gap baseline，共 15 组。全部为人工标注（reviewer: manual(A)），不是系统算法输出。D 应将其与系统输出对照验证。标注仅基于 data/jd 与 data/resumes 中文本的显式内容。",
+  "reviewer": "manual(A)",
+  "created_at": "2026-09-07",
+  "core_resume_ids": ["resume-01", "resume-02", "resume-03"],
+  "core_jd_ids": ["jd-real-01", "jd-real-03", "jd-real-04", "jd-real-05", "jd-real-09"],
+  "pairs": [
+    {
+      "pair_id": "baseline-01",
+      "resume_id": "resume-01",
+      "jd_id": "jd-real-01",
+      "matched_skills_manual": ["Python", "用户行为分析"],
+      "missing_skills_manual": ["机器学习", "深度学习", "推荐策略", "个性化推荐", "数据结构与算法（深入理解）", "Java", "C++", "支付风控"],
+      "expression_gaps_manual": [
+        "实习经历无量化成果：未写取数脚本覆盖指标数、维护频率或效率提升",
+        "项目成果仅写到“提出 3 条建议”，缺少建议是否被采纳等结果表述（不得虚构，应引导用户补充）",
+        "技能行未点出与 JD 相关的“数据结构与算法”基础"
+      ],
+      "skill_gaps_manual": [
+        "缺少机器学习/深度学习方法基础，无法承担推荐策略开发",
+        "无 Java/C++ 工程经验，与岗位多语言要求不符",
+        "无支付风控场景经验"
+      ],
+      "suggested_keywords_manual": ["SQL", "Python", "用户行为分析", "数据分析"],
+      "match_level_manual": "low",
+      "notes": "数据分析背景与算法岗方向错配，仅 Python 与行为分析项目有交集。"
+    },
+    {
+      "pair_id": "baseline-02",
+      "resume_id": "resume-02",
+      "jd_id": "jd-real-01",
+      "matched_skills_manual": ["Java"],
+      "missing_skills_manual": ["机器学习", "深度学习", "推荐策略", "个性化推荐", "数据结构与算法（深入理解）", "Python", "C++", "支付风控", "用户数据分析"],
+      "expression_gaps_manual": [
+        "技能行只写框架不写语言层次：未表达对数据结构与算法的掌握程度"
+      ],
+      "skill_gaps_manual": [
+        "无机器学习/推荐系统知识与项目",
+        "算法岗要求的算法功底在简历中无竞赛/刷题/课程佐证"
+      ],
+      "suggested_keywords_manual": ["Java", "数据结构"],
+      "match_level_manual": "low",
+      "notes": "仅有 Java 语言交集，方向完全不匹配。"
+    },
+    {
+      "pair_id": "baseline-03",
+      "resume_id": "resume-03",
+      "jd_id": "jd-real-01",
+      "matched_skills_manual": ["Python", "机器学习", "深度学习"],
+      "missing_skills_manual": ["推荐策略", "个性化推荐", "支付风控", "Java", "C++", "数据结构与算法（深入理解）"],
+      "expression_gaps_manual": [
+        "实习写“统计回答准确率”但未给出评测集规模或结果区间（不得虚构数字，应提示补充）",
+        "无推荐相关词汇，需在事实范围内建立 NLP 到排序/召回的可迁移表述"
+      ],
+      "skill_gaps_manual": [
+        "方向是 NLP/RAG 而非推荐系统，缺召回/排序经验",
+        "缺 Java/C++ 工程实现能力（JD 要求至少一种，Python 已满足，但工程实践表述弱）"
+      ],
+      "suggested_keywords_manual": ["Python", "机器学习", "深度学习", "推荐系统"],
+      "match_level_manual": "medium",
+      "notes": "算法基础扎实但子方向不同，语言工程项弱。"
+    },
+    {
+      "pair_id": "baseline-04",
+      "resume_id": "resume-01",
+      "jd_id": "jd-real-03",
+      "matched_skills_manual": ["SQL"],
+      "missing_skills_manual": ["C#", ".NET Core", ".NET Framework", "SQL Server", "MySQL", "HTTP/HTTPS", "RESTful API", "后端开发", "接口设计", "单元测试", "面向对象"],
+      "expression_gaps_manual": [
+        "技能行有 SQL/Excel 但无数据库概念（主键/外键/索引）相关表述"
+      ],
+      "skill_gaps_manual": [
+        "无任何后端开发经历，与岗位方向完全不符",
+        "未掌握 C#/.NET 技术栈"
+      ],
+      "suggested_keywords_manual": ["SQL"],
+      "match_level_manual": "low",
+      "notes": "仅 SQL 单点交集。"
+    },
+    {
+      "pair_id": "baseline-05",
+      "resume_id": "resume-02",
+      "jd_id": "jd-real-03",
+      "matched_skills_manual": ["SQL", "MySQL", "Postman", "单元测试", "接口设计（接口开发经历）", "后端开发"],
+      "missing_skills_manual": ["C#", ".NET Core", ".NET Framework", "SQL Server", "HTTP/HTTPS", "RESTful API", "面向对象（C# 语境）"],
+      "expression_gaps_manual": [
+        "简历未出现 HTTP/HTTPS、RESTful 等协议词汇，接口经验表达不完整",
+        "实习“完成 5 个接口”有量化，但缺性能/规模类结果"
+      ],
+      "skill_gaps_manual": [
+        "技术栈为 Java 系，C#/.NET 需从零学习",
+        "JD 指定 SQL Server，简历仅 MySQL 经验"
+      ],
+      "suggested_keywords_manual": ["SQL", "RESTful API", "单元测试", "接口文档", "Postman"],
+      "match_level_manual": "medium",
+      "notes": "通用后端素养匹配，主栈不同（Java→C#），属可迁移型 medium。"
+    },
+    {
+      "pair_id": "baseline-06",
+      "resume_id": "resume-03",
+      "jd_id": "jd-real-03",
+      "matched_skills_manual": [],
+      "missing_skills_manual": ["C#", ".NET Core", ".NET Framework", "SQL Server", "MySQL", "SQL", "HTTP/HTTPS", "RESTful API", "后端开发", "接口设计", "单元测试", "Postman", "面向对象"],
+      "expression_gaps_manual": [],
+      "skill_gaps_manual": [
+        "无后端工程经历，方向（算法研究）与岗位（企业级应用后端）不符"
+      ],
+      "suggested_keywords_manual": [],
+      "match_level_manual": "low",
+      "notes": "完全错配，无显式技能交集。"
+    },
+    {
+      "pair_id": "baseline-07",
+      "resume_id": "resume-01",
+      "jd_id": "jd-real-04",
+      "matched_skills_manual": [],
+      "missing_skills_manual": ["架构设计", "后端研发", "数据结构与算法", "存储系统", "中间件", "高并发", "性能优化", "技术预研", "方案选型"],
+      "expression_gaps_manual": [],
+      "skill_gaps_manual": [
+        "无后端/服务端开发经历，Python 仅用于数据分析"
+      ],
+      "suggested_keywords_manual": [],
+      "match_level_manual": "low",
+      "notes": "完全错配。JD 的存储系统为泛化描述，resume-01 的 SQL 不作为匹配依据（见 README 标注口径）。"
+    },
+    {
+      "pair_id": "baseline-08",
+      "resume_id": "resume-02",
+      "jd_id": "jd-real-04",
+      "matched_skills_manual": ["数据结构与算法（主修课程）", "MySQL（对应存储系统）", "接口设计", "单元测试（编码、测试和文档编写）", "后端研发"],
+      "missing_skills_manual": ["架构设计", "中间件", "高并发", "性能优化", "技术预研", "方案选型"],
+      "expression_gaps_manual": [
+        "“精通至少一种开发语言”要求下，简历技能行未写语言熟练度分层",
+        "无高并发/性能相关量化描述（不得虚构，应引导补充压测数据等）"
+      ],
+      "skill_gaps_manual": [
+        "无中间件（缓存/消息队列）使用经验",
+        "无高并发场景实战，订单服务仅为常规业务接口开发"
+      ],
+      "suggested_keywords_manual": ["Java", "MySQL", "单元测试", "接口文档", "数据结构"],
+      "match_level_manual": "medium",
+      "notes": "校招 Java 岗与 Java 实习生背景同向，缺的是中间件与并发经验。"
+    },
+    {
+      "pair_id": "baseline-09",
+      "resume_id": "resume-03",
+      "jd_id": "jd-real-04",
+      "matched_skills_manual": [],
+      "missing_skills_manual": ["架构设计", "后端研发", "数据结构与算法（工程表述）", "存储系统", "中间件", "高并发", "性能优化", "技术预研", "方案选型"],
+      "expression_gaps_manual": [
+        "Python 研究型用法与“精通至少一种开发语言并能解决具体问题”的工程要求之间缺少工程化佐证"
+      ],
+      "skill_gaps_manual": [
+        "无业务系统研发经历，研究方向为 NLP 实验而非服务端"
+      ],
+      "suggested_keywords_manual": ["Python"],
+      "match_level_manual": "low",
+      "notes": "语言能力可迁移但整体方向不匹配。"
+    },
+    {
+      "pair_id": "baseline-10",
+      "resume_id": "resume-01",
+      "jd_id": "jd-real-05",
+      "matched_skills_manual": [],
+      "missing_skills_manual": ["需求分析", "数据建设方案", "数据产品规划", "项目管理", "逻辑思维（显式表达）", "研究分析", "算法开发", "自然语言处理"],
+      "expression_gaps_manual": [
+        "有指标体系/看板实践但从未用“数据建设方案”“需求落地”等产品语言表达",
+        "学历为本科，JD 要求硕士及以上，简历无法改变，应如实提示"
+      ],
+      "skill_gaps_manual": [
+        "缺产品规划与跨团队协调经验",
+        "JD 要求硕士学历（硬条件不符）"
+      ],
+      "suggested_keywords_manual": ["数据分析", "指标体系", "需求分析", "SQL"],
+      "match_level_manual": "low",
+      "notes": "方向接近数据岗但产品表达缺失且有学历硬门槛。"
+    },
+    {
+      "pair_id": "baseline-11",
+      "resume_id": "resume-02",
+      "jd_id": "jd-real-05",
+      "matched_skills_manual": [],
+      "missing_skills_manual": ["需求分析", "数据建设方案", "数据产品规划", "项目管理", "逻辑思维（显式表达）", "研究分析", "算法开发", "自然语言处理"],
+      "expression_gaps_manual": [],
+      "skill_gaps_manual": [
+        "纯后端背景，无数据产品/数据分析经历",
+        "JD 要求硕士学历（硬条件不符）"
+      ],
+      "suggested_keywords_manual": [],
+      "match_level_manual": "low",
+      "notes": "完全错配。"
+    },
+    {
+      "pair_id": "baseline-12",
+      "resume_id": "resume-03",
+      "jd_id": "jd-real-05",
+      "matched_skills_manual": ["算法开发", "自然语言处理"],
+      "missing_skills_manual": ["需求分析", "数据建设方案", "数据产品规划", "项目管理", "逻辑思维（显式表达）", "研究分析", "文字写作能力（显式表达）"],
+      "expression_gaps_manual": [
+        "算法背景正好命中 JD 两项优先条件（算法开发经验、NLP 深入了解），但简历未把这两点放在显眼位置",
+        "缺产品/需求侧词汇与经历"
+      ],
+      "skill_gaps_manual": [
+        "无产品经理实践（PRD、需求评审、跨组协调）",
+        "JD 要求硕士学历（在读硕士 2027 届，需与用人单位确认是否接受）"
+      ],
+      "suggested_keywords_manual": ["自然语言处理", "算法开发", "研究分析", "技术文档"],
+      "match_level_manual": "medium",
+      "notes": "优先项双命中是最大亮点，但产品能力空白。"
+    },
+    {
+      "pair_id": "baseline-13",
+      "resume_id": "resume-01",
+      "jd_id": "jd-real-09",
+      "matched_skills_manual": ["SQL", "Python", "业务数据分析（电商业务分析经历）", "指标体系（指标看板经历）"],
+      "missing_skills_manual": ["异常监控", "统计学（显式表达）"],
+      "expression_gaps_manual": [
+        "实习缺量化：未写监控指标数量、报表覆盖范围或复盘结论采纳情况",
+        "“异常波动监控”相关经验未显式表达（仅大促复盘，可如实关联）"
+      ],
+      "skill_gaps_manual": [
+        "无异常监控/告警体系经验",
+        "统计分析方法（假设检验等）未体现"
+      ],
+      "suggested_keywords_manual": ["SQL", "Python", "业务数据分析", "指标体系", "异常监控"],
+      "match_level_manual": "high",
+      "notes": "电商数据分析实习 + SQL/Python 与 2026 届校招数据分析岗高度同向，为 baseline 中最强匹配组。"
+    },
+    {
+      "pair_id": "baseline-14",
+      "resume_id": "resume-02",
+      "jd_id": "jd-real-09",
+      "matched_skills_manual": ["SQL（MySQL 经验）"],
+      "missing_skills_manual": ["Python", "业务数据分析", "异常监控", "统计学"],
+      "expression_gaps_manual": [
+        "技能行写 MySQL 而未写 SQL 能力本身，取数/分析表达缺失"
+      ],
+      "skill_gaps_manual": [
+        "无业务数据分析经历与统计基础",
+        "无 Python 使用经验"
+      ],
+      "suggested_keywords_manual": ["SQL"],
+      "match_level_manual": "low",
+      "notes": "仅 SQL 单点可迁移。"
+    },
+    {
+      "pair_id": "baseline-15",
+      "resume_id": "resume-03",
+      "jd_id": "jd-real-09",
+      "matched_skills_manual": ["Python"],
+      "missing_skills_manual": ["SQL", "业务数据分析", "异常监控", "统计学"],
+      "expression_gaps_manual": [
+        "评测脚本项目可用“数据统计与分析”语言表达但当前写法偏算法视角"
+      ],
+      "skill_gaps_manual": [
+        "无 SQL 取数与业务指标分析经验"
+      ],
+      "suggested_keywords_manual": ["Python", "数据统计"],
+      "match_level_manual": "low",
+      "notes": "语言交集为主，分析经历缺失。"
+    }
+  ]
+}

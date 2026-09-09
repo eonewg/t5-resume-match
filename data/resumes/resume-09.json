@@ -1,0 +1,55 @@
+{
+  "id": "resume-09",
+  "raw_text_anonymized": "姓名：（略）\n求职意向：大数据开发 / 数据开发（2026 届）\n\n【教育经历】\n某高校  物联网工程  本科  2022.09-2026.06\n主修课程：C 语言程序设计、数据结构、数据库原理、计算机网络、传感器原理、大数据技术导论\n\n【实习经历】\n某信息技术服务公司  数据部  数据开发实习生  2025.06-2025.11\n- 负责数据处理相关工作\n- 参与公司数据仓库的日常维护\n- 根据业务需求编写 SQL 脚本，完成数据提取与汇总\n- 协助同事整理数据相关文档\n- 完成领导交办的其他任务\n\n【项目经历】\n基于 Hadoop 的日志分析（课程设计）  2025.03-2025.06\n- 在虚拟机上搭建 3 节点 Hadoop 集群，配置 HDFS 与 YARN\n- 使用 Hive 对约 500 万条 Nginx 访问日志建表并做统计分析\n- 编写了几个 MapReduce 程序处理数据\n- 完成课程报告并通过答辩\n\n【校园经历】\n院学生会技术部  干事  2023.09-2024.06\n- 负责学院机房日常值班与设备维护登记\n\n【技能】\nHadoop、Hive、Spark（了解）、MySQL、SQL、Python（基础）、Linux、Shell、Office 办公软件\n\n【语言与证书】\n英语 CET-4；全国计算机等级考试二级（C 语言）",
+  "education": {
+    "degree": "本科",
+    "major": "物联网工程",
+    "school_generalized": "某高校",
+    "period": "2022.09-2026.06"
+  },
+  "experiences": [
+    {
+      "role": "数据开发实习生（数据部）",
+      "org_generalized": "某信息技术服务公司",
+      "period": "2025.06-2025.11",
+      "highlights": [
+        "负责数据处理相关工作",
+        "参与公司数据仓库的日常维护",
+        "根据业务需求编写 SQL 脚本，完成数据提取与汇总",
+        "协助同事整理数据相关文档",
+        "完成领导交办的其他任务"
+      ]
+    },
+    {
+      "role": "院学生会技术部干事",
+      "org_generalized": "某高校院系学生会",
+      "period": "2023.09-2024.06",
+      "highlights": ["负责学院机房日常值班与设备维护登记"]
+    }
+  ],
+  "projects": [
+    {
+      "name_generalized": "基于 Hadoop 的日志分析",
+      "role": "课程设计（个人）",
+      "period": "2025.03-2025.06",
+      "description": "虚拟机搭建 3 节点 Hadoop 集群并配置 HDFS 与 YARN，用 Hive 对约 500 万条 Nginx 访问日志建表统计，另编写若干 MapReduce 程序处理数据，完成课程报告并通过答辩",
+      "tech": ["Hadoop", "HDFS", "YARN", "Hive", "MapReduce"]
+    }
+  ],
+  "skills": [
+    "Hadoop",
+    "Hive",
+    "Spark（了解）",
+    "MySQL",
+    "SQL",
+    "Python（基础）",
+    "Linux",
+    "Shell",
+    "Office"
+  ],
+  "languages": ["英语 CET-4"],
+  "certificates": ["CET-4", "全国计算机等级考试二级（C 语言）"],
+  "source_type": "synthetic",
+  "anonymized": true,
+  "notes": "合成演示简历，非真实学生；按脱敏规则构造（学校、公司泛化）。质量档位：低，技能 gap 与表达 gap 双重明显，是 STAR 改写与 gap 分析的主要压力样本。刻意保留的诊断点：①实习 5 条全部无 Action 细节、无量化、无结果，“负责数据处理相关工作”“完成领导交办的其他任务”属典型无效条目；②“编写了几个 MapReduce 程序处理数据”模糊到无法判断能力；③项目只写步骤不写结论，未提分区/分桶、数据倾斜、小文件治理、任务耗时等任何优化与性能信息；④skill gap：无 Flink/Kafka 等实时链路、无调度（Airflow/DolphinScheduler）、无 ClickHouse 等 OLAP、无维度建模与数仓分层方法论、无数据质量治理、无 Java/Scala；⑤校园经历（机房值班）与目标岗位无关；⑥2026.06 已毕业，简历未说明毕业后至当前（2026.09）的经历，存在时间空窗；⑦技能自评偏弱（Python“基础”、Spark“了解”）且无佐证；⑧无量化成果、无竞赛、无奖学金。"
+}

@@ -1,0 +1,18 @@
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.1-pg17
+    environment:
+      POSTGRES_DB: t5
+      POSTGRES_USER: t5
+      POSTGRES_PASSWORD: ${T5_POSTGRES_PASSWORD:?Set T5_POSTGRES_PASSWORD}
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - t5_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U t5 -d t5"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+volumes:
+  t5_postgres:

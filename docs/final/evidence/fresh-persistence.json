@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "persisted_records": 18,
+  "checks": [
+    "all Resume/JD/Match/Diagnosis API records unchanged after process restart",
+    "saved resume can be reloaded after full browser refresh at 390px; raw and confirmed fields retained"
+  ]
+}

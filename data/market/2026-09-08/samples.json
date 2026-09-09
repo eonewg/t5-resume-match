@@ -1,0 +1,52 @@
+[
+  {
+    "sample_id": "market-01", "text_kind": "source_summary", "source_type": "real",
+    "title": "Software Engineer, Reflections", "company": "The New York Times",
+    "source_url": "https://job-boards.greenhouse.io/thenewyorktimes/jobs/4724948005",
+    "source_name": "The New York Times · Greenhouse", "collected_at": "2026-09-08",
+    "jd_text": "来源摘要，非 JD 全文：纽约混合办公软件工程岗位。要求至少两年交付面向用户功能的专业经历；前端涉及 React、Node.js、TypeScript、JavaScript、HTML 和 CSS；后端包括 Go、Node.js/Express、GraphQL 以及 GCP 或 AWS，并要求 SQL 或数据库经验。Docker、Kubernetes 和 CI/CD 是加分项。页面明确为 annual base pay，USD 110000–130000。",
+    "salary": "annual base pay: $110,000 - $130,000 USD", "salary_min": 110000, "salary_max": 130000, "currency": "USD", "salary_period": "year",
+    "salary_evidence": "The annual base pay range for this role is between: $110,000 - $130,000 USD",
+    "sampling_note": "纽约岗位的年基本工资；福利与浮动薪酬另列，不合并。"
+  },
+  {
+    "sample_id": "market-02", "text_kind": "source_summary", "source_type": "real",
+    "title": "Senior/Staff Software Engineer - Edge", "company": "Sage",
+    "source_url": "https://job-boards.greenhouse.io/sage49/jobs/6152678004",
+    "source_name": "Sage · Greenhouse", "collected_at": "2026-09-08",
+    "jd_text": "来源摘要，非 JD 全文：纽约边缘计算岗位，连接物理设备与云平台，包含架构、诊断工具和远程故障排查。通常要求七年以上复杂后端系统经历；重视 Linux/Unix 和网络知识。候选人应深入掌握至少一种语言，列举 Java、C++、Rust、Go、Python、C#，并非要求同时掌握全部。AWS 或 GCP、嵌入式与设备管理经历为加分项。明确的 expected annual salary 为 USD 190000–245000。",
+    "salary": "expected annual salary: $190,000–245,000 USD", "salary_min": 190000, "salary_max": 245000, "currency": "USD", "salary_period": "year",
+    "salary_evidence": "The expected annual salary range for this role is $190,000-245,000 USD",
+    "sampling_note": "Senior/Staff 范围；不能作为毕业生薪资预期。"
+  },
+  {
+    "sample_id": "market-03", "text_kind": "source_summary", "source_type": "real",
+    "title": "Software Engineer, Business Technology", "company": "Anthropic",
+    "source_url": "https://job-boards.greenhouse.io/anthropic/jobs/5400153008",
+    "source_name": "Anthropic · Greenhouse", "collected_at": "2026-09-08",
+    "jd_text": "来源摘要，非 JD 全文：业务技术软件工程岗位，负责内部平台、可复用工具及从需求到上线的完整交付。要求六年以上生产软件开发经历，最好具有全栈经验；列出的技术栈为 Python、TypeScript 和 React。重视独立交付、产品判断、平台设计以及对非技术使用者的支持。页面 Annual Salary 明确为 USD 320000–405000；股票和福利不加到该区间。",
+    "salary": "Annual Salary: $320,000 - $405,000 USD", "salary_min": 320000, "salary_max": 405000, "currency": "USD", "salary_period": "year",
+    "salary_evidence": "Annual Salary: $320,000 - $405,000 USD",
+    "sampling_note": "资深岗位，要求六年以上经验；不可与应届岗位直接推断同级薪酬。"
+  },
+  {
+    "sample_id": "market-04", "text_kind": "source_summary", "source_type": "real",
+    "title": "Data Analyst - MARVEL Strike Force", "company": "Scopely",
+    "source_url": "https://job-boards.greenhouse.io/scopely/jobs/5301857008",
+    "source_name": "Scopely · Greenhouse", "collected_at": "2026-09-08",
+    "jd_text": "来源摘要，非 JD 全文：游戏数据分析岗位，分析玩家留存、参与度、付费和长期运营表现。要求量化相关学位，以及两年以上数据分析、SQL/Python 和 Tableau/Looker 等报告工具经验；还需实验设计、统计显著性判断和业务沟通能力。dbt、Snowflake、BigQuery、Git 与移动游戏经验为加分项。仅对 CA、CO、NJ、NY、WA 候选人明确 Annual Salary Range：USD 91300–140000。",
+    "salary": "CA, CO, NJ, NY, WA Annual Salary Range: $91,300 - $140,000 USD", "salary_min": 91300, "salary_max": 140000, "currency": "USD", "salary_period": "year",
+    "salary_evidence": "CA, CO, NJ, NY, and WA Annual Salary Range: $91,300 - $140,000 USD",
+    "sampling_note": "仅适用于页面列明的美国州，不据此填加拿大或其他地区薪资。"
+  },
+  {
+    "sample_id": "market-05", "text_kind": "source_summary", "source_type": "real",
+    "title": "Software Engineer - New Grad", "company": "Scale AI",
+    "source_url": "https://job-boards.greenhouse.io/scaleai/jobs/4730836005",
+    "source_name": "Scale AI · Greenhouse", "collected_at": "2026-09-08",
+    "jd_text": "来源摘要，非 JD 全文：旧金山应届软件工程岗位，面向 2026 年秋季或 2027 年春季相关学位毕业生。要求产品或软件工程实习经历、全栈产品开发及大数据量系统经验；技术条件列举 Python、TypeScript、React 和/或 MongoDB。项目涉及评估基础设施、强化学习数据管道和 AI 应用。旧金山 base salary 区间是 USD 124000–162000；所读取薪资段落没有明确 year/month，周期保留未知。",
+    "salary": "San Francisco base salary range: $124,000 - $162,000 USD; period unconfirmed", "salary_min": 124000, "salary_max": 162000, "currency": "USD", "salary_period": null,
+    "salary_evidence": "The base salary range for this full-time position in the location of San Francisco is: $124,000 - $162,000 USD",
+    "sampling_note": "只确认上下界与币种；不得因为数值看似年薪就自行补 year。"
+  }
+]

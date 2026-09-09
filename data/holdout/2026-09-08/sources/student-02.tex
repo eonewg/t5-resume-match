@@ -1,0 +1,65 @@
+\section{Education}
+\datedsubsection{\textbf{Southwest Petroleum University}, Chengdu, Sichuan}{September 2023 -- Present}
+\textit{Undergraduate Student}, School of Computer and Software Engineering, Data Science and Big Data Technology
+\begin{itemize}
+  \item \textbf{Academic Performance}: GPA: 4.13/5.0, Major Ranking: 1/66
+  \item \textbf{Languages}: English CET-6 (478)
+  \item \textbf{Core Courses}: Advanced Mathematics II(95), Linear Algebra(91), Probability and Statistics(93), Principles of Statistics(93), Data Structures and Algorithms(90)
+\end{itemize}
+
+\section{Project Experience}
+
+\datedsubsection{\textbf{Tecorigin Deep Learning Operator Performance Optimization}}{June 2024 -- December 2024}
+\begin{itemize}
+  \item \textbf{Work}: Team leader in the 2nd OpenAtom Tecorigin Operator Development Challenge; profiled the Conv forward operator, identified I/O as the 93.1\% bottleneck, and designed 234KB SPM management, double buffering, async pipeline, and floatv16 SIMD data reordering.
+  \item \textbf{Result}: Reduced runtime from 1820.78ms to 489.18ms, achieving a 3.7x speedup; fixed the output layout mismatch between the GEMM library and NHWC format, and won National Third Prize.
+\end{itemize}
+
+\datedsubsection{\textbf{Sunway PCG Solver Optimization}}{February 2024 -- April 2024}
+\begin{itemize}
+  \item \textbf{Work}: Individual project from the 7th Domestic CPU Parallel Application Challenge; refactored PCG on Sunway 64-core slave-core architecture, parallelized SpMV, dot product, and preconditioning with athread, and optimized DMA/LDM data movement and blocking.
+  \item \textbf{Result}: After 40+ optimization iterations, reduced runtime from 1287s to 32.5s and achieved a 39.6x speedup.
+\end{itemize}
+
+\datedsubsection{\textbf{Parallel Computing Optimization for Oil Spill Prediction Model}}{May 2024 -- August 2024}
+\begin{itemize}
+  \item \textbf{Work}: Team leader in the 2024 Marine Computing Challenge Finals; implemented MPI+OpenMP hybrid parallelization for a 2D oil spill prediction model, used VTune for bottleneck analysis, and optimized load balance, memory access, communication, segment pruning, and binary search.
+  \item \textbf{Result}: Passed official correctness verification, achieved a 2482.14x speedup over the baseline, ranked 5th in the finals, and won National Third Prize.
+\end{itemize}
+
+\section{Research Experience}
+\datedsubsection{\textbf{Image Processing and Parallel Computing Laboratory (IPPC Lab)}, Southwest Petroleum University}{May 2024 -- September 2025}
+\role{3D Ultrasound Speckle Tracking Algorithm Optimization}{Sichuan Student Innovation Program; Advisor: Prof. Bo Peng}
+\begin{itemize}
+  \item Rebuilt the serial MATLAB workflow as a CUDA C++ parallel pipeline for high-volume cross-correlation in 3D ultrasound speckle tracking, decomposing it into RF integral volume construction, cross-correlation integral volume generation, and 3D subpixel displacement estimation GPU stages
+  \item Optimized memory access for large-scale 3D prefix-sum computation and introduced warp-level cooperation, accelerating the core kernel by 11.11x and reducing end-to-end runtime from 16.32s to 0.22s, about 73x faster
+\end{itemize}
+
+\datedsubsection{\textbf{CUDA Acceleration for Large-Scale Image Pretraining Data Generation}}{October 2025 -- March 2026}
+\begin{itemize}
+  \item Rewrote large-image tiling, noise injection, and training sequence generation for Hierarchical Denoising Encoder (HDE) pretraining in CUDA C++, packaging the workflow as a Python-callable module
+  \item Decomposed the pipeline into integral image computation, quadtree partitioning, hierarchical noise generation, and patch synthesis, processing 8192$\times$8192 images on A100 in 3.16s with 13.0x speedup over CPU, 2.35x over CuPy, and 69.1x faster noise generation
+\end{itemize}
+
+\section{Technical Skills}
+\begin{itemize}[parsep=0.5ex]
+  \item \textbf{Programming Languages}: C/C++, Fortran, Python
+  \item \textbf{Parallel Computing}: CUDA, HIP, OpenMP, MPI, Sunway; CPU/GPU architecture and Sunway platform
+  \item \textbf{Optimization}: Operator, memory access, communication, and performance bottleneck analysis
+  \item \textbf{Language}: CET-6 English (478)
+\end{itemize}
+
+\section{Awards and Honors}
+\datedline{\textit{International Second Prize}, ASC2025 World Student Supercomputer Challenge}{June 2025}
+\datedline{\textit{Invited Participant}, SC24 International Supercomputing Competition Online Track IndySCC}{November 2024}
+\datedline{\textit{National Third Prize}, 2024 Marine Computing Challenge Finals}{August 2024}
+\datedline{\textit{National Third Prize}, Tecorigin Operator Development Challenge Finals}{December 2024}
+\datedline{\textit{Provincial Second Place}, Tianyi Cloud Xirang Cup College AI Competition, Sichuan Provincial Competition}{July 2025}
+\datedline{\textit{National Third Prize}, 15th Blue Bridge Cup National Finals}{June 2024}
+\datedline{\textit{First-class Scholarship, Second-class Scholarship}, Southwest Petroleum University Outstanding Student Scholarship}{2024}
+
+%% Reference
+%\newpage
+%\bibliographystyle{IEEETran}
+%\bibliography{mycite}
+\end{document}

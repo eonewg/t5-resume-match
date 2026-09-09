@@ -1,0 +1,67 @@
+// Explicit paid-model browser acceptance; use a disposable product_browser_server with --live-diagnosis --market-supplement.
+const {chromium} = require('playwright');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+(async () => {
+  if (process.env.T5_RUN_LIVE_BROWSER !== '1') throw new Error('Set T5_RUN_LIVE_BROWSER=1 for the explicit live check');
+  const base = process.env.T5_SMOKE_URL || 'http://127.0.0.1:8770';
+  const browser = await chromium.launch({channel:'msedge',headless:true});
+  const page = await browser.newPage({viewport:{width:1440,height:1000}});
+  const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  const report={status:'running',checks:[],is_mock:null};
+  try {
+    await page.goto(base+'/#resume');
+    const modes=await (await page.request.get(base+'/api/v1/modules')).json();
+    assert.equal(modes.diagnosis.is_mock,false);
+    await page.locator('#resume-parse:enabled').waitFor();
+    const raw='姓名：合成验收\n技能：Python、SQL\n项目经历：使用 Python 清洗 120 条课程记录，用 SQL 汇总。';
+    const confirmed='使用 SQL 汇总 120 条课程记录，整理了结果。';
+    await page.locator('#resume-raw').fill(raw);await page.locator('#resume-parse').click();
+    await page.locator('#resume-status').filter({hasText:'解析完成'}).waitFor();
+    await page.locator('#resume-skills').fill('SQL');await page.locator('#resume-experience-0').fill(confirmed);
+    await page.locator('#resume-reviewed').check();await page.locator('#resume-save').click();
+    await page.locator('#resume-status').filter({hasText:'已保存并重新读取'}).waitFor();
+    const resumeId=await page.locator('#resume-history').inputValue();
+    await page.locator('#resume-next').click();await page.locator('#jobs-status').filter({hasText:'已加载'}).waitFor();
+    await page.locator('.job-form summary').click();
+    await page.locator('#jobs-title').fill('合成验收：数据分析实习生');await page.locator('#jobs-text').fill('需要 SQL 汇总能力、Python 与清晰的数据分析说明。');
+    await page.locator('.job-form button[type=submit]').click();await page.locator('#jobs-status').filter({hasText:'岗位要求 已解析并保存'}).waitFor();
+    await page.locator('#jobs-run').click();await page.locator('#jobs-result:not([hidden])').waitFor();
+    assert.match(await page.locator('#jobs-result').innerText(),/33.33%/);
+    report.checks.push('confirmed SQL-only resume persisted and matched; raw Python did not return');
+    await page.locator('[data-view="diagnosis"]').click();
+    const responsePromise=page.waitForResponse(r=>r.url()===base+'/api/v1/diagnoses'&&r.request().method()==='POST',{timeout:125000});
+    const started=Date.now();await page.locator('#diagnosis-run').click();
+    const response=await responsePromise;assert.equal(response.status(),201);
+    const diagnosis=await response.json();report.latency_seconds=(Date.now()-started)/1000;report.is_mock=diagnosis.is_mock;
+    assert.equal(diagnosis.is_mock,false);assert.equal(diagnosis.resume_id,resumeId);
+    assert.ok(diagnosis.suggestions.some(s=>s.startsWith('【STAR】')));
+    assert.ok(diagnosis.suggestions.some(s=>s.startsWith('【岗位建议】')));
+    assert.ok(diagnosis.suggestions.filter(s=>s.startsWith('【STAR】')).every(s=>!s.includes('使用 Python 清洗')));
+    await page.getByTestId('diagnosis-result-mode').filter({hasText:'优化建议 · 使用前请核实事实'}).waitFor();
+    report.checks.push('live browser Diagnosis produced STAR/JD output from confirmed facts, not archived raw text');
+    await page.screenshot({path:'.verification/final-diagnosis-desktop.png',fullPage:true});
+    await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+    await page.screenshot({path:'.verification/final-diagnosis-mobile.png',fullPage:true});
+    await page.setViewportSize({width:1440,height:1000});
+    await page.route('**/api/v1/diagnoses',route=>route.fulfill({status:502,contentType:'application/json',body:JSON.stringify({error:{message:'受控失败：模型不可用'}})}));
+    await page.locator('#diagnosis-run').click();await page.getByRole('status').filter({hasText:'受控失败'}).waitFor();
+    assert.equal(await page.getByTestId('diagnosis-result').isVisible(),false);await page.unroute('**/api/v1/diagnoses');
+    await page.locator('#diagnosis-run').click();await page.getByTestId('diagnosis-result-mode').filter({hasText:'优化建议 · 使用前请核实事实'}).waitFor();
+    report.checks.push('controlled failure clears result; explicit retry returns cached real output, no Mock fallback');
+    await page.locator('[data-view="analytics"]').click();await page.locator('#analytics-source:enabled').waitFor();
+    await page.locator('.analytics-library summary').click();await page.locator('#analytics-import').click();
+    await page.locator('#analytics-status').filter({hasText:'新增 5 条'}).waitFor();
+    const market=await (await page.request.get(base+'/api/v1/analytics?source_type=real')).json();
+    assert.equal(market.market.sample_size,10);assert.equal(market.market.company_count,6);
+    assert.deepEqual(market.market.salary_coverage,{comparable_count:4,missing_range_count:5,missing_unit_count:1});
+    await page.locator('#analytics-salary').waitFor();await page.screenshot({path:'.verification/final-market-desktop.png',fullPage:true});
+    await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+    await page.screenshot({path:'.verification/final-market-mobile.png',fullPage:true});
+    const reread=await (await page.request.get(base+'/api/v1/resumes/'+resumeId)).json();
+    assert.equal(reread.raw_text,raw);assert.deepEqual(reread.experience,[confirmed]);assert.deepEqual(reread.skills,['SQL']);
+    assert.deepEqual(errors,[]);report.checks.push('10 real jobs / 6 companies / 4 USD-year ranges; 5 missing ranges and 1 unknown period excluded; mobile and reread pass');
+    report.status='passed';fs.writeFileSync('.verification/final-market-report.json',JSON.stringify(market,null,2));
+  } catch(error) {report.status='failed';report.error=error.message;throw error;}
+  finally {fs.writeFileSync('.verification/final-browser-report.json',JSON.stringify(report,null,2));await browser.close();console.log(JSON.stringify(report));}
+})().catch(e=>{console.error(e.message);process.exitCode=1});

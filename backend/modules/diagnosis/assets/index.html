@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>简历 AI 诊断 · T5</title>
+<style>
+:root{font-family:"Microsoft YaHei",system-ui,sans-serif;color:#18312d;background:#f3f6f3;font-synthesis:none}
+*{box-sizing:border-box}body{margin:0}header{background:#153e35;color:#fff;padding:24px max(5vw,20px)}
+header small{color:#b2d2c0;letter-spacing:2px}header h1{font-size:30px;margin:12px 0}header p{color:#d4e6db;line-height:1.7}
+main{max-width:1180px;margin:26px auto;padding:0 20px}.mode{padding:12px 16px;border:1px solid #adc3b5;border-radius:8px;background:#e8f1e9;line-height:1.7}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:22px 0}.panel{background:white;border:1px solid #dbe4dc;border-radius:12px;padding:22px}
+label{display:block;font-weight:bold;margin-bottom:12px}textarea{width:100%;min-height:250px;border:1px solid #b8c9be;border-radius:7px;padding:13px;font:inherit;font-size:14px;resize:vertical;line-height:1.7}
+textarea:focus,button:focus-visible{outline:3px solid #8ecfb4;outline-offset:2px}button{border:0;border-radius:7px;padding:13px 24px;font:inherit;cursor:pointer;background:#1b6550;color:white}
+button.secondary{background:#e0ebe3;color:#234b3e;margin-left:10px}button:disabled{opacity:.5;cursor:wait}.help{font-size:13px;color:#587167;line-height:1.7}
+#status{min-height:26px;margin:15px 0;white-space:pre-wrap}h2{font-size:20px}h3{font-size:16px;color:#1b6550}.rewrite{border-top:1px solid #e1e8e2;padding:12px 0;white-space:pre-wrap;line-height:1.8}
+li{margin:10px 0;line-height:1.8}#summary{line-height:1.8;white-space:pre-wrap}.error{color:#a32a28}footer{padding:24px;text-align:center;color:#688073;font-size:13px}
+@media(max-width:720px){.grid{grid-template-columns:1fr}header h1{font-size:25px}textarea{min-height:190px}}
+</style>
+<script src="assets/app.js" defer></script>
+</head>
+<body>
+<header><small>T5 / RESUME INSIGHTS</small><h1>让真实经历表达得更清楚</h1><p>粘贴简历与岗位描述，获取 STAR 经历优化、岗位建议与关键词提醒。</p></header>
+<main>
+<div id="mode" class="mode">正在检查服务模式…</div>
+<form id="form">
+<div class="grid">
+<section class="panel"><label for="resume">简历原文</label><textarea id="resume" required maxlength="50000" placeholder="粘贴教育背景、技能及项目经历…"></textarea><p class="help">建议去除电话、身份证号等与诊断无关的信息。</p></section>
+<section class="panel"><label for="jd">目标岗位 JD</label><textarea id="jd" required maxlength="50000" placeholder="粘贴岗位职责和任职要求…"></textarea><p class="help">提供完整要求，有助于获得更具体的改进建议。</p></section>
+</div>
+<button id="submit" type="submit">开始诊断</button><button id="example" class="secondary" type="button">填入示例</button>
+<p id="status" role="status" aria-live="polite"></p>
+</form>
+<section id="results" hidden>
+<div class="panel"><h2>诊断摘要</h2><p id="summary"></p></div>
+<div class="grid"><div class="panel"><h2>STAR 经历优化</h2><div id="stars"></div></div><div class="panel"><h2>岗位定向建议</h2><ul id="suggestions"></ul><h3>关键词 · 需结合真实能力核实</h3><ul id="keywords"></ul></div></div>
+<div class="panel"><h2>核实与补充</h2><ul id="risks"></ul></div>
+</section>
+</main><footer>AI 建议供修改参考，使用前请核实事实；不编造经历、技能或成果。</footer>
+</body></html>

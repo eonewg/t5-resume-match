@@ -1,0 +1,22 @@
+{
+  "kind": "offline AI failure fixture; no external model call",
+  "widths": [
+    {
+      "width": 1440,
+      "rawLength": 2906,
+      "uploadCalls": 1,
+      "retries": 1,
+      "manualSaved": true,
+      "rawPreserved": true
+    },
+    {
+      "width": 390,
+      "rawLength": 2906,
+      "uploadCalls": 1,
+      "retries": 1,
+      "manualSaved": true,
+      "rawPreserved": true
+    }
+  ],
+  "status": "passed"
+}
