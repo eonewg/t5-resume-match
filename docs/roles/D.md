@@ -1,7 +1,7 @@
 # D：Jobs、Matching、Embedding 与 AI Diagnosis
 
-固定分支：`feat/intelligence-d`，首次从最新 `origin/feat/core-a` 创建。
-固定 PR：`feat/intelligence-d -> feat/core-a`。
+当前从最新 main 创建维护分支，PR 指向 main；不要求 owner 后缀。
+下述 D 模块职责用于协作审查；可选 local scope 保留目录约束，现代 PR 的 CI 不按 owner 限制路径。
 遵守 [协作规则](../team-rules.md) 和 [T5 需求](../../T5_REQUIREMENTS_MATRIX.md)。
 
 ## 责任范围

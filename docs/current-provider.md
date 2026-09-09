@@ -56,6 +56,10 @@ Diagnosis 的 client/config/capabilities/schema/service 均未修改，STAR 子�
 ## PR 边界
 
 目标为 `chore/deepseek-official-unify → main`，不自动合并。
-现有 `scripts/check_scope.py` 仍限定旧 A/D 命名及 `feat/core-a` 目标，
-会拒绝本轮指定的 chore 分支；这属于旧 CI 分支规则与最终 main 维护流程不一致。
-本轮未扩大 Provider 迁移范围去修改该规则，PR 的此项 CI 限制需单独处理。
+PR #14 后续已更新维护 CI 政策：main push 及常规维护分支 → main 不再依赖旧 A/D 拓扑；
+全部 Git 跟踪文件的交付禁项与大小检查保留，四模块契约检查始终执行。
+旧 D 目录 scope 作为显式本地工具保留，详见 [团队维护流程](team-rules.md)。
+
+CI 政策修订本地验证：111 项成员/分支/交付禁项测试通过；全量 655 passed（含 PostgreSQL，
+2 条既有依赖警告），77 项前端测试、Ruff check/format、PostgreSQL smoke 与四模块契约检查通过。
+本次 CI 修订未改 DeepSeek 业务实现，也未追加真实模型调用。

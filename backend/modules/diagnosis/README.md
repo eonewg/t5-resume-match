@@ -1,6 +1,6 @@
 # Diagnosis 模块
 
-本阶段分支 `feat/diagnosis-llm-d`，PR 指向 `feat/core-a`。D 维护三协议 LLM 层、STAR/JD 诊断、事实边界校验、重试和缓存；公共契约与数据库保持不变。
+开发期曾使用 `feat/diagnosis-llm-d → feat/core-a`；当前从 main 创建维护分支并向 main 提 PR。D 维护三协议 LLM 层、STAR/JD 诊断、事实边界校验、重试和缓存；公共契约与数据库保持不变。
 
 完整配置、能力表和真实验收见 [多协议验收记录](../../../docs/integration_requests/D-diagnosis-llm.md)。
 

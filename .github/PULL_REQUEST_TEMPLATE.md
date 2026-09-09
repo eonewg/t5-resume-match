@@ -1,8 +1,8 @@
 ## 本次交付
 
-- Owner 与源分支（A：feat/core-a；D：feat/intelligence-d）：
-- 目标分支（D → feat/core-a；最终交付仅 feat/core-a → main）：
-- 待验收提交 SHA / A 基线：
+- 维护源分支（feat/*、fix/*、chore/*、docs/*、test/*、refactor/*）：
+- 目标分支（main）：
+- 待验收提交 SHA / main 基线：
 - 对应 T5 条目（问题定义 / Level 1 / Level 2 / Level 3 / 基础设施）：
 - 模块（resume / jobs-matching / diagnosis / analytics）与本次完成行为：
 - 尚未实现、仍为 Mock 或需公共适配的内容：
@@ -19,4 +19,4 @@
 
 区分离线替身、Mock 与真实 AI/数据库验证；不附真实密钥。不虚构实验结果。
 
-A 按准确提交记录 PASS/BLOCKED/ADAPT。D 的 Jobs/Matching（含 Embedding）与 Diagnosis 分别验收，每项提供准确证据。最终 PR 还需提供 PostgreSQL/pgvector、完整演示、E2E、README 和 clean clone / fresh install 证据。
+A 按准确提交记录 PASS/BLOCKED/ADAPT。D 的 Jobs/Matching（含 Embedding）与 Diagnosis 分别验收，每项提供准确证据。维护 PR 按变更范围提供必要的数据库、UI 或运行验证；历史最终交付证据保持原样。
