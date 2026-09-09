@@ -129,6 +129,11 @@ class ResumeAIService:
             )
         else:
             payload.update(messages=messages, response_format=form)
+            if (
+                settings.llm_vendor == "custom"
+                and settings.llm_model.casefold() == "ling-3.0-flash"
+            ):
+                payload.update(thinking={"type": "disabled"}, max_tokens=4096)
         headers = {
             "Authorization": "Bearer " + settings.llm_api_key.get_secret_value(),
             "Content-Type": "application/json",

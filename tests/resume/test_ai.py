@@ -53,6 +53,7 @@ def test_ai_success_protocol_and_raw_fidelity(style, mode):
         assert messages[1]["content"] == RAW
         form = payload["text"]["format"] if style == "responses" else payload["response_format"]
         assert form["type"] == mode
+        assert "thinking" not in payload and "max_tokens" not in payload
         if mode == "json_schema":
             schema = form if style == "responses" else form["json_schema"]
             assert schema["strict"] is True
@@ -200,3 +201,25 @@ def test_semantic_quality_does_not_block_valid_drafts(skills):
         TextInput(raw_text=raw)
     )
     assert result.model_dump() == {**facts, "raw_text": raw}
+
+
+@pytest.mark.parametrize("mode", ["json_schema", "json_object"])
+def test_ling_flash_payload_disables_thinking_and_bounds_output(mode):
+    config = settings(structured_output=mode).model_copy(update={"llm_model": "Ling-3.0-flash"})
+    calls = []
+
+    def send(endpoint, payload, headers, timeout):
+        calls.append((payload, timeout))
+        return response()
+
+    result = ResumeAIService(config, send).parse(TextInput(raw_text=RAW))
+    assert len(calls) == 1
+    payload, timeout = calls[0]
+    assert payload["thinking"] == {"type": "disabled"}
+    assert payload["max_tokens"] == 4096
+    assert payload["response_format"]["type"] == mode
+    if mode == "json_schema":
+        assert payload["response_format"]["json_schema"]["strict"] is True
+    assert "reasoning_effort" not in payload
+    assert timeout == 30
+    assert result.raw_text == RAW

@@ -1,6 +1,7 @@
 """Three wire adapters, one bounded transport. Retries belong to DiagnosisService."""
 
 import json
+import logging
 import time
 from typing import Protocol
 from urllib.request import Request
@@ -10,6 +11,91 @@ from .config import DiagnosisSettings
 from .errors import ConfigurationError, DiagnosisError, InvalidOutputError
 from .transport import NoRedirect as NoRedirect
 from .transport import attempt_context, bounded_request, classify, raise_failure, transport_metrics
+
+
+def response_envelope_shape(document):
+    """Protocol structure only; redact unknown keys and nonstandard control values."""
+    known_keys = {
+        "id",
+        "object",
+        "created",
+        "model",
+        "choices",
+        "usage",
+        "system_fingerprint",
+        "service_tier",
+        "error",
+        "code",
+        "message",
+        "data",
+        "status",
+        "output",
+        "type",
+        "content",
+        "index",
+        "finish_reason",
+        "logprobs",
+        "delta",
+        "role",
+        "refusal",
+        "reasoning_content",
+        "reasoning",
+        "tool_calls",
+        "function_call",
+        "audio",
+        "annotations",
+        "name",
+        "summary",
+        "star_rewrites",
+        "jd_targeted_suggestions",
+        "keywords_to_strengthen",
+        "risks",
+    }
+
+    def keys(value):
+        return (
+            [key if key in known_keys else "<other>" for key in value][:32]
+            if isinstance(value, dict)
+            else []
+        )
+
+    def control(value, allowed):
+        return (
+            value
+            if value is None or isinstance(value, str) and value in allowed
+            else "<nonstandard>"
+        )
+
+    choices = document.get("choices") if isinstance(document, dict) else None
+    choice = choices[0] if isinstance(choices, list) and choices else None
+    message = choice.get("message") if isinstance(choice, dict) else None
+    content = message.get("content") if isinstance(message, dict) else None
+    return {
+        "top_level_keys": keys(document),
+        "choices_count": len(choices) if isinstance(choices, list) else None,
+        "choice_keys": keys(choice),
+        "finish_reason": control(
+            choice.get("finish_reason") if isinstance(choice, dict) else None,
+            {
+                "stop",
+                "length",
+                "tool_calls",
+                "function_call",
+                "content_filter",
+                "end_turn",
+                "completed",
+                "max_tokens",
+                "",
+            },
+        ),
+        "message_keys": keys(message),
+        "role": control(
+            message.get("role") if isinstance(message, dict) else None,
+            {"assistant", "user", "system", "developer", "tool", "function", "model", ""},
+        ),
+        "content_type": "null" if content is None else type(content).__name__,
+        "has_reasoning_content": isinstance(message, dict) and "reasoning_content" in message,
+    }
 
 
 class LLMClient(Protocol):
@@ -86,6 +172,14 @@ class HTTPClient:
                 metrics["status"] = "text"
                 return content
             except (ValueError, KeyError, IndexError, TypeError, AttributeError, RecursionError):
+                metrics["envelope_shape"] = response_envelope_shape(document)
+                logging.getLogger(__name__).warning(
+                    "diagnosis envelope_shape %s", json.dumps(metrics["envelope_shape"])
+                )
+                if metrics["envelope_shape"]["finish_reason"] == "content_filter":
+                    raise InvalidOutputError(
+                        "上游模型内容过滤，未生成简历诊断", phase="content_filter"
+                    ) from None
                 raise InvalidOutputError(
                     "模型响应格式无效、为空或未正常结束", phase="response_envelope"
                 ) from None
@@ -119,9 +213,12 @@ class OpenAIChatClient(HTTPClient):
         body["max_completion_tokens" if config.llm_vendor == "openai" else "max_tokens"] = (
             config.max_tokens
         )
-        if config.llm_vendor != "custom":
+        ling_flash = config.llm_vendor == "custom" and config.model.casefold() == "ling-3.0-flash"
+        if config.llm_vendor != "custom" or ling_flash:
             body["response_format"] = {"type": "json_object"}
-        if effort is not None:
+        if ling_flash:
+            body["thinking"] = {"type": "disabled"}
+        elif effort is not None:
             if config.llm_vendor == "deepseek":
                 body["thinking"] = {"type": "disabled" if effort == "none" else "enabled"}
                 if effort != "none":

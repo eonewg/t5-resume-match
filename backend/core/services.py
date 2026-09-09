@@ -38,6 +38,8 @@ def invoke(provider, method: str, schema: type[BaseModel], *args):
     except Exception as error:
         # Do not put resume text, provider URLs or credentials in error responses/logs.
         logger.error("Provider %s failed (%s)", method, type(error).__name__)
+        if method == "diagnose" and getattr(error, "phase", None) == "content_filter":
+            raise HTTPException(502, "上游模型内容过滤，未生成简历诊断") from error
         raise HTTPException(502, "模块执行失败或返回值不符合公共契约") from error
 
 

@@ -1,9 +1,12 @@
 import io
 import json
+from types import SimpleNamespace
 from urllib.error import HTTPError, URLError
 
 import pytest
+from fastapi import HTTPException
 
+from backend.core.services import invoke
 from backend.modules.diagnosis.client import (
     AnthropicMessagesClient,
     NoRedirect,
@@ -21,7 +24,7 @@ from backend.modules.diagnosis.errors import (
 from backend.modules.diagnosis.mock import MockLLM
 from backend.modules.diagnosis.prompts import build_messages
 from backend.modules.diagnosis.public import DiagnosisService
-from backend.schemas.contracts import DiagnosisInput
+from backend.schemas.contracts import DiagnosisInput, DiagnosisResult
 
 TEXT = '{"final":"JSON"}'
 MESSAGES = [{"role": "system", "content": "Only JSON"}, {"role": "user", "content": "resume"}]
@@ -426,3 +429,134 @@ def test_strict_diagnosis_schema_and_safe_usage(style):
     invalid = create_client(config(api_style=style), opener=FixtureTransport(response(style, "{}")))
     with pytest.raises(InvalidOutputError):
         DiagnosisService(invalid, settings=config(max_attempts=1)).diagnose(inputs)
+
+
+def test_ling_flash_payload_requests_json_without_reasoning():
+    settings = config(
+        llm_vendor="custom",
+        api_style="openai_chat",
+        base_url="https://example.test/v1",
+        model="Ling-3.0-flash",
+    )
+    opener = FixtureTransport(response("openai_chat"))
+    assert create_client(settings, opener=opener).complete(MESSAGES) == TEXT
+    assert len(opener.requests) == 1
+    request, timeout = opener.requests[0]
+    payload = json.loads(request.data)
+    assert payload["thinking"] == {"type": "disabled"}
+    assert payload["response_format"] == {"type": "json_object"}
+    assert "reasoning_effort" not in payload
+    assert payload["max_tokens"] == 4096
+    assert timeout == 45
+
+
+def test_envelope_failure_reports_shape_without_content_or_keys(caplog):
+    metrics = []
+    document = {
+        "id": "PRIVATE_RESPONSE_ID",
+        "PRIVATE_TOP_KEY": "PRIVATE_KEY",
+        "choices": [
+            {
+                "finish_reason": "stop",
+                "index": 0,
+                "message": {
+                    "role": None,
+                    "content": [{"text": "PRIVATE_RESUME"}],
+                    "reasoning_content": "PRIVATE_JD",
+                    "PRIVATE_MESSAGE_KEY": "PRIVATE_KEY",
+                },
+            }
+        ],
+    }
+    with pytest.raises(InvalidOutputError) as error:
+        create_client(
+            config(api_style="openai_chat"),
+            opener=FixtureTransport(document),
+            on_attempt=metrics.append,
+        ).complete(MESSAGES)
+    assert error.value.phase == "response_envelope"
+    shape = metrics[0]["envelope_shape"]
+    assert shape["choices_count"] == 1
+    assert shape["choice_keys"] == ["finish_reason", "index", "message"]
+    assert shape["finish_reason"] == "stop" and shape["role"] is None
+    assert shape["content_type"] == "list" and shape["has_reasoning_content"] is True
+    assert "choices" in shape["top_level_keys"]
+    assert "reasoning_content" in shape["message_keys"]
+    assert "PRIVATE" not in json.dumps(metrics) + caplog.text + str(error.value)
+    assert "envelope_shape" in caplog.text
+
+
+def test_envelope_shape_redacts_nonstandard_control_values(caplog):
+    metrics = []
+    document = {
+        "choices": [
+            {
+                "finish_reason": "PRIVATE_KEY",
+                "message": {"role": "PRIVATE_RESUME", "content": "PRIVATE_JD"},
+            }
+        ]
+    }
+    with pytest.raises(InvalidOutputError):
+        create_client(
+            config(api_style="openai_chat"),
+            opener=FixtureTransport(document),
+            on_attempt=metrics.append,
+        ).complete(MESSAGES)
+    assert metrics[0]["envelope_shape"]["content_type"] == "str"
+    assert "PRIVATE" not in json.dumps(metrics) + caplog.text
+
+
+def test_content_filter_envelope_stays_a_failure_without_logging_refusal(caplog):
+    metrics = []
+    document = {
+        "id": "PRIVATE_ID",
+        "created": 0,
+        "model": "Ling-3.0-flash",
+        "object": "chat.completion",
+        "usage": {},
+        "choices": [
+            {
+                "finish_reason": "content_filter",
+                "index": 0,
+                "message": {
+                    "role": "assistant",
+                    "content": "PRIVATE_CONTENT",
+                    "refusal": "PRIVATE_REFUSAL",
+                },
+            }
+        ],
+    }
+    opener = FixtureTransport(document)
+    with pytest.raises(InvalidOutputError) as error:
+        create_client(
+            config(api_style="openai_chat"), opener=opener, on_attempt=metrics.append
+        ).complete(MESSAGES)
+    assert error.value.phase == "content_filter"
+    assert len(opener.requests) == 1
+    shape = metrics[0]["envelope_shape"]
+    assert shape["finish_reason"] == "content_filter"
+    assert str(error.value) == "上游模型内容过滤，未生成简历诊断"
+    assert shape["role"] == "assistant" and shape["content_type"] == "str"
+    assert "refusal" in shape["message_keys"]
+    assert "PRIVATE" not in caplog.text + json.dumps(metrics)
+
+
+@pytest.mark.parametrize("finish_reason", ["content_filter", "tool_calls"])
+def test_diagnosis_boundary_explains_only_content_filter(finish_reason):
+    inputs = DiagnosisInput(resume_text="使用 Python 清洗数据", jd_text="需要 SQL 数据分析")
+    document = response("openai_chat")
+    document["choices"][0]["finish_reason"] = finish_reason
+    document["choices"][0]["message"]["content"] = "PRIVATE_CONTENT"
+    opener = FixtureTransport(document)
+    settings = config(api_style="openai_chat")
+    service = DiagnosisService(create_client(settings, opener=opener), settings=settings)
+
+    with pytest.raises(HTTPException) as error:
+        invoke(SimpleNamespace(service=service), "diagnose", DiagnosisResult, inputs)
+    assert error.value.status_code == 502
+    assert error.value.detail == (
+        "上游模型内容过滤，未生成简历诊断"
+        if finish_reason == "content_filter"
+        else "模块执行失败或返回值不符合公共契约"
+    )
+    assert len(opener.requests) == 1
