@@ -30,7 +30,7 @@ from backend.schemas.contracts import (
     TextInput,
 )
 from examples.fixtures import load_cases
-from scripts.member_specs import BRANCHES, D_BRANCHES, D_UI_BRANCH, MODULES, OWNER_MODULES
+from scripts.member_specs import D_UI_BRANCH, MODULES, OWNER_MODULES, branch_owner
 
 
 class CheckFailure(Exception):
@@ -180,11 +180,13 @@ def ci_modules(ref: str, root=ROOT):
     if ref == D_UI_BRANCH:
         # UI uses all four existing contracts; this grants no backend edit permission.
         return list(MODULES)
-    if ref in D_BRANCHES:
+    owner = branch_owner(ref)
+    if owner == "D":
         # Require both deliveries even if one module has not been created yet.
         return list(OWNER_MODULES["D"])
-    require(ref in ("main", BRANCHES["A"]), f"未知 owner 分支 {ref}，请使用团队约定的分支名")
-    return [key for key, spec in MODULES.items() if (root / f"backend/modules/{key}").exists()]
+    if ref == "main" or owner == "A":
+        return [key for key, spec in MODULES.items() if (root / f"backend/modules/{key}").exists()]
+    raise CheckFailure(f"未知 owner 分支 {ref}，请使用团队约定的分支名 feat/*-a 或 feat/*-d")
 
 
 def main(argv=None):
