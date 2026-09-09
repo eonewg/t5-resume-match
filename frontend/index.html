@@ -22,12 +22,11 @@
       <a href="#diagnosis" data-view="diagnosis">简历优化</a>
       <a href="#analytics" data-view="analytics">市场洞察</a>
     </nav>
-    <div class="sidebar-footer"><a href="#workspace">快捷原文分析</a><br><span class="tiny-dot"></span>本地工作空间<small>内容保存在当前服务中</small></div>
+    <div class="sidebar-footer"><details><summary>演示工具</summary><a href="#workspace">快捷原文分析</a></details></div>
   </aside>
   <div class="app-frame">
-    <header class="topbar"><span>工作空间 <span class="separator">/</span> <strong id="page-label">求职准备</strong></span><span id="connection-status" class="status-pill" role="status">正在连接…</span></header>
+    <header class="topbar"><strong id="page-label">求职准备</strong><div class="service-status"><details id="mode-banner" class="service-notice" hidden><summary id="mode-summary"></summary><p id="mode-detail"></p></details><span id="connection-status" class="status-pill" role="status">正在连接…</span></div></header>
     <main id="main-content">
-      <div id="mode-banner" class="notice" role="status" hidden></div>
       <section id="workspace-view" aria-labelledby="workspace-title">
         <div class="section-heading"><div><h1 id="workspace-title">快捷原文分析</h1><p>使用原文快速体验。已确认的简历请从“我的简历”继续。</p></div></div>
         <div class="card editor-entry"><div><strong>先确认简历中的事实</strong><p>解析、编辑并保存简历内容，再将确认版本用于岗位匹配。</p></div><a class="button primary" href="#resume">进入我的简历 →</a></div>
@@ -60,7 +59,6 @@
         <div id="empty-results" class="empty-results"><div><h3>每一次准备，都更有方向</h3><p>提交后，匹配结果与诊断建议会显示在这里。</p></div></div>
       </section>
       <section id="module-view" hidden aria-label="模块页面"></section>
-      <footer class="page-footer">简历与岗位 · <a href="#workspace">快捷原文分析</a><span>真实表达，具体改进。</span></footer>
     </main>
   </div>
   <noscript>请启用 JavaScript 使用工作台；也可以访问 <a href="/docs">接口文档</a>。</noscript>

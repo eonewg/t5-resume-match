@@ -54,3 +54,26 @@ test("diagnosis and workflow can finish beyond the normal deadline and still hav
   }) });
   await assert.rejects(slow.workflow({}), /请求超时/);
 });
+
+test('Resume AI upload failure exposes original text only on its own route', async () => {
+  const raw = '  原文\r\nPython  ';
+  const api = createApi({fetchImpl: async () => new Response(JSON.stringify({error: {
+    message: {message: 'AI 识别超时', code: 'timeout', raw_text: raw},
+  }}), {status: 504})});
+  await assert.rejects(api.request('/api/v1/resumes/upload-preview', {method: 'POST'}), error =>
+    error instanceof ApiError && error.message === 'AI 识别超时' && error.rawText === raw);
+  await assert.rejects(api.request('/api/v1/jobs'), error => error.rawText === undefined);
+});
+
+test('Resume AI has an independent bounded deadline', async () => {
+  const fetchImpl = (_, {signal}) => new Promise((resolve, reject) => {
+    const timer = setTimeout(() => resolve(new Response('{}')), 25);
+    signal.addEventListener('abort', () => { clearTimeout(timer); reject(Error('aborted')); }, {once: true});
+  });
+  const api = createApi({timeoutMs: 5, resumeTimeoutMs: 1000, fetchImpl});
+  for (const path of ['preview', 'upload-preview', 'parse']) {
+    assert.deepEqual((await api.request('/api/v1/resumes/' + path, {method: 'POST'})).data, {});
+  }
+  await assert.rejects(api.request('/api/v1/resumes', {method: 'POST'}), /请求超时/);
+  await assert.rejects(createApi({resumeTimeoutMs: 5, fetchImpl}).request('/api/v1/resumes/preview', {method: 'POST'}), /请求超时/);
+});

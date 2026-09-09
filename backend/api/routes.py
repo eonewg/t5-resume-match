@@ -1,7 +1,7 @@
 from datetime import date
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, UploadFile
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -17,6 +17,13 @@ from backend.core.services import (
     require_row,
 )
 from backend.models.entities import DiagnosisRow, JDRow, MatchRow, ResumeRow
+from backend.modules.resume.ai import ResumeAIError
+from backend.modules.resume.upload import (
+    UploadError,
+    extract_text,
+    upload_limit,
+    validate_file_type,
+)
 from backend.schemas.contracts import (
     JD,
     AnalysisResponse,
@@ -52,7 +59,15 @@ def mark_mock(response: Response, is_mock: bool):
 
 
 def parse_resume_data(provider, data):
-    result = invoke(provider, "parse", ResumeData, data)
+    try:
+        result = provider.service.parse(data)
+        result = ResumeData.model_validate(
+            result.model_dump() if isinstance(result, ResumeData) else result, strict=True
+        )
+    except ResumeAIError as exc:
+        raise HTTPException(exc.status_code, {"code": exc.code, "message": exc.message}) from None
+    except Exception:
+        raise HTTPException(502, "AI 暂时无法识别这份简历。请重试或手动填写。") from None
     if result.raw_text != data.raw_text:
         raise HTTPException(502, "简历解析未保留原文")
     return result
@@ -81,6 +96,30 @@ def preview_resume(data: TextInput, request: Request, response: Response):
     result = parse_resume_data(provider, data)
     mark_mock(response, provider.is_mock)
     return result
+
+
+@router.post("/resumes/upload-preview", response_model=ResumeData, tags=["resume"])
+def preview_resume_upload(file: UploadFile, request: Request, response: Response):
+    """Extract text into the same editable preview; never write a resume or original file."""
+    try:
+        suffix = validate_file_type(file.filename, file.content_type)
+        limit = upload_limit()
+        if file.size is not None and file.size > limit:
+            raise UploadError("文件过大，请缩小文件后重试，或直接粘贴简历文本。", 413)
+        data = file.file.read(limit + 1)
+        if len(data) > limit:
+            raise UploadError("文件过大，请缩小文件后重试，或直接粘贴简历文本。", 413)
+        text = extract_text(data, suffix)
+    except UploadError as exc:
+        raise HTTPException(exc.status_code, str(exc)) from None
+    finally:
+        file.file.close()
+    try:
+        return preview_resume(TextInput(raw_text=text), request, response)
+    except HTTPException as exc:
+        # Return the extracted source only to the uploading client, never to logs or storage.
+        detail = exc.detail if isinstance(exc.detail, dict) else {"message": exc.detail}
+        raise HTTPException(exc.status_code, {**detail, "raw_text": text}) from None
 
 
 @router.post("/resumes", response_model=Resume, status_code=201, tags=["resume"])

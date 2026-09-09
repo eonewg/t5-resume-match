@@ -25,7 +25,13 @@ def pg_engine():
 
 @contextmanager
 def api_on(engine):
-    app = create_app(Settings(_env_file=None, database_url="sqlite://"))
+    app = create_app(
+        Settings(
+            _env_file=None,
+            resume_provider="backend.modules.resume.public:OfflineResumeService",
+            database_url="sqlite://",
+        )
+    )
     with TestClient(app) as client:
         original = app.state.engine
         app.state.engine = engine

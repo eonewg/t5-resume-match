@@ -44,13 +44,15 @@ def main():
         assert hit.document_id == identifier and abs(hit.distance) < 1e-6
         session.rollback()
     # Real API transaction/serialization on PostgreSQL, independent of Diagnosis availability.
-    settings.resume_provider = "backend.modules.resume.public:ResumeService"
     settings.jobs_provider = "backend.modules.jobs.public:JobsService"
     created = {}
     try:
         with TestClient(create_app(settings)) as client:
             assert client.get("/health").status_code == 200
-            response = client.post("/api/v1/resumes/parse", json={"raw_text": "技能：Python"})
+            # Database acceptance uses explicitly confirmed fixture fields; AI has separate tests.
+            response = client.post(
+                "/api/v1/resumes", json={"raw_text": "技能：Python", "skills": ["Python"]}
+            )
             assert response.status_code == 201
             resume = response.json()
             created[ResumeRow] = resume["id"]

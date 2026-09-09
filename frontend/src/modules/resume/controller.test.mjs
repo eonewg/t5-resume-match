@@ -112,3 +112,113 @@ test('in-app navigation retains edited drafts but late responses cannot update s
   resolve({data: {...parsed('late'), id: 'late'}}); await load;
   assert.equal(next.workspace.getState().resumeId, null);
 });
+
+
+test('upload sends multipart, shows reading state, retains source and opens review without saving', async () => {
+  const f = fixture(); let resolve;
+  f.override(path => path.endsWith('/upload-preview') ? new Promise(r => {resolve = r;}) : undefined);
+  const file = new File(['source'], '简历 #1.txt', {type: 'text/plain'});
+  const pending = f.controller.upload(file);
+  assert.equal(f.state().busy, 'upload'); assert.equal(f.state().imported, false);
+  assert.ok(f.calls[0].body instanceof FormData);
+  assert.equal(f.calls[0].body.get('file').name, '简历 #1.txt');
+  resolve({data: parsed(' extracted source '), isMock: false}); await pending;
+  assert.equal(f.state().imported, true); assert.equal(f.state().busy, '');
+  assert.equal(f.state().values.raw_text, ' extracted source ');
+  assert.equal(f.state().values.skills, 'Python'); assert.equal(f.state().reviewed, false);
+  assert.equal(f.saved.size, 0); assert.equal(f.workspace.getState().resumeId, null);
+});
+
+test('a replacement upload protects confirmed fields and requires explicit application', async () => {
+  const f = fixture(); f.controller.edit('raw_text', 'original'); await f.controller.parse();
+  f.controller.edit('skills', 'SQL'); f.controller.review(true); await f.controller.save();
+  f.override(path => path.endsWith('/upload-preview') ? {data: parsed('replacement')} : undefined);
+  await f.controller.upload(new File(['replacement'], 'new.txt'));
+  assert.equal(f.state().values.raw_text, 'replacement'); assert.equal(f.state().values.skills, 'SQL');
+  assert.equal(f.state().candidate.skills, 'Python'); assert.equal(f.state().reviewed, false);
+  assert.equal(f.workspace.getState().resumeId, null); assert.equal(f.saved.size, 1);
+  f.controller.apply('skills'); assert.equal(f.state().values.skills, 'Python');
+});
+
+test('upload failures preserve the current resume and surface PDF extraction guidance', async () => {
+  const f = fixture(); f.controller.edit('raw_text', 'original'); await f.controller.parse();
+  f.controller.review(true); await f.controller.save();
+  const before = f.state().values;
+  const message = '未能从该 PDF 提取有效文字。扫描版简历暂不支持，请上传可复制文字的 PDF，或直接粘贴简历文本。';
+  f.override(path => path.endsWith('/upload-preview') ? Promise.reject(Error(message)) : undefined);
+  await f.controller.upload(new File(['pdf'], 'scan.pdf'));
+  assert.equal(f.state().error, message); assert.deepEqual(f.state().values, before);
+  assert.equal(f.state().reviewed, true); assert.equal(f.workspace.getState().resumeId, 'resume_1');
+});
+
+test('invalid or empty files never send upload requests', async () => {
+  const f = fixture(); await f.controller.upload(new File(['x'], 'resume.exe'));
+  assert.match(f.state().error, /PDF/);
+  await f.controller.upload(new File([], 'empty.txt')); assert.match(f.state().error, /为空/);
+  await f.controller.upload(new File([new Uint8Array(10 * 1024 * 1024 + 1)], 'large.txt'));
+  assert.match(f.state().error, /10 MB/); assert.equal(f.calls.length, 0);
+});
+
+test('multipart requests leave boundary generation to fetch and preserve JSON request encoding', async () => {
+  const {createApi} = await import('../../core/api.js'); const calls = [];
+  const api = createApi({fetchImpl: async (path, options) => {
+    calls.push({path, ...options}); return {ok: true, json: async () => ({}), headers: new Headers()};
+  }});
+  const body = new FormData(); body.append('file', new File(['text'], 'resume.txt'));
+  await api.request('/api/v1/resumes/upload-preview', {method: 'POST', body});
+  assert.equal(calls[0].body, body); assert.equal(calls[0].headers['Content-Type'], undefined);
+  await api.request('/api/v1/resumes/preview', {method: 'POST', body: {raw_text: 'text'}});
+  assert.equal(calls[1].headers['Content-Type'], 'application/json');
+  assert.equal(calls[1].body, '{"raw_text":"text"}');
+});
+
+
+test('AI failure keeps pasted source, removes stale candidates and offers explicit manual editing', async () => {
+  const f = fixture(); f.controller.edit('raw_text', 'source'); await f.controller.parse();
+  f.controller.edit('skills', 'User skill');
+  f.override(path => path.endsWith('/preview') ? Promise.reject(Error('AI unavailable')) : undefined);
+  await f.controller.parse();
+  assert.equal(f.state().aiStatus, 'failed'); assert.equal(f.state().candidate, null);
+  assert.equal(f.state().values.raw_text, 'source'); assert.equal(f.state().values.skills, 'User skill');
+  assert.equal(f.saved.size, 0);
+  f.controller.manual(); assert.equal(f.state().aiStatus, 'manual'); assert.equal(f.state().imported, true);
+  assert.equal(f.state().error, ''); assert.equal(f.state().reviewed, false);
+  f.controller.review(true); await f.controller.save(); assert.equal(f.saved.get('resume_1').raw_text, 'source');
+});
+
+test('upload AI failure preserves extracted original and protected fields; retry uses text preview', async () => {
+  const f = fixture(); f.controller.edit('skills', 'Confirmed');
+  f.override(path => path.endsWith('/upload-preview') ? Promise.reject(Object.assign(Error('AI timeout'), {rawText: '  extracted original\r\n'})) : undefined);
+  await f.controller.upload(new File(['file content'], 'resume.txt'));
+  assert.equal(f.state().aiStatus, 'failed'); assert.equal(f.state().values.raw_text, '  extracted original\r\n');
+  assert.equal(f.state().values.skills, 'Confirmed'); assert.equal(f.state().reviewed, false);
+  assert.equal(f.state().candidate, null); assert.equal(f.saved.size, 0);
+  f.override(() => undefined); await f.controller.parse();
+  assert.equal(f.calls.at(-1).path, '/api/v1/resumes/preview');
+  assert.equal(f.state().aiStatus, 'success'); assert.match(f.state().notice, /AI 已完成/);
+  assert.equal(f.state().values.skills, 'Confirmed'); assert.equal(f.state().candidate.skills, 'Python');
+});
+
+test('a stale failed AI request cannot mark an edited source as failed', async () => {
+  const f = fixture(); let reject;
+  f.override(() => new Promise((_, r) => {reject = r;}));
+  f.controller.edit('raw_text', 'first'); const pending = f.controller.parse();
+  f.controller.edit('raw_text', 'second'); reject(Error('old error')); await pending;
+  assert.equal(f.state().values.raw_text, 'second'); assert.equal(f.state().error, '');
+  assert.equal(f.state().aiStatus, 'idle'); assert.equal(f.state().candidate, null);
+});
+
+test('demo preview is explicitly labelled and never represented as successful live AI', async () => {
+  const f = fixture(); f.controller.edit('raw_text', 'source');
+  f.override(() => ({data: parsed('source'), isMock: true})); await f.controller.parse();
+  assert.equal(f.state().aiStatus, 'mock'); assert.match(f.state().notice, /不是实时 AI/);
+  assert.doesNotMatch(f.state().notice, /AI 已完成/);
+});
+
+test('failed extraction does not replace the source, while navigation ignores late uploaded raw text', async () => {
+  const f = fixture(); f.controller.edit('raw_text', 'previous'); let reject;
+  f.override(() => new Promise((_, r) => {reject = r;}));
+  const pending = f.controller.upload(new File(['data'], 'resume.txt')); f.controller.dispose();
+  reject(Object.assign(Error('late AI error'), {rawText: 'late original'})); await pending;
+  assert.equal(f.state().values.raw_text, 'previous');
+});

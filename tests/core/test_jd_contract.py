@@ -16,7 +16,13 @@ from backend.schemas.contracts import JDData, JDInput
 
 @pytest.fixture
 def app(tmp_path):
-    return create_app(Settings(_env_file=None, database_url=f"sqlite:///{tmp_path / 'jd.db'}"))
+    return create_app(
+        Settings(
+            _env_file=None,
+            resume_provider="backend.modules.resume.public:OfflineResumeService",
+            database_url=f"sqlite:///{tmp_path / 'jd.db'}",
+        )
+    )
 
 
 def test_legacy_provider_and_optional_metadata_round_trip(app):

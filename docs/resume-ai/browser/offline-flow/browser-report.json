@@ -1,0 +1,46 @@
+{
+  "widths": [
+    1440,
+    1280,
+    390
+  ],
+  "checks": [
+    "1440px: fresh empty states; TXT upload/loading/raw text; save/history auto-update; target auto-selection; match; optimization auto-start/cache/error/retry; XSS/provenance; analytics-first; contained scroll",
+    "1280px: fresh empty states; DOCX upload/loading/raw text; save/history auto-update; target auto-selection; match; optimization auto-start/cache/error/retry; XSS/provenance; analytics-first; contained scroll",
+    "390px: fresh empty states; PDF upload/loading/raw text; save/history auto-update; target auto-selection; match; optimization auto-start/cache/error/retry; XSS/provenance; analytics-first; contained scroll"
+  ],
+  "screens": [
+    "docs\\resume-ai\\browser\\offline-flow\\matching-empty-1440.png",
+    "docs\\resume-ai\\browser\\offline-flow\\diagnosis-empty-1440.png",
+    "docs\\resume-ai\\browser\\offline-flow\\resume-empty-1440.png",
+    "docs\\resume-ai\\browser\\offline-flow\\upload-loading-1440.png",
+    "docs\\resume-ai\\browser\\offline-flow\\resume-1440.png",
+    "docs\\resume-ai\\browser\\offline-flow\\jobs-1440.png",
+    "docs\\resume-ai\\browser\\offline-flow\\matching-1440.png",
+    "docs\\resume-ai\\browser\\offline-flow\\diagnosis-1440.png",
+    "docs\\resume-ai\\browser\\offline-flow\\diagnosis-error-1440.png",
+    "docs\\resume-ai\\browser\\offline-flow\\analytics-1440.png",
+    "docs\\resume-ai\\browser\\offline-flow\\matching-empty-1280.png",
+    "docs\\resume-ai\\browser\\offline-flow\\diagnosis-empty-1280.png",
+    "docs\\resume-ai\\browser\\offline-flow\\resume-empty-1280.png",
+    "docs\\resume-ai\\browser\\offline-flow\\upload-loading-1280.png",
+    "docs\\resume-ai\\browser\\offline-flow\\resume-1280.png",
+    "docs\\resume-ai\\browser\\offline-flow\\jobs-1280.png",
+    "docs\\resume-ai\\browser\\offline-flow\\matching-1280.png",
+    "docs\\resume-ai\\browser\\offline-flow\\diagnosis-1280.png",
+    "docs\\resume-ai\\browser\\offline-flow\\diagnosis-error-1280.png",
+    "docs\\resume-ai\\browser\\offline-flow\\analytics-1280.png",
+    "docs\\resume-ai\\browser\\offline-flow\\matching-empty-390.png",
+    "docs\\resume-ai\\browser\\offline-flow\\diagnosis-empty-390.png",
+    "docs\\resume-ai\\browser\\offline-flow\\resume-empty-390.png",
+    "docs\\resume-ai\\browser\\offline-flow\\upload-loading-390.png",
+    "docs\\resume-ai\\browser\\offline-flow\\resume-390.png",
+    "docs\\resume-ai\\browser\\offline-flow\\jobs-390.png",
+    "docs\\resume-ai\\browser\\offline-flow\\matching-390.png",
+    "docs\\resume-ai\\browser\\offline-flow\\diagnosis-390.png",
+    "docs\\resume-ai\\browser\\offline-flow\\diagnosis-error-390.png",
+    "docs\\resume-ai\\browser\\offline-flow\\analytics-390.png"
+  ],
+  "model": "explicit is_mock fixture; no paid API",
+  "status": "passed"
+}

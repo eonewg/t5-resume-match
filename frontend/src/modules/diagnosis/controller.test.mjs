@@ -56,3 +56,16 @@ test("duplicate click and mismatched response cannot display incorrect records",
   resolve(wrong); await pending;
   assert.equal(f.views.at(-1).record, null); assert.match(f.views.at(-1).error, /契约/); f.dispose();
 });
+
+test('optimization link intent generates once and preserves matching context',async()=>{
+ let state={resumeId:'r',jdId:'j',result:{match:{score:50},diagnosisRequested:true}},listener,calls=0;
+ const views=[];const c=connectDiagnosis({api:{request:async()=>{calls++;return record();}},getState:()=>state,subscribe:fn=>{listener=fn;return()=>{};},updateSelection:change=>{state={...state,...change};listener(state);},signal:new AbortController().signal},s=>views.push(s));
+ await c.startRequested();await c.startRequested();assert.equal(calls,1);assert.equal(state.result.match.score,50);assert.equal(state.result.diagnosisRequested,false);assert.equal(views.at(-1).record.id,'d');c.dispose();
+});
+test('optimization navigation uses an existing result and normal navigation does not generate',async()=>{
+ for(const existing of [false,true]){
+  let state={resumeId:'r',jdId:'j',result:existing?{diagnosisRequested:true,diagnosis:record().data}:{}},listener,calls=0;
+  const c=connectDiagnosis({api:{request:async()=>{calls++;return record();}},getState:()=>state,subscribe:fn=>{listener=fn;return()=>{};},updateSelection:change=>{state={...state,...change};listener(state);},signal:new AbortController().signal},()=>{});
+  await c.startRequested();assert.equal(calls,0);c.dispose();
+ }
+});
