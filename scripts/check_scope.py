@@ -7,7 +7,7 @@ import sys
 from pathlib import PurePosixPath
 
 from backend.core.config import ROOT
-from scripts.member_specs import BRANCHES, D_BRANCHES, D_UI_BRANCH, MODULES
+from scripts.member_specs import BRANCHES, D_UI_BRANCH, MODULES, branch_owner
 
 
 def allowed_path(owner, path, branch=None):
@@ -52,6 +52,30 @@ def violations(owner, paths, branch=None):
     return errors
 
 
+def ci_gate(ref, target):
+    """Identify the CI ref owner by branch naming and validate the PR target.
+
+    Returns (owner, failure); failure is empty when the gate passes.
+    """
+    if ref == "main":
+        if target:
+            return None, "FAIL: 最终 PR 只能从 feat/core-a 指向 main。"
+        return "A", ""
+    owner = branch_owner(ref)
+    if owner is None:
+        return None, f"FAIL: 分支 {ref!r} 不符合 A/D 命名约定；请使用 feat/*-a 或 feat/*-d。"
+    if owner == "A" and ref == BRANCHES["A"]:
+        if target and target != "main":
+            return None, "FAIL: 最终 PR 只能从 feat/core-a 指向 main。"
+        return "A", ""
+    if target and target != BRANCHES["A"]:
+        return (
+            None,
+            f"FAIL: {owner} feature PR 必须指向 feat/core-a；最终交付只能从 feat/core-a 指向 main。",
+        )
+    return owner, ""
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("owner", nargs="?", choices=("D",))
@@ -67,20 +91,13 @@ def main():
     if args.ci:
         ref = os.environ.get("GITHUB_HEAD_REF") or os.environ.get("GITHUB_REF_NAME", "")
         target = os.environ.get("GITHUB_BASE_REF", "")
-        if ref in D_BRANCHES:
-            owner = "D"
-            if target and target != BRANCHES["A"]:
-                print("FAIL: D PR 必须指向 feat/core-a。")
-                return 1
-        elif ref in ("main", BRANCHES["A"]):
-            if target and not (ref == BRANCHES["A"] and target == "main"):
-                print("FAIL: 最终 PR 只能从 feat/core-a 指向 main。")
-                return 1
-            print("A/main 的公共改动由 PR 审查；本项只检查 D 目录边界。")
-            return 0
-        else:
-            print(f"FAIL: 分支不符合 A/D 约定；D 开发使用 {' / '.join(D_BRANCHES)}。")
+        owner, failure = ci_gate(ref, target)
+        if failure:
+            print(failure)
             return 1
+        if owner == "A":
+            print("A 分支的公共改动由 PR 审查；本项只检查 D 目录边界。")
+            return 0
     if owner is None:
         parser.error("请指定 owner D 或 --ci")
     result = subprocess.run(
