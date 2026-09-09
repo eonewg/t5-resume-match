@@ -3,6 +3,10 @@ __pycache__/
 .pytest_cache/
 *.py[cod]
 .env
+/dist/
+/build/
+*.exe
+*.zip
 # Keep local demo databases out; data assets (jd/resumes/baselines) are versioned.
 data/*.db
 .verification/

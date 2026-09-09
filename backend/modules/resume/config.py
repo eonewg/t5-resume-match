@@ -1,17 +1,18 @@
 """Independent Resume extraction settings; no Diagnosis configuration dependency."""
 
-from pathlib import Path
 from typing import Literal
 from urllib.parse import urlsplit
 
 from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from backend.core.paths import ENV_FILE
+
 
 class ResumeSettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_prefix="T5_RESUME_",
-        env_file=Path(__file__).resolve().parents[3] / ".env",
+        env_file=ENV_FILE,
         extra="ignore",
         populate_by_name=True,
         hide_input_in_errors=True,
