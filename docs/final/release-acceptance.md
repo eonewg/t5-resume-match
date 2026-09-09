@@ -1,6 +1,8 @@
 # 最终集成验收计划（Release / QA）
 
-2026-09-09 起草。适用分支 `feat/core-a`；本文档是执行清单，不是验收结论。当前基线 `2746ca4`（含 PR #10/#11/#12），**A1 的 Resume AI simplify 尚未合入**：在包含 A1 的新 commit SHA 上重跑本清单之前，不得把任何结果记录为"最终验收通过"，PR #9 保持草稿，不合 main。
+> 本文保留 2746ca4 起草时的历史验收计划；其中“尚未合入/草稿”等均指当时状态。A1 后续已集成，最终 Diagnosis 与两项复验已完成，当前判定 **READY FOR FINAL MERGE**，PR #9 Ready for review、未合 main。现行结果见 [最终复验](final-recheck.md)与[执行记录](release-acceptance-results.md)。
+
+2026-09-09 起草。适用分支 `feat/core-a`；本文档是执行清单，不是验收结论。起草时基线 `2746ca4`（含 PR #10/#11/#12），**A1 的 Resume AI simplify 尚未合入**：在包含 A1 的新 commit SHA 上重跑本清单之前，不得把任何结果记录为"最终验收通过"，PR #9 保持草稿，不合 main。
 
 旧基线证据对应关系（只作参照，不可沿用结论）：
 

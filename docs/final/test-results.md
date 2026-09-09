@@ -1,5 +1,14 @@
 # 测试与集成证据
 
+## 2026-09-09 最终回归
+
+实测产品 head `9952baf688e114cd7095faa1b5924e19dde9c1dd`；本轮后续仅文档与证据收口。
+Python 615 passed / 0 skipped（29.48 秒，启用真实 PostgreSQL）；frontend 77 passed；
+Analytics/PG 产品定向 14 passed；Ruff check 与 format --check（109 文件）PASS；PostgreSQL/pgvector smoke PASS。
+28 条对象和 3 种 Analytics 查询正常重启后保持一致；十条市场样本 canonical/API/桌面与移动页面一致。
+新增真实模型调用 0，两条既有依赖弃用提示保留。结论 **READY FOR FINAL MERGE**，
+详细步骤与证据见 [最终两项复验](final-recheck.md)。以下均为历史验收记录。
+
 ## PR #7
 
 D 准确源 SHA `35b1301c9389b7a68dbbaefe28292870113d645d`，合入 A 为 `0b175f0b73071b648012f32257e51cdaf9524c78`。PR 改动限定 Diagnosis 与 D 测试/记录；A 在集成前完成确认字段序列化和诊断超时适配，并以 PR 更新分支同步给 D。没有合 main。

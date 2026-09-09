@@ -1,13 +1,15 @@
 # 最终集成验收执行记录（2026-09-09）
 
+> 当前状态：2026-09-09 [最终两项复验](final-recheck.md)均 PASS，READY FOR FINAL MERGE；Diagnosis 最终真实验收已通过，PR #9 Ready for review、未合 main。以下原执行结果保留历史范围。
+
 基线 **559118d**（`feat/core-a`，含 PR #10/#11/#12 与 A1 Resume simplify PR #13），从 GitHub 全新 clone（`.verification/fresh-install-20260909`），空 uv 缓存冷安装，独立空库 `t5_fresh_20260909`（本机 PostgreSQL 17.6 / pgvector 0.8.1 原生实例）。执行计划见 [release-acceptance](release-acceptance.md)。
 
-**本记录是执行结果，不是最终交付 PASS。** PR #9 保持草稿，不合 main。
+**559118d 当时的执行结果不单独代表最终交付 PASS。** 后续收口结论见顶部链接；PR #9 当前 Ready for review，不合 main。
 
 > 后续状态（2026-09-09）：本记录下面保留 559118d 当时的执行范围与未执行项。
 > PR #9 当前已 Ready for review；Diagnosis 已在 29af3ab 完成用户指定的三组最终真实验收
 > 及浏览器流程，正式模型为 SiliconFlow / DeepSeek-V4-Flash。
-> 该更新不替代第四节持久化和市场口径复验，详见 [当前交付状态](delivery-status.md)。
+> 随后的 9952baf 两项复验已关闭第四节持久化和市场口径，详见 [当前交付状态](delivery-status.md)。
 
 ## 一、已执行并通过
 
@@ -53,15 +55,15 @@
 4. `polish-smoke` 的 QA 服务器需带 `--market-supplement` 启动，否则 disposable schema 中 `sample_size=0` 走整体空态，`.analytics-empty-salary` 断言不成立。
 5. task-flow 首轮失败的 report 被通过轮覆盖（同输出目录）；失败原因即上述 3，在本节留档。
 
-## 四、本轮未执行（脚本就绪；按"不再优化 harness、不新增真实 AI 调用"口径留待下轮）
+## 四、当时未执行项及后续关闭状态
 
-- 持久化：API 快照 → 重启 → `fresh-persistence-smoke.cjs` 逐路径比对（上一基线 a41a31d 曾 PASS；本轮未重跑）。
-- Canonical 五份导入后 analytics 十条/六雇主/四 USD 年薪口径复验。
-- S1/S2 新一轮真实调用（无新授权不执行；现行证据为上表）。
+- 持久化：当时未重跑；现已通过普通应用 API 快照 → 正常停止/重启 → 逐路径比对，28 条记录及 Analytics 一致，见最终复验。
+- 十条/六雇主/四 USD 年薪：现已按 canonical 文件重算，现有导入流程、API 和页面复验 PASS。
+- S1/S2 新一轮真实调用：不列为待办；最终指定三组 Diagnosis 与浏览器已完成，旧证据保留。
 - `final-live-smoke.cjs` 付费浏览器全链路（可选项）。
 
 ## 五、结论
 
 本轮已执行范围（冷安装、静态验证、PG/pgvector、四模块契约、三宽度浏览器主流程含真实 Resume 链路、AI 失败恢复、边界回归、离线提取、真实调用台账）**全部通过，未发现产品缺陷**；过程中三项失败均为 QA 工具/数据前置问题并已定位留档。已知限制（旧 guard 五样本不可沿用、S1 超时、扫描 PDF 无 OCR、外部 LLM 可用性、单机单用户等）按 [release-acceptance](release-acceptance.md) 第 8 节与 [delivery-status](delivery-status.md) 披露。
 
-最终交付判定待第四节各项补齐后另行作出；PR #9 保持草稿。
+后续最终判定为 **READY FOR FINAL MERGE**；PR #9 Ready for review，未合并 main。第四节两项最终复验已关闭，其余可选付费重跑不属于交付待办。

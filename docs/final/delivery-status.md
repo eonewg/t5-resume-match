@@ -1,13 +1,17 @@
 # 最终交付状态与已知限制
 
-截至 2026-09-09，当前产品基线 `29af3ab03bc8a306cb2d1f5a375f9e5bc772780b`，
+截至 2026-09-09，本轮实测产品基线 `9952baf688e114cd7095faa1b5924e19dde9c1dd`，
 分支 `feat/core-a`。Diagnosis 最后一轮修复和真实验收 PASS：严格 schema 后逐条过滤违规 STAR，
 三组 DeepSeek 各一次均成功，原 content_filter 组合保留合法诊断并过滤数字违规条目。
 正式 Diagnosis 为 `SiliconFlow / deepseek-ai/DeepSeek-V4-Flash`；Resume 保持 Ling3-flash。
 
 [PR #9](https://github.com/eonewg/t5-resume-match/pull/9) 当前实际状态为 **Ready for review**，
-已核对 head 为上述 SHA；push/PR 两轮共 10 项检查 SUCCESS，含 PostgreSQL job。
-可以进入整体最终收尾；不等同所有质量门槛通过，不自动合 main。
+本轮重启一致性与十条市场样本复验均 PASS，判定 **READY FOR FINAL MERGE**。
+最终交付 head 见 PR 正文（本轮后续仅文档/证据提交），不自动合 main。
+[最终两项复验](final-recheck.md)记录当前产品代码、命令、快照摘要与全部回归结果；
+此前产品修复 `29af3ab` 的 push/PR 两轮共 10 项检查 SUCCESS，含 PostgreSQL job：
+[push CI](https://github.com/eonewg/t5-resume-match/actions/runs/34326170422)、
+[PR CI](https://github.com/eonewg/t5-resume-match/actions/runs/34326175644)。
 
 下面旧 PR #8 数据为历史验收范围；最新完整安装记录为
 [559118d 集成验收](release-acceptance-results.md)，最新 Diagnosis 证据见
@@ -44,15 +48,12 @@
 
 ## 当前收尾清单
 
-- 已完成：Diagnosis 243 项定向测试；本地 Python 576 passed / 39 skipped；frontend 77 passed；
-  Ruff check/format；三组真实服务和一次真实 Edge 页面；过滤页面离线边界；最新 push/PR 十项 CI。
-- CI PostgreSQL job 已执行新建服务、锁定依赖安装、迁移、完整 pytest 和 pgvector smoke，全部成功。
-  [push CI](https://github.com/eonewg/t5-resume-match/actions/runs/34326170422)、
-  [PR CI](https://github.com/eonewg/t5-resume-match/actions/runs/34326175644)均对应上述产品 SHA。
-- 整体尚未复跑：普通应用 API 快照→重启→逐路径比较；Canonical + 补充五份的十条/六雇主/
-  四 USD 年薪口径。旧基线存在 PASS，559118d 执行记录明确留待后续，不能由 Diagnosis PASS 替代。
-- 无需为本轮 Diagnosis 收尾重跑旧 S1/S2 或新增 Resume 付费调用；当前用户指定的三组已完成。
-- 最终 main 合并及合并后启动/核心链路复核尚未执行；当前仍保留不合 main 的范围。
+- Diagnosis：最终三组真实调用及浏览器验收 PASS；历史质量评价保持原结论。
+- 应用重启：28 条 Resume/JD/Match/Diagnosis、关联关系、3 种 Analytics 查询及各表业务摘要一致，PASS。
+- 市场统计：canonical / 保存值 / API / 页面一致，10 条、6 雇主、4 USD 年薪，5 无区间、1 周期未知，PASS。
+- 最新回归：Python 615 passed / 0 skipped（真实 PostgreSQL）；frontend 77 passed；定向 14 passed；Ruff check/format、PG/pgvector smoke PASS。
+- 本轮无产品代码、模型、Prompt、Resume 或秘密配置变更，无新增模型请求。
+- 已完成项不再列为 pending。PR #9 Ready for review，**READY FOR FINAL MERGE**；main 合并与合并后复核按用户范围尚未执行。
 
 ## 运行限制
 

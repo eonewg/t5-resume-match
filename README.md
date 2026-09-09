@@ -92,4 +92,6 @@ PostgreSQL/pgvector 依赖已进入默认锁定依赖。启动、迁移、原生
 
 ## 最终交付准备
 
-PR #8 已合入 feat/core-a，merge 为 `a41a31d22dac3b31cb7cac8303f63cdd799ecab4`。安装、完整回归与真实调用结果见 [最终安装记录](docs/final/fresh-install.md)，五页演示见 [演示脚本](docs/final/demo-script.md)。另见 [补充 STAR 验证](docs/final/star-supplement.md)与[竞品人工体验及调研](docs/competitor-analysis.md)：补充两次请求失败、无可评改写；2026-09-09 用户提供的两款人工体验已归档。最终 [PR #9](https://github.com/eonewg/t5-resume-match/pull/9) 保留草稿供审查，不自动合 main。见 [交付状态与已知限制](docs/final/delivery-status.md)、[独立 AI 盲评](docs/final/ai-evaluation.md)、[新增真实 JD / 薪资说明](data/market/2026-09-08/README.md)。新增五份摘要通过 `uv run --locked python -m scripts.import_final_samples --apply` 导入，和默认五份 Canonical 快照合计十条、六家雇主。
+PR #8 已合入 feat/core-a，merge 为 `a41a31d22dac3b31cb7cac8303f63cdd799ecab4`。安装、完整回归与真实调用结果见 [最终安装记录](docs/final/fresh-install.md)，五页演示见 [演示脚本](docs/final/demo-script.md)。另见 [补充 STAR 验证](docs/final/star-supplement.md)与[竞品人工体验及调研](docs/competitor-analysis.md)：补充两次请求失败、无可评改写；2026-09-09 用户提供的两款人工体验已归档。最终 [PR #9](https://github.com/eonewg/t5-resume-match/pull/9) 已 Ready for review，最终两项复验 PASS，判定 **READY FOR FINAL MERGE**，不自动合 main。见 [交付状态与已知限制](docs/final/delivery-status.md)、[独立 AI 盲评](docs/final/ai-evaluation.md)、[新增真实 JD / 薪资说明](data/market/2026-09-08/README.md)。新增五份摘要通过 `uv run --locked python -m scripts.import_final_samples --apply` 导入，和默认五份 Canonical 快照合计十条、六家雇主。
+
+最终应用重启一致性与十条市场统计复验、615 项 Python / 77 项 frontend 及 PostgreSQL 回归见 [最终两项复验](docs/final/final-recheck.md)。本轮只收口文档与证据，已知产品限制保留。

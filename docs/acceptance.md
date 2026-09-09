@@ -9,7 +9,10 @@
 | Resume | A | 保守解析、受保护结构化编辑、确认保存/重读、历史版本及原文保留 | 功能 PASS；PR #8 与 fresh install 复验通过，自动解析仍需用户核对，独立 AI 评估有漏项 |
 | Jobs / Matching | D | PR #6 已集成；关键词基线、tools/薪资解析、可选语义增强及事务片段缓存 | 本阶段 PASS；semantic 默认 off，独立 AI 盲评 / LLM-as-a-Judge 已返回并汇总，不作为人工金标准 |
 | Diagnosis | D；A 本轮按用户授权修复验收 | 严格 schema 后逐条 STAR 事实过滤，SiliconFlow / DeepSeek-V4-Flash | 本轮最终修复/真实验收 PASS：三组各一次全部可用，原失败组合安全过滤 1 条并保留 1 条；历史固定评估不改写，保留人工事实核对 |
-| Analytics | A | 真实统计、来源/日期筛选、词云/技能分布、分币种/周期薪资图与五份真实快照 | 本阶段 PASS；两批合计 10 条/6 雇主，4 条 USD 年薪可比较、5 无区间、1 周期未知；独立 AI 评价已汇总，PR #8 与 fresh install 技术复核通过 |
+| Analytics | A | 真实统计、来源/日期筛选、词云/技能分布、分币种/周期薪资图与五份真实快照 | 最终复验 PASS；canonical / API / 桌面与移动页面一致：10 条/6 雇主，4 条 USD 年薪可比较、5 无区间、1 周期未知；重复导入无新增 |
+
+2026-09-09 最终两项复验 **PASS，READY FOR FINAL MERGE**，见 [最终复验](final/final-recheck.md)。
+实测产品 head `9952baf688e114cd7095faa1b5924e19dde9c1dd`；后续仅文档/证据收口，最终交付 head 见 PR #9 正文。
 
 当前自动化检查见 [验证记录](validation.md)。功能目标与当前实现分别记录，不能把已接入、Mock 或测试通过等同于完整 T5 验收。
 
@@ -22,12 +25,12 @@
 | 问题定义 | A 汇总、D 分析 | 至少 2 款招聘 APP 对比、5 份真实 JD、3 份学生简历，脱敏、来源与表达/技能 gap；PASS（材料范围）：5 JD/3 履历及痛点报告已有；2026-09-09 用户提供两款人工体验，已归档流程、优缺点与设计对照 |
 | Level 1 resume | A | 本阶段 PASS：原文粘贴→解析→结构化编辑→保存→重新读取；保护用户确认值，缺失字段留空 |
 | Level 1 jobs/matching | D，A 提供持久化 | JD 输入保存复用、技能/工具提取、关键词基线、0–100 分数、matched/missing/gap 及一致解释；只有向量评分不通过 |
-| Level 2 | D，A 串联 | 平淡经历 STAR、JD 定向关键词/经历建议、量化补充提示、不虚构事实；真实/Mock 与失败行为区分；真实 custom/openai_chat 已验证；固定评估输出质量仍待复核 |
-| Level 3 | A，D 解析 JD | 本阶段 PASS：词云/技能分布、分组薪资图、观察与来源口径；真实来源十条与薪资证据已补齐，PR #8/fresh install 图表复验通过，口径见 final/delivery-status.md |
+| Level 2 | D，A 串联 | 平淡经历 STAR、JD 定向关键词/经历建议、量化补充提示、不虚构事实；真实/Mock 与失败行为区分；最终三组真实 custom/openai_chat 与浏览器验收 PASS；历史固定评估及语义质量限制保留，不列为本轮待复跑 |
+| Level 3 | A，D 解析 JD | 最终 PASS：十条 canonical 事实与当前 API/页面逐项复验一致，技能频次、薪资分组与未知值口径通过，见 final/final-recheck.md |
 | PostgreSQL + pgvector | A，D 提供参数 | 公共设施及 PR #6 事务片段缓存已真实复验 PASS；独立空库迁移与 clean clone 启动复现 PASS，见 final/fresh-install.md |
-| NLP 与向量 | D | 固定 MiniLM revision、384 维 cosine 与关键词组合已集成；默认 off，质量金标准与独立效果评估待完成 |
+| NLP 与向量 | D | 固定 MiniLM revision、384 维 cosine 与关键词组合已集成并验证；默认 off，缺少人工质量金标准作为已知效果限制保留 |
 | 全链路演示与 E2E | A/D | 五页十步浏览器主流程、原文/建议与全部图表 PASS；模型首次临时失败、显式重试成功，失败已记录 |
-| 可复现运行 | A | PASS：合并 a41a31d 的独立 GitHub clone、新 venv/空依赖缓存、新数据库迁移、正式启动与刷新/重启持久化；见 final/fresh-install.md |
+| 可复现运行 | A | PASS：历史 clean clone/fresh install 保留；9952baf 正式应用正常停止/重启，28 条记录、关联、3 种 Analytics 与数据库业务摘要全部一致；见 final/final-recheck.md |
 | AI 过程与设计材料 | A/D | 真实需求拆解、架构/Schema/API、编码、测试审查、文档/演示复盘；原型工具采用情况如实说明 |
 | 最终合并 | A | 四模块完整 PASS、全部集成、完整测试通过且 A 已 push；仅 feat/core-a → main PR，合并后复核启动/核心链路 |
 
@@ -156,3 +159,13 @@ A 自有模块执行相同门槛；新增提交重新检查，集成失败保留
 - **Diagnosis 最终验收 PASS；最终 `SiliconFlow / deepseek-ai/DeepSeek-V4-Flash`。** 可进入 T5
   最终收尾和整体验收门槛核对，不把本模块 PASS 等同所有课程质量门槛通过。本轮不合 main。
   详见 [迁移记录](final/diagnosis-siliconflow.md#逐条-star-严格校验与最终验收)及其脱敏证据。
+
+## 2026-09-09 最终两项复验收口
+
+- A 实测产品 `9952baf688e114cd7095faa1b5924e19dde9c1dd`；无新分支集成，无产品代码变更。
+- Diagnosis 既有最终真实验收通过；本轮新增模型调用 0，不更改模型、Prompt、Resume 或 `.env`。
+- PostgreSQL 17.6 / pgvector 0.8.1：5 Resume、15 JD、5 Match、3 Diagnosis 正常重启后业务字段、ID/关联全部一致；Analytics 3 种筛选一致，迁移与表数量无变化。
+- 十条市场样本：6 雇主，4 USD/year 可比，5 无完整区间，1 周期未知；canonical、API、桌面/390px 页面一致，重复导入 created=0。
+- 定向 14 passed；Python 615 passed / 0 skipped；frontend 77 passed；Ruff check/format、PostgreSQL/pgvector smoke PASS。两条既有依赖弃用提示保留。
+- 结论 **READY FOR FINAL MERGE**。PR #9 更新，保持 Ready for review；未合并 main。
+- 完整步骤、边界与证据见 [最终复验](final/final-recheck.md)；已知产品限制保留，历史证据不删除。
