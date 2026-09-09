@@ -2,7 +2,7 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.engine import make_url
 from sqlalchemy.pool import StaticPool
 
-from backend.core.config import ROOT
+from backend.core.paths import RUNTIME_ROOT
 
 
 def build_engine(database_url: str):
@@ -13,7 +13,7 @@ def build_engine(database_url: str):
         if url.database in (None, "", ":memory:"):
             options["poolclass"] = StaticPool
         else:
-            path = (ROOT / url.database).resolve()
+            path = (RUNTIME_ROOT / url.database).resolve()
             path.parent.mkdir(parents=True, exist_ok=True)
             url = url.set(database=str(path))
     engine = create_engine(url, **options)

@@ -4,6 +4,29 @@
 
 ## 一键运行
 
+### Windows 便携版
+
+解压整个 `T5-Resume-Match` 文件夹 → 复制 `.env.example` 为 `.env` → 填入
+`DEEPSEEK_API_KEY=自己的Key` → 双击 `T5-Resume-Match.exe`。
+最终用户无需安装 Python、uv、Git 或 Node。保留整个目录（包括 `_internal`），不能只复制 EXE。
+
+启动后仅监听 `127.0.0.1:8000`，成功后自动打开浏览器；关闭控制台或按 Ctrl+C 停止。
+端口已占用时启动失败，不自动换端口。请先停止占用 8000 的程序后重试。
+`.env` 从 EXE 同目录读取，SQLite 默认保存在 EXE 同目录的 `data/t5.db`；
+请解压到可写目录。移动整个文件夹即可保留配置与数据，不使用 LocalAppData。
+AI 功能需要有效密钥和联网；未配置密钥仍可启动，但 AI 请求会明确失败。
+`/ready` 表示数据库和四个正式 provider 已加载，不检测密钥有效性。
+
+开发机在 Windows 上运行 `powershell -ExecutionPolicy Bypass -File scripts/build_windows.ps1`，
+使用已有 uv 安装锁定的构建依赖，以 PyInstaller **onedir** 生成 `dist/T5-Resume-Match/`。
+构建资源采用白名单，不复制开发机 `.env` 或数据库；构建产物不提交 Git。
+资源与 EXE 目录分离遵循 [PyInstaller 运行时路径规则](https://pyinstaller.org/en/stable/runtime-information.html)。
+开发验证可对全新构建运行 `uv run python -m scripts.verify_windows dist/T5-Resume-Match`
+（需空闲 8000，会创建测试数据库并打开浏览器）；EXE 的 `--check-config` 仅输出配置路径和
+两模块密钥是否已配置，不输出密钥。实测结果见 [便携版验证记录](docs/windows-portable.md)。
+
+### 源码运行
+
 下列命令获取默认 main 分支。项目已进入交付后维护：从 main 创建 `feat/*`、`fix/*`、`chore/*`、`docs/*`、`test/*` 或 `refactor/*` 分支，PR 指向 main，无需 A/D 后缀。CI 保留交付禁项与四模块检查，详见 [当前协作流程](docs/team-rules.md)。
 
 需要 Git、Python 3.11–3.13（已验证 3.13.5）和 [uv](https://docs.astral.sh/uv/getting-started/installation/)。首次安装需要联网；默认 SQLite 启动不需要数据库服务或 AI 密钥；AI 功能需要配置下述官方 DeepSeek 密钥。

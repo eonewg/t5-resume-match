@@ -16,9 +16,10 @@ from contextvars import ContextVar
 from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
 from http.client import HTTPException, HTTPSConnection, IncompleteRead, RemoteDisconnected
-from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import HTTPRedirectHandler, HTTPSHandler, Request, build_opener
+
+from backend.core.paths import FROZEN, RUNTIME_ROOT
 
 from .errors import PermanentLLMError, TemporaryLLMError
 
@@ -169,8 +170,10 @@ def bounded_request(request, settings):
     started = time.monotonic()
     # No shell, secrets in argv, inherited stdout, or upstream stderr logging.
     process = subprocess.Popen(
-        [sys.executable, "-m", "backend.modules.diagnosis.transport"],
-        cwd=Path(__file__).resolve().parents[3],
+        [sys.executable, "--diagnosis-worker"]
+        if FROZEN
+        else [sys.executable, "-m", "backend.modules.diagnosis.transport"],
+        cwd=RUNTIME_ROOT,
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.DEVNULL,
@@ -216,10 +219,14 @@ def bounded_request(request, settings):
         raise PermanentLLMError("诊断调用协议异常", category="unknown", phase="worker") from None
 
 
-if __name__ == "__main__":
+def worker_main():
     try:
         value = json.loads(sys.stdin.buffer.read(800000))
         result = exchange(value, lambda phase: print(phase, flush=True))
         print(json.dumps(result), flush=True)
     except Exception:
         sys.exit(1)  # Never render an exception that may contain credentials or user text.
+
+
+if __name__ == "__main__":
+    worker_main()

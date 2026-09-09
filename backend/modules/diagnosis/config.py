@@ -1,11 +1,12 @@
 import ipaddress
 import re
-from pathlib import Path
 from typing import Literal
 from urllib.parse import urlsplit, urlunsplit
 
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from backend.core.paths import ENV_FILE
 
 from .errors import ConfigurationError
 
@@ -53,7 +54,7 @@ def secure_url(value: str) -> str:
 class DiagnosisSettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_prefix="T5_DIAGNOSIS_",
-        env_file=Path(__file__).resolve().parents[3] / ".env",
+        env_file=ENV_FILE,
         extra="ignore",
         populate_by_name=True,
         hide_input_in_errors=True,
