@@ -5,3 +5,4 @@
 @media(max-width:480px){.current-resume{align-items:flex-start}.current-resume .button{padding-inline:.25rem}}
 
 .jobs-page .selected-job{padding-block:1rem .25rem}.jobs-page .selected-job h2{margin:.3rem 0}.jobs-page .selected-job p{margin:.25rem 0 .65rem}.jobs-page .job-picker{margin-block:.75rem}.jobs-page #jobs-run{margin-block:.75rem 1rem}
+.job-demo-options{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin-block:.75rem}
