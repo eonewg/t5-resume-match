@@ -450,6 +450,123 @@ def test_ling_flash_payload_requests_json_without_reasoning():
     assert timeout == 45
 
 
+@pytest.mark.parametrize(
+    "base",
+    [
+        "https://api.siliconflow.cn/v1",
+        "https://api.siliconflow.cn/v1/",
+        "https://api.siliconflow.cn/v1/chat/completions",
+    ],
+)
+@pytest.mark.parametrize("model", ["fixture/model-a", "fixture/model-b"])
+def test_siliconflow_explicit_json_chat(base, model, monkeypatch):
+    monkeypatch.setenv("T5_DIAGNOSIS_JSON_MODE", "true")
+    settings = config(llm_vendor="custom", api_style="openai_chat", base_url=base, model=model)
+    opener = FixtureTransport(response("openai_chat"))
+    assert create_client(settings, opener=opener).complete(MESSAGES) == TEXT
+    request, _ = opener.requests[0]
+    assert request.full_url == "https://api.siliconflow.cn/v1/chat/completions"
+    assert request.get_header("Authorization") == "Bearer fixture-key"
+    assert json.loads(request.data) == {
+        "model": model,
+        "messages": MESSAGES,
+        "stream": False,
+        "max_tokens": 4096,
+        "response_format": {"type": "json_object"},
+    }
+
+
+@pytest.mark.parametrize("mode,expected", [(None, False), (False, False), (True, True)])
+def test_custom_json_mode_opt_in(mode, expected):
+    settings = config(
+        llm_vendor="custom",
+        api_style="openai_chat",
+        base_url="https://example.test/v1",
+        model="fixture/model",
+        json_mode=mode,
+    )
+    assert ("response_format" in create_client(settings).payload(MESSAGES, None)) is expected
+
+
+@pytest.mark.parametrize("style", ["openai_responses", "anthropic_messages"])
+def test_json_mode_rejects_other_protocols(style):
+    with pytest.raises(ConfigurationError, match="JSON_MODE"):
+        config(api_style=style, json_mode=True)
+
+
+@pytest.mark.parametrize(
+    "document,phase",
+    [
+        (
+            {"choices": [{"finish_reason": "content_filter", "message": {"content": ""}}]},
+            "content_filter",
+        ),
+        (
+            {"choices": [{"finish_reason": "length", "message": {"content": "{}"}}]},
+            "output_truncated",
+        ),
+        ({"choices": [{"finish_reason": "stop", "message": {"content": ""}}]}, "response_envelope"),
+        (
+            {"choices": [{"finish_reason": "tool_calls", "message": {"content": "{}"}}]},
+            "response_envelope",
+        ),
+        ({"choices": []}, "response_envelope"),
+        ({"choices": "invalid"}, "response_envelope"),
+        (b"not-json", "response_json"),
+    ],
+)
+def test_siliconflow_json_mode_keeps_failure_classification(document, phase):
+    settings = config(
+        llm_vendor="custom",
+        api_style="openai_chat",
+        base_url="https://api.siliconflow.cn/v1",
+        model="fixture/model",
+        json_mode=True,
+    )
+    opener = FixtureTransport(document)
+    with pytest.raises(InvalidOutputError) as error:
+        create_client(settings, opener=opener).complete(MESSAGES)
+    assert error.value.phase == phase
+    assert len(opener.requests) == 1
+
+
+def test_siliconflow_json_mode_keeps_business_schema_and_fact_guards():
+    settings = config(
+        llm_vendor="custom",
+        api_style="openai_chat",
+        base_url="https://api.siliconflow.cn/v1",
+        model="fixture/model",
+        json_mode=True,
+        max_attempts=1,
+        output_retries=0,
+    )
+    inputs = DiagnosisInput(
+        resume_text="使用 Python 整理课程数据。", jd_text="需要 Python 数据整理。"
+    )
+    valid = json.loads(MockLLM().complete(build_messages(inputs.resume_text, inputs.jd_text)))
+    invalid_fact = {
+        **valid,
+        "star_rewrites": [{"original": "不存在的原文", "optimized": "整理数据", "reason": "测试"}],
+    }
+    invalid_number = {
+        **valid,
+        "star_rewrites": [
+            {"original": inputs.resume_text, "optimized": "提升 999%", "reason": "测试"}
+        ],
+    }
+    for output, phase in [
+        ("{}", "output_validation"),
+        (json.dumps(invalid_fact), "fact_guard"),
+        (json.dumps(invalid_number), "fact_guard"),
+    ]:
+        opener = FixtureTransport(response("openai_chat", output))
+        service = DiagnosisService(create_client(settings, opener=opener), settings=settings)
+        with pytest.raises(InvalidOutputError) as error:
+            service.diagnose(inputs)
+        assert error.value.phase == phase
+        assert len(opener.requests) == 1
+
+
 def test_envelope_failure_reports_shape_without_content_or_keys(caplog):
     metrics = []
     document = {
@@ -548,7 +665,7 @@ def test_diagnosis_boundary_explains_only_content_filter(finish_reason):
     document["choices"][0]["finish_reason"] = finish_reason
     document["choices"][0]["message"]["content"] = "PRIVATE_CONTENT"
     opener = FixtureTransport(document)
-    settings = config(api_style="openai_chat")
+    settings = config(api_style="openai_chat", max_attempts=5, output_retries=1)
     service = DiagnosisService(create_client(settings, opener=opener), settings=settings)
 
     with pytest.raises(HTTPException) as error:

@@ -125,3 +125,10 @@ A 自有模块执行相同门槛；新增提交重新检查，集成失败保留
 - 结论：**竞品体验证据缺口关闭（用户书面实测记录范围）**。导入/上传/导出/下载是记录中的功能观察，不额外声称已逐一执行文件往返、投递或沟通。“未明显展示”限定于体验路径，不推断产品没有该能力。无需为归档再次要求截图或改系统。
 - 本次仅更新文档与 PR #9 描述。产品、Diagnosis、Prompt、UI、模型配置、原固定和补充评估均未修改；不重复 fresh install 或付费调用。执行文档链接/diff 与数据未变检查，提交后 CI 验证。
 - PR #9 保留草稿，供用户最终审查，不自动合 main。STAR 补充两次请求失败、无可评价输出继续作为已知效果/可用性限制，不因竞品记录到位而改写成质量 PASS。
+
+## 2026-09-09：Diagnosis SiliconFlow 迁移验证
+
+- 基线 `003050100023dc5c19c828bc28542fe4fcc9f599`，仅在 A 分支工作。复用 custom/OpenAI Chat，增加显式 JSON mode 配置；未改 Resume 实现或配置，未增加 fallback。
+- 用户指定 `deepseek-ai/DeepSeek-V4-Flash` 并授权将配置与 Key 保存到未跟踪 `.env`。3 次真实调用均 HTTP 200/stop：最小 JSON smoke 通过，极简业务 schema/STAR/数字保护通过，原 Ling content_filter 输入在新模型上被本地 fact_guard 拒绝。
+- **Diagnosis 真实模型验收未通过**。此轮没有再出现上游过滤，但没有有效业务诊断；按用户停止条件未执行另一正常组合或真实浏览器调用，等待用户指定下一模型，不自动重试或挑选模型。
+- Python 全量 562 passed/39 skipped，frontend 77 passed，Ruff check/format 通过；可选跳过项不记为通过。模型实际结果及同一任务此前的 Ling 排查、离线界面恢复证据见 [迁移记录](final/diagnosis-siliconflow.md)。不改写旧评估、不合 main。

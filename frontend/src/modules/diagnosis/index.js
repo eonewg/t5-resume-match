@@ -12,11 +12,15 @@ export function mount(container,context){
   const modeDetails=node('details','','helper-disclosure');const modeTitle=node('summary','AI 服务说明');modeDetails.append(modeTitle,mode);
   const run=node('button','生成优化建议','button primary');run.type='button';run.id='diagnosis-run';
   const actions=node('div','','inline-actions');actions.append(run);
+  const recovery=node('div','','inline-actions');recovery.hidden=true;
+  const editResume=node('a','修改简历','button secondary');editResume.href='#resume';
+  const editJob=node('a','修改岗位输入','button secondary');editJob.href='#jobs';
+  recovery.append(editResume,editJob);
   const status=node('p','','product-status feedback');status.setAttribute('role','status');status.setAttribute('aria-live','polite');
   const results=node('section');results.dataset.testid='diagnosis-result';
   const empty=node('div','','product-empty');empty.append(node('h2','先选择简历和目标岗位'),back);
   const guidance=node('details','','helper-disclosure');guidance.append(node('summary','关于 AI 建议与事实核对'),node('p','建议由智能服务生成，不自动采用。原文、待补量化信息与待核实事实请逐项对照；复制后仍需人工核实。'));
-  container.className='product-page diagnosis-page';container.replaceChildren(node('p','04 / 打磨表达','eyebrow'),heading,intro,selection,actions,status,empty,results,guidance,modeDetails);
+  container.className='product-page diagnosis-page';container.replaceChildren(node('p','04 / 打磨表达','eyebrow'),heading,intro,selection,actions,status,recovery,empty,results,guidance,modeDetails);
   let disposed=false,selectionVersion=0,lastPair='';
   const controller=connectDiagnosis(context,({current,record,busy,error,canRun})=>{
     const pair=JSON.stringify([current.resumeId,current.jdId]);
@@ -29,6 +33,7 @@ export function mount(container,context){
     }
     run.disabled=busy||!canRun;run.textContent=busy?'正在生成建议…':error?'重试生成建议':record?'重新生成建议':'生成优化建议';
     status.textContent=userText(error||(busy?'正在分析你的经历与目标岗位……':''));status.hidden=!status.textContent;setFeedback(status,{busy,error});
+    recovery.hidden=!error?.includes('上游模型内容过滤');
     run.className='button '+(record?'secondary':'primary');
     empty.hidden=canRun;selection.hidden=!canRun;actions.hidden=!canRun;guidance.hidden=!canRun;modeDetails.hidden=!canRun;
     results.replaceChildren();results.hidden=!record;if(!record)return;

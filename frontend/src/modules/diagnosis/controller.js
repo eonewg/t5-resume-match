@@ -49,7 +49,10 @@ export function connectDiagnosis({ api, getState, subscribe, signal, updateSelec
       record = { ...data, is_mock: data.is_mock || response.isMock === true };
       updateSelection?.({result: {...getState().result, diagnosis: record}});
     } catch (failure) {
-      if (!disposed && !signal.aborted && ticket === version) error = failure.message || "诊断失败，请重试。";
+      if (!disposed && !signal.aborted && ticket === version) {
+        error = failure.message || "诊断失败，请重试。";
+        if (error.includes("上游模型内容过滤")) error = "当前简历或岗位输入触发上游模型内容过滤，未生成优化建议。请检查并修改输入、保存后重新诊断。";
+      }
     } finally {
       if (ticket === version) { busy = false; display(); }
     }

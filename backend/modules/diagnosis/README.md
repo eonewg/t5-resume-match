@@ -101,6 +101,35 @@ uv run --frozen uvicorn backend.modules.diagnosis.web:create_app --factory --hos
 
 ## 校验与恢复
 
+### SiliconFlow 接入（真实验收待完成）
+
+复用 `custom + openai_chat`，无专用客户端或新增 SDK。配置
+`T5_DIAGNOSIS_LLM_VENDOR=custom`、`T5_DIAGNOSIS_API_STYLE=openai_chat`、
+`T5_DIAGNOSIS_BASE_URL=https://api.siliconflow.cn/v1`、
+`T5_DIAGNOSIS_JSON_MODE=true`，endpoint 自动成为
+`https://api.siliconflow.cn/v1/chat/completions`。
+`T5_DIAGNOSIS_MODEL` 与 `T5_DIAGNOSIS_API_KEY` 必须由用户提供；本轮不自动读取、
+选择或持久化新的模型与凭据，写本地 `.env` 需用户另行明确同意。
+
+`JSON_MODE` 仅适用于 OpenAI Chat：true 发送 `response_format={"type":"json_object"}`，
+false 不发送；未配置时保留原供应商默认行为。模型 JSON mode 后仍执行本地严格
+Pydantic schema、STAR 原文与数字校验；错误分类和真实失败不转 Mock 的行为保持。
+`stream=false`，model 动态传入，不为 SiliconFlow 猜测模型或额外思考参数。
+
+迁移原因是 Ling3-flash 对部分真实 Resume/JD 组合返回 `content_filter`。
+此识别逻辑继续保留；Resume 的 Ling3-flash 配置和实现不变。
+用户已提供模型与凭据并授权保存到未跟踪 `.env`。当前配置的
+`deepseek-ai/DeepSeek-V4-Flash` 最小 smoke 与极简业务通过，但原过滤输入触发
+本地 fact_guard；已停止后续调用，尚未验收为最终方案。
+见 [实际调用记录](../../../docs/final/diagnosis-siliconflow.md)。
+真实验收先执行最小 API smoke，再通过 DiagnosisService 验证极简、原过滤输入和
+另一正常组合；每组一次，`MAX_ATTEMPTS=1`、`OUTPUT_RETRIES=0`、禁用缓存。
+仅记录脱敏指标，少量调用不代表稳定成功率。
+
+接口依据：[SiliconFlow 官方文档](https://docs.siliconflow.cn/docs/api/chat-completions-post)。
+
+### 现有保护
+
 - 只接受完整 JSON 对象，或单个完整的 JSON Markdown 围栏。拒绝夹杂解释文本的结果。
 - 严格校验类型、必填字段、未知字段、条数及长度。响应体和生成文本都有大小限制。
 - `original` 必须是简历原文片段，改写不得新增原文没有的阿拉伯数字。

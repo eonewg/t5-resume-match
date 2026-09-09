@@ -166,6 +166,7 @@ class HTTPClient:
                         value = usage.get(target, usage.get(legacy))
                         if type(value) is int and value >= 0:
                             metrics[target] = value
+                metrics["finish_reason"] = response_envelope_shape(document)["finish_reason"]
                 content = self.extract(document)
                 if not isinstance(content, str) or not content.strip():
                     raise ValueError
@@ -214,7 +215,10 @@ class OpenAIChatClient(HTTPClient):
             config.max_tokens
         )
         ling_flash = config.llm_vendor == "custom" and config.model.casefold() == "ling-3.0-flash"
-        if config.llm_vendor != "custom" or ling_flash:
+        json_mode = config.json_mode
+        if json_mode is None:
+            json_mode = config.llm_vendor != "custom" or ling_flash
+        if json_mode:
             body["response_format"] = {"type": "json_object"}
         if ling_flash:
             body["thinking"] = {"type": "disabled"}

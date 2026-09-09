@@ -35,6 +35,28 @@ test("errors clear stale output and allow retry", async () => {
   await f.run(); assert.equal(f.views.at(-1).record, null); assert.equal(f.views.at(-1).busy, false);
   await f.run(); assert.equal(f.views.at(-1).record.id, "d"); f.dispose();
 });
+
+test("content filter never retries itself and allows edited selection recovery", async () => {
+  let calls = 0;
+  const f = fixture(async (_url, options) => {
+    calls++;
+    if (calls === 1) throw Error("上游模型内容过滤，未生成简历诊断");
+    assert.equal(options.body.jd_id, "edited");
+    const response = record(); response.data.jd_id = "edited"; return response;
+  });
+  await f.run();
+  assert.equal(calls, 1);
+  assert.equal(f.views.at(-1).record, null);
+  assert.equal(f.views.at(-1).busy, false);
+  assert.match(f.views.at(-1).error, /修改输入、保存后重新诊断/);
+  f.update({resumeId: "r", jdId: "edited", result: null});
+  assert.equal(calls, 1);
+  assert.equal(f.views.at(-1).error, "");
+  await f.run();
+  assert.equal(calls, 2);
+  assert.equal(f.views.at(-1).record.jd_id, "edited");
+  f.dispose();
+});
 test("changed selection discards pending responses", async () => {
   let resolve;
   const f = fixture(() => new Promise(done => { resolve = done; }));

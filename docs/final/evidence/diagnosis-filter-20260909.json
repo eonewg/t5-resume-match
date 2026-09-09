@@ -1,0 +1,924 @@
+{
+  "date": "2026-09-09",
+  "calls": [
+    {
+      "model": "Ling-3.0-flash",
+      "prompt_version": "d-v1",
+      "prompt_sha256": "b48e9b0cfa76d8b5ca297fcaabec3e0a2a9174b9ea7257f5d1067ac1c5658242",
+      "combo": "resume",
+      "jd_lines": null,
+      "input_sha256": [
+        "7511f4ba64d11d4e779da92091d558a4dd87d625dbce3b5f854d4748e5452112",
+        "40c0c21b2ae61f6ac74c9c408411efb230cafb2e1371df2743f08c0a50033d3a"
+      ],
+      "input_lengths": [
+        1024,
+        34
+      ],
+      "status": "failed",
+      "schema_passed": null,
+      "facts_passed": null,
+      "error_category": "invalid_output",
+      "http_status": 200,
+      "phase": "output_validation",
+      "elapsed_seconds": 4.54,
+      "client_events": [
+        {
+          "input_tokens": 1070,
+          "output_tokens": 662,
+          "status": "text",
+          "error_category": null,
+          "http_status": 200,
+          "phase": null,
+          "vendor": "custom",
+          "model": "Ling-3.0-flash",
+          "attempt": 1,
+          "latency_seconds": 4.537941799964756
+        }
+      ],
+      "attempts": [
+        {
+          "vendor": "custom",
+          "model": "Ling-3.0-flash",
+          "attempt": 1,
+          "error_category": "invalid_output",
+          "http_status": 200,
+          "phase": "output_validation",
+          "status": "error",
+          "retry": false,
+          "backoff_seconds": 0,
+          "input_tokens": 1070,
+          "output_tokens": 662,
+          "elapsed_seconds": 4.539325
+        }
+      ],
+      "call_number": 1
+    },
+    {
+      "model": "Ling-3.0-flash",
+      "prompt_version": "d-v1",
+      "prompt_sha256": "b48e9b0cfa76d8b5ca297fcaabec3e0a2a9174b9ea7257f5d1067ac1c5658242",
+      "combo": "jd",
+      "jd_lines": null,
+      "input_sha256": [
+        "84131dbf2b129a876d8ce6c333f74cf4a8c411e47fcc3a7915908f8e40d21f34",
+        "d5193f9ecb996f25ff618f00ce1c632f15724f4304a11be1c47ae94ef578e94d"
+      ],
+      "input_lengths": [
+        50,
+        6939
+      ],
+      "status": "failed",
+      "schema_passed": null,
+      "facts_passed": null,
+      "error_category": "invalid_output",
+      "http_status": 200,
+      "phase": "content_filter",
+      "elapsed_seconds": 0.749,
+      "client_events": [
+        {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "status": "error",
+          "error_category": "invalid_output",
+          "http_status": 200,
+          "phase": "content_filter",
+          "finish_reason": "content_filter",
+          "envelope_shape": {
+            "top_level_keys": [
+              "id",
+              "choices",
+              "created",
+              "model",
+              "object",
+              "usage"
+            ],
+            "choices_count": 1,
+            "choice_keys": [
+              "finish_reason",
+              "index",
+              "message"
+            ],
+            "finish_reason": "content_filter",
+            "message_keys": [
+              "content",
+              "refusal",
+              "role"
+            ],
+            "role": "assistant",
+            "content_type": "str",
+            "has_reasoning_content": false
+          },
+          "vendor": "custom",
+          "model": "Ling-3.0-flash",
+          "attempt": 1,
+          "latency_seconds": 0.7475246000103652
+        }
+      ],
+      "attempts": [
+        {
+          "vendor": "custom",
+          "model": "Ling-3.0-flash",
+          "attempt": 1,
+          "error_category": "invalid_output",
+          "http_status": 200,
+          "phase": "content_filter",
+          "status": "error",
+          "retry": false,
+          "backoff_seconds": 0,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "elapsed_seconds": 0.748602
+        }
+      ],
+      "call_number": 2
+    },
+    {
+      "model": "Ling-3.0-flash",
+      "prompt_version": "d-v1",
+      "prompt_sha256": "b48e9b0cfa76d8b5ca297fcaabec3e0a2a9174b9ea7257f5d1067ac1c5658242",
+      "combo": "simple",
+      "jd_lines": null,
+      "input_sha256": [
+        "84131dbf2b129a876d8ce6c333f74cf4a8c411e47fcc3a7915908f8e40d21f34",
+        "40c0c21b2ae61f6ac74c9c408411efb230cafb2e1371df2743f08c0a50033d3a"
+      ],
+      "input_lengths": [
+        50,
+        34
+      ],
+      "status": "validated",
+      "schema_passed": true,
+      "facts_passed": true,
+      "star_count": 0,
+      "elapsed_seconds": 1.914,
+      "client_events": [
+        {
+          "input_tokens": 792,
+          "output_tokens": 149,
+          "status": "text",
+          "error_category": null,
+          "http_status": 200,
+          "phase": null,
+          "finish_reason": "stop",
+          "vendor": "custom",
+          "model": "Ling-3.0-flash",
+          "attempt": 1,
+          "latency_seconds": 1.9125519003719091
+        }
+      ],
+      "attempts": [
+        {
+          "vendor": "custom",
+          "model": "Ling-3.0-flash",
+          "attempt": 1,
+          "error_category": null,
+          "http_status": 200,
+          "phase": null,
+          "status": "validated",
+          "retry": false,
+          "backoff_seconds": 0,
+          "input_tokens": 792,
+          "output_tokens": 149,
+          "elapsed_seconds": 1.9137
+        }
+      ],
+      "call_number": 3
+    },
+    {
+      "model": "Ling-3.0-flash",
+      "prompt_version": "d-v1",
+      "prompt_sha256": "b48e9b0cfa76d8b5ca297fcaabec3e0a2a9174b9ea7257f5d1067ac1c5658242",
+      "combo": "original",
+      "jd_lines": null,
+      "input_sha256": [
+        "7511f4ba64d11d4e779da92091d558a4dd87d625dbce3b5f854d4748e5452112",
+        "d5193f9ecb996f25ff618f00ce1c632f15724f4304a11be1c47ae94ef578e94d"
+      ],
+      "input_lengths": [
+        1024,
+        6939
+      ],
+      "status": "failed",
+      "schema_passed": null,
+      "facts_passed": null,
+      "error_category": "invalid_output",
+      "http_status": 200,
+      "phase": "content_filter",
+      "elapsed_seconds": 0.734,
+      "client_events": [
+        {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "status": "error",
+          "error_category": "invalid_output",
+          "http_status": 200,
+          "phase": "content_filter",
+          "finish_reason": "content_filter",
+          "envelope_shape": {
+            "top_level_keys": [
+              "id",
+              "choices",
+              "created",
+              "model",
+              "object",
+              "usage"
+            ],
+            "choices_count": 1,
+            "choice_keys": [
+              "finish_reason",
+              "index",
+              "message"
+            ],
+            "finish_reason": "content_filter",
+            "message_keys": [
+              "content",
+              "refusal",
+              "role"
+            ],
+            "role": "assistant",
+            "content_type": "str",
+            "has_reasoning_content": false
+          },
+          "vendor": "custom",
+          "model": "Ling-3.0-flash",
+          "attempt": 1,
+          "latency_seconds": 0.7317436998710036
+        }
+      ],
+      "attempts": [
+        {
+          "vendor": "custom",
+          "model": "Ling-3.0-flash",
+          "attempt": 1,
+          "error_category": "invalid_output",
+          "http_status": 200,
+          "phase": "content_filter",
+          "status": "error",
+          "retry": false,
+          "backoff_seconds": 0,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "elapsed_seconds": 0.733208
+        }
+      ],
+      "call_number": 4
+    },
+    {
+      "model": "Ling-3.0-flash",
+      "prompt_version": "d-v1",
+      "prompt_sha256": "b48e9b0cfa76d8b5ca297fcaabec3e0a2a9174b9ea7257f5d1067ac1c5658242",
+      "combo": "jd",
+      "jd_lines": "0:29",
+      "input_sha256": [
+        "84131dbf2b129a876d8ce6c333f74cf4a8c411e47fcc3a7915908f8e40d21f34",
+        "7c918a8877687f0a38606af2fa3db9eb187876a176f3426b342b399d6d88f668"
+      ],
+      "input_lengths": [
+        50,
+        4020
+      ],
+      "status": "validated",
+      "schema_passed": true,
+      "facts_passed": true,
+      "star_count": 0,
+      "elapsed_seconds": 2.386,
+      "client_events": [
+        {
+          "input_tokens": 1553,
+          "output_tokens": 215,
+          "status": "text",
+          "error_category": null,
+          "http_status": 200,
+          "phase": null,
+          "finish_reason": "stop",
+          "vendor": "custom",
+          "model": "Ling-3.0-flash",
+          "attempt": 1,
+          "latency_seconds": 2.383661299943924
+        }
+      ],
+      "attempts": [
+        {
+          "vendor": "custom",
+          "model": "Ling-3.0-flash",
+          "attempt": 1,
+          "error_category": null,
+          "http_status": 200,
+          "phase": null,
+          "status": "validated",
+          "retry": false,
+          "backoff_seconds": 0,
+          "input_tokens": 1553,
+          "output_tokens": 215,
+          "elapsed_seconds": 2.385274
+        }
+      ],
+      "call_number": 5
+    },
+    {
+      "model": "Ling-3.0-flash",
+      "prompt_version": "d-v1",
+      "prompt_sha256": "b48e9b0cfa76d8b5ca297fcaabec3e0a2a9174b9ea7257f5d1067ac1c5658242",
+      "combo": "jd",
+      "jd_lines": "29:37",
+      "input_sha256": [
+        "84131dbf2b129a876d8ce6c333f74cf4a8c411e47fcc3a7915908f8e40d21f34",
+        "1c26ebe5abca798656b7bbd141f617b5de919773d9a36fb232fed55d489a4ed1"
+      ],
+      "input_lengths": [
+        50,
+        2918
+      ],
+      "status": "failed",
+      "schema_passed": null,
+      "facts_passed": null,
+      "error_category": "invalid_output",
+      "http_status": 200,
+      "phase": "content_filter",
+      "elapsed_seconds": 0.676,
+      "client_events": [
+        {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "status": "error",
+          "error_category": "invalid_output",
+          "http_status": 200,
+          "phase": "content_filter",
+          "finish_reason": "content_filter",
+          "envelope_shape": {
+            "top_level_keys": [
+              "id",
+              "choices",
+              "created",
+              "model",
+              "object",
+              "usage"
+            ],
+            "choices_count": 1,
+            "choice_keys": [
+              "finish_reason",
+              "index",
+              "message"
+            ],
+            "finish_reason": "content_filter",
+            "message_keys": [
+              "content",
+              "refusal",
+              "role"
+            ],
+            "role": "assistant",
+            "content_type": "str",
+            "has_reasoning_content": false
+          },
+          "vendor": "custom",
+          "model": "Ling-3.0-flash",
+          "attempt": 1,
+          "latency_seconds": 0.6749777002260089
+        }
+      ],
+      "attempts": [
+        {
+          "vendor": "custom",
+          "model": "Ling-3.0-flash",
+          "attempt": 1,
+          "error_category": "invalid_output",
+          "http_status": 200,
+          "phase": "content_filter",
+          "status": "error",
+          "retry": false,
+          "backoff_seconds": 0,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "elapsed_seconds": 0.676112
+        }
+      ],
+      "call_number": 6
+    },
+    {
+      "model": "Ling-3.0-flash",
+      "prompt_version": "d-v1",
+      "prompt_sha256": "b48e9b0cfa76d8b5ca297fcaabec3e0a2a9174b9ea7257f5d1067ac1c5658242",
+      "combo": "jd",
+      "jd_lines": "29:36",
+      "input_sha256": [
+        "84131dbf2b129a876d8ce6c333f74cf4a8c411e47fcc3a7915908f8e40d21f34",
+        "5aac222b600e36ae32db2b9a64783acbb0d0cef810d4ca7f8f54a46ccb99be5d"
+      ],
+      "input_lengths": [
+        50,
+        2367
+      ],
+      "status": "failed",
+      "schema_passed": null,
+      "facts_passed": null,
+      "error_category": "invalid_output",
+      "http_status": 200,
+      "phase": "content_filter",
+      "elapsed_seconds": 0.688,
+      "client_events": [
+        {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "status": "error",
+          "error_category": "invalid_output",
+          "http_status": 200,
+          "phase": "content_filter",
+          "finish_reason": "content_filter",
+          "envelope_shape": {
+            "top_level_keys": [
+              "id",
+              "choices",
+              "created",
+              "model",
+              "object",
+              "usage"
+            ],
+            "choices_count": 1,
+            "choice_keys": [
+              "finish_reason",
+              "index",
+              "message"
+            ],
+            "finish_reason": "content_filter",
+            "message_keys": [
+              "content",
+              "refusal",
+              "role"
+            ],
+            "role": "assistant",
+            "content_type": "str",
+            "has_reasoning_content": false
+          },
+          "vendor": "custom",
+          "model": "Ling-3.0-flash",
+          "attempt": 1,
+          "latency_seconds": 0.6871448997408152
+        }
+      ],
+      "attempts": [
+        {
+          "vendor": "custom",
+          "model": "Ling-3.0-flash",
+          "attempt": 1,
+          "error_category": "invalid_output",
+          "http_status": 200,
+          "phase": "content_filter",
+          "status": "error",
+          "retry": false,
+          "backoff_seconds": 0,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "elapsed_seconds": 0.688154
+        }
+      ],
+      "call_number": 7
+    },
+    {
+      "model": "Ling-3.0-flash",
+      "prompt_version": "d-v1",
+      "prompt_sha256": "b48e9b0cfa76d8b5ca297fcaabec3e0a2a9174b9ea7257f5d1067ac1c5658242",
+      "combo": "jd",
+      "jd_lines": "36:37",
+      "input_sha256": [
+        "84131dbf2b129a876d8ce6c333f74cf4a8c411e47fcc3a7915908f8e40d21f34",
+        "6769f5e3e97bfe396464ae7c541b516d99490474fe85b779d764d18d3fc23542"
+      ],
+      "input_lengths": [
+        50,
+        550
+      ],
+      "status": "validated",
+      "schema_passed": true,
+      "facts_passed": true,
+      "star_count": 1,
+      "elapsed_seconds": 2.503,
+      "client_events": [
+        {
+          "input_tokens": 880,
+          "output_tokens": 302,
+          "status": "text",
+          "error_category": null,
+          "http_status": 200,
+          "phase": null,
+          "finish_reason": "stop",
+          "vendor": "custom",
+          "model": "Ling-3.0-flash",
+          "attempt": 1,
+          "latency_seconds": 2.5014336998574436
+        }
+      ],
+      "attempts": [
+        {
+          "vendor": "custom",
+          "model": "Ling-3.0-flash",
+          "attempt": 1,
+          "error_category": null,
+          "http_status": 200,
+          "phase": null,
+          "status": "validated",
+          "retry": false,
+          "backoff_seconds": 0,
+          "input_tokens": 880,
+          "output_tokens": 302,
+          "elapsed_seconds": 2.502559
+        }
+      ],
+      "call_number": 8
+    },
+    {
+      "model": "Ling-3.0-flash",
+      "prompt_version": "d-v1",
+      "prompt_sha256": "b48e9b0cfa76d8b5ca297fcaabec3e0a2a9174b9ea7257f5d1067ac1c5658242",
+      "combo": "jd",
+      "jd_lines": "29:34",
+      "input_sha256": [
+        "84131dbf2b129a876d8ce6c333f74cf4a8c411e47fcc3a7915908f8e40d21f34",
+        "20a8f4a8b28194d10b636c2de7aaecb550eed7767752ef8b03ed60a497da38a0"
+      ],
+      "input_lengths": [
+        50,
+        1852
+      ],
+      "status": "failed",
+      "schema_passed": null,
+      "facts_passed": null,
+      "error_category": "invalid_output",
+      "http_status": 200,
+      "phase": "content_filter",
+      "elapsed_seconds": 0.631,
+      "client_events": [
+        {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "status": "error",
+          "error_category": "invalid_output",
+          "http_status": 200,
+          "phase": "content_filter",
+          "finish_reason": "content_filter",
+          "envelope_shape": {
+            "top_level_keys": [
+              "id",
+              "choices",
+              "created",
+              "model",
+              "object",
+              "usage"
+            ],
+            "choices_count": 1,
+            "choice_keys": [
+              "finish_reason",
+              "index",
+              "message"
+            ],
+            "finish_reason": "content_filter",
+            "message_keys": [
+              "content",
+              "refusal",
+              "role"
+            ],
+            "role": "assistant",
+            "content_type": "str",
+            "has_reasoning_content": false
+          },
+          "vendor": "custom",
+          "model": "Ling-3.0-flash",
+          "attempt": 1,
+          "latency_seconds": 0.6291938000358641
+        }
+      ],
+      "attempts": [
+        {
+          "vendor": "custom",
+          "model": "Ling-3.0-flash",
+          "attempt": 1,
+          "error_category": "invalid_output",
+          "http_status": 200,
+          "phase": "content_filter",
+          "status": "error",
+          "retry": false,
+          "backoff_seconds": 0,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "elapsed_seconds": 0.630369
+        }
+      ],
+      "call_number": 9
+    },
+    {
+      "model": "Ling-3.0-flash",
+      "prompt_version": "d-v1",
+      "prompt_sha256": "b48e9b0cfa76d8b5ca297fcaabec3e0a2a9174b9ea7257f5d1067ac1c5658242",
+      "combo": "jd",
+      "jd_lines": "34:36",
+      "input_sha256": [
+        "84131dbf2b129a876d8ce6c333f74cf4a8c411e47fcc3a7915908f8e40d21f34",
+        "83c9012b52c38023fc0379315c85a4b0bde103c5695319721982d4f556ffb957"
+      ],
+      "input_lengths": [
+        50,
+        514
+      ],
+      "status": "validated",
+      "schema_passed": true,
+      "facts_passed": true,
+      "star_count": 0,
+      "elapsed_seconds": 2.038,
+      "client_events": [
+        {
+          "input_tokens": 874,
+          "output_tokens": 188,
+          "status": "text",
+          "error_category": null,
+          "http_status": 200,
+          "phase": null,
+          "finish_reason": "stop",
+          "vendor": "custom",
+          "model": "Ling-3.0-flash",
+          "attempt": 1,
+          "latency_seconds": 2.036765799857676
+        }
+      ],
+      "attempts": [
+        {
+          "vendor": "custom",
+          "model": "Ling-3.0-flash",
+          "attempt": 1,
+          "error_category": null,
+          "http_status": 200,
+          "phase": null,
+          "status": "validated",
+          "retry": false,
+          "backoff_seconds": 0,
+          "input_tokens": 874,
+          "output_tokens": 188,
+          "elapsed_seconds": 2.037808
+        }
+      ],
+      "call_number": 10
+    },
+    {
+      "model": "Ling-3.0-flash",
+      "prompt_version": "d-v2-career-context",
+      "prompt_sha256": "a66d249d14811224d5fd30b66c8bd25d9a0b1c1130b9342587eb90560aa6e91e",
+      "combo": "resume",
+      "jd_lines": null,
+      "input_sha256": [
+        "7511f4ba64d11d4e779da92091d558a4dd87d625dbce3b5f854d4748e5452112",
+        "40c0c21b2ae61f6ac74c9c408411efb230cafb2e1371df2743f08c0a50033d3a"
+      ],
+      "input_lengths": [
+        1024,
+        34
+      ],
+      "status": "validated",
+      "schema_passed": true,
+      "facts_passed": true,
+      "star_count": 3,
+      "elapsed_seconds": 5.691,
+      "client_events": [
+        {
+          "input_tokens": 1123,
+          "output_tokens": 838,
+          "status": "text",
+          "error_category": null,
+          "http_status": 200,
+          "phase": null,
+          "finish_reason": "stop",
+          "vendor": "custom",
+          "model": "Ling-3.0-flash",
+          "attempt": 1,
+          "latency_seconds": 5.689166800118983
+        }
+      ],
+      "attempts": [
+        {
+          "vendor": "custom",
+          "model": "Ling-3.0-flash",
+          "attempt": 1,
+          "error_category": null,
+          "http_status": 200,
+          "phase": null,
+          "status": "validated",
+          "retry": false,
+          "backoff_seconds": 0,
+          "input_tokens": 1123,
+          "output_tokens": 838,
+          "elapsed_seconds": 5.690853
+        }
+      ],
+      "call_number": 11
+    },
+    {
+      "model": "Ling-3.0-flash",
+      "prompt_version": "d-v2-career-context",
+      "prompt_sha256": "a66d249d14811224d5fd30b66c8bd25d9a0b1c1130b9342587eb90560aa6e91e",
+      "combo": "jd",
+      "jd_lines": null,
+      "input_sha256": [
+        "84131dbf2b129a876d8ce6c333f74cf4a8c411e47fcc3a7915908f8e40d21f34",
+        "d5193f9ecb996f25ff618f00ce1c632f15724f4304a11be1c47ae94ef578e94d"
+      ],
+      "input_lengths": [
+        50,
+        6939
+      ],
+      "status": "failed",
+      "schema_passed": null,
+      "facts_passed": null,
+      "error_category": "invalid_output",
+      "http_status": 200,
+      "phase": "content_filter",
+      "elapsed_seconds": 0.955,
+      "client_events": [
+        {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "status": "error",
+          "error_category": "invalid_output",
+          "http_status": 200,
+          "phase": "content_filter",
+          "finish_reason": "content_filter",
+          "envelope_shape": {
+            "top_level_keys": [
+              "id",
+              "choices",
+              "created",
+              "model",
+              "object",
+              "usage"
+            ],
+            "choices_count": 1,
+            "choice_keys": [
+              "finish_reason",
+              "index",
+              "message"
+            ],
+            "finish_reason": "content_filter",
+            "message_keys": [
+              "content",
+              "refusal",
+              "role"
+            ],
+            "role": "assistant",
+            "content_type": "str",
+            "has_reasoning_content": false
+          },
+          "vendor": "custom",
+          "model": "Ling-3.0-flash",
+          "attempt": 1,
+          "latency_seconds": 0.953927599824965
+        }
+      ],
+      "attempts": [
+        {
+          "vendor": "custom",
+          "model": "Ling-3.0-flash",
+          "attempt": 1,
+          "error_category": "invalid_output",
+          "http_status": 200,
+          "phase": "content_filter",
+          "status": "error",
+          "retry": false,
+          "backoff_seconds": 0,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "elapsed_seconds": 0.955163
+        }
+      ],
+      "call_number": 12
+    },
+    {
+      "model": "Ling-3.0-flash",
+      "prompt_version": "d-v2-career-context",
+      "prompt_sha256": "a66d249d14811224d5fd30b66c8bd25d9a0b1c1130b9342587eb90560aa6e91e",
+      "combo": "simple",
+      "jd_lines": null,
+      "input_sha256": [
+        "84131dbf2b129a876d8ce6c333f74cf4a8c411e47fcc3a7915908f8e40d21f34",
+        "40c0c21b2ae61f6ac74c9c408411efb230cafb2e1371df2743f08c0a50033d3a"
+      ],
+      "input_lengths": [
+        50,
+        34
+      ],
+      "status": "validated",
+      "schema_passed": true,
+      "facts_passed": true,
+      "star_count": 0,
+      "elapsed_seconds": 1.579,
+      "client_events": [
+        {
+          "input_tokens": 845,
+          "output_tokens": 129,
+          "status": "text",
+          "error_category": null,
+          "http_status": 200,
+          "phase": null,
+          "finish_reason": "stop",
+          "vendor": "custom",
+          "model": "Ling-3.0-flash",
+          "attempt": 1,
+          "latency_seconds": 1.5771757997572422
+        }
+      ],
+      "attempts": [
+        {
+          "vendor": "custom",
+          "model": "Ling-3.0-flash",
+          "attempt": 1,
+          "error_category": null,
+          "http_status": 200,
+          "phase": null,
+          "status": "validated",
+          "retry": false,
+          "backoff_seconds": 0,
+          "input_tokens": 845,
+          "output_tokens": 129,
+          "elapsed_seconds": 1.578441
+        }
+      ],
+      "call_number": 13
+    },
+    {
+      "model": "Ling-3.0-flash",
+      "prompt_version": "d-v2-career-context",
+      "prompt_sha256": "a66d249d14811224d5fd30b66c8bd25d9a0b1c1130b9342587eb90560aa6e91e",
+      "combo": "original",
+      "jd_lines": null,
+      "input_sha256": [
+        "7511f4ba64d11d4e779da92091d558a4dd87d625dbce3b5f854d4748e5452112",
+        "d5193f9ecb996f25ff618f00ce1c632f15724f4304a11be1c47ae94ef578e94d"
+      ],
+      "input_lengths": [
+        1024,
+        6939
+      ],
+      "status": "failed",
+      "schema_passed": null,
+      "facts_passed": null,
+      "error_category": "invalid_output",
+      "http_status": 200,
+      "phase": "content_filter",
+      "elapsed_seconds": 0.795,
+      "client_events": [
+        {
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "status": "error",
+          "error_category": "invalid_output",
+          "http_status": 200,
+          "phase": "content_filter",
+          "finish_reason": "content_filter",
+          "envelope_shape": {
+            "top_level_keys": [
+              "id",
+              "choices",
+              "created",
+              "model",
+              "object",
+              "usage"
+            ],
+            "choices_count": 1,
+            "choice_keys": [
+              "finish_reason",
+              "index",
+              "message"
+            ],
+            "finish_reason": "content_filter",
+            "message_keys": [
+              "content",
+              "refusal",
+              "role"
+            ],
+            "role": "assistant",
+            "content_type": "str",
+            "has_reasoning_content": false
+          },
+          "vendor": "custom",
+          "model": "Ling-3.0-flash",
+          "attempt": 1,
+          "latency_seconds": 0.7940591000951827
+        }
+      ],
+      "attempts": [
+        {
+          "vendor": "custom",
+          "model": "Ling-3.0-flash",
+          "attempt": 1,
+          "error_category": "invalid_output",
+          "http_status": 200,
+          "phase": "content_filter",
+          "status": "error",
+          "retry": false,
+          "backoff_seconds": 0,
+          "input_tokens": 0,
+          "output_tokens": 0,
+          "elapsed_seconds": 0.795126
+        }
+      ],
+      "call_number": 14
+    }
+  ],
+  "call_count": 14
+}

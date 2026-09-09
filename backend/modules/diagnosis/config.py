@@ -68,6 +68,8 @@ class DiagnosisSettings(BaseSettings):
     model: str | None = None
     endpoint_path: str | None = None
     reasoning_effort: ReasoningEffort | None = None
+    # Explicit OpenAI Chat JSON capability; None preserves vendor defaults.
+    json_mode: bool | None = None
     # Legacy TIMEOUT_SECONDS now bounds the entire transport attempt, including DNS.
     timeout_seconds: float = Field(default=45, gt=0, le=90, allow_inf_nan=False)
     connect_timeout_seconds: float = Field(default=5, gt=0, le=15, allow_inf_nan=False)
@@ -100,6 +102,8 @@ class DiagnosisSettings(BaseSettings):
             self.base_url = self.base_url or base
             self.model = self.model or model
         self.base_url = secure_url(self.base_url)
+        if self.json_mode is not None and self.api_style != "openai_chat":
+            raise ConfigurationError("JSON_MODE 仅适用于 openai_chat")
         if self.llm_vendor == "deepseek" and not self.api_key.get_secret_value():
             self.api_key = self.legacy_api_key
         if self.endpoint_path is not None:
