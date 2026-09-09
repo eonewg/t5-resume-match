@@ -1,5 +1,7 @@
 # UI 产品化交付验证
 
+2026-09-09 A UI Polish 的验证与修改前后截图见 [本轮交付说明](polish.md)。以下为上一轮 UI Refresh 的历史记录，不覆盖本轮结果。
+
 基线：`41ab5ce`；专项分支：`feat/ui-refresh-d`。设计先于前端修改完成，Stitch project `4839069813519735528`。统一规范见 [DESIGN.md](DESIGN.md)，首版/变体及 critique 见 [stitch-review.md](stitch-review.md)。
 
 ## 完成内容

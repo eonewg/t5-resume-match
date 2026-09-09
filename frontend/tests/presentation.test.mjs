@@ -3,6 +3,16 @@ import assert from 'node:assert/strict';
 import {splitSuggestion,userText} from '../src/core/presentation.js';
 import {connectJobs} from '../src/modules/jobs/controller.js';
 import {createWorkspace} from '../src/core/workspace.js';
+import {fieldStatus} from '../src/core/ui.js';
+
+test('confirmed or protected empty fields never look like confirmed content',()=>{
+  for(const value of ['', '  ', [], ['', '  ']]) {
+    assert.deepEqual(fieldStatus(value,true,true),{text:'未填写',tone:'neutral'});
+  }
+  assert.deepEqual(fieldStatus(['SQL'],true,true),{text:'已确认',tone:'success'});
+  assert.equal(fieldStatus('学校',true,false).text,'已修改');
+  assert.equal(fieldStatus('学校',false,false).text,'待核对');
+});
 
 test('STAR comparison preserves exact original, numbers and suggestion; unknown formats stay intact',()=>{
   const text='【STAR】原文： 处理 120 条。\n优化：处理 120 条，【待补充】。\n理由：更清晰';

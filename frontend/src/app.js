@@ -136,12 +136,14 @@ async function refreshStatus() {
     byId("mode-banner").hidden = !hasMock;
     const mockNames = Object.entries(data).filter(([, module]) => module.is_mock)
       .map(([key]) => moduleSlots[key]?.title || key);
-    byId("mode-banner").textContent = `演示数据：${mockNames.join("、")}使用演示服务，请以各项结果标识为准。`;
+    byId("mode-summary").textContent = `演示服务 · ${mockNames.join("、")}`;
+    byId("mode-detail").textContent = `演示数据：${mockNames.join("、")}使用演示服务，请以各项结果标识为准。`;
   } catch {
     byId("connection-status").textContent = "服务暂不可用";
     byId("connection-status").dataset.status = "error";
     byId("mode-banner").hidden = false;
-    byId("mode-banner").textContent = "暂时无法读取服务状态。内容可继续填写，请在服务恢复后提交。";
+    byId("mode-summary").textContent = "服务状态暂不可用";
+    byId("mode-detail").textContent = "暂时无法读取服务状态。内容可继续填写，请在服务恢复后提交。";
   }
 }
 

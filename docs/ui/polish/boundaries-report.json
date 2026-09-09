@@ -1,0 +1,13 @@
+{
+  "checks": [
+    "1440px: compact empty fields; parsing feedback; protected blank stays blank; explicit proposal adoption; edit saves new version; reload/history; long text; table-contained scrolling; missing salary",
+    "1280px: compact empty fields; parsing feedback; protected blank stays blank; explicit proposal adoption; edit saves new version; reload/history; long text; table-contained scrolling; missing salary",
+    "390px: compact empty fields; parsing feedback; protected blank stays blank; explicit proposal adoption; edit saves new version; reload/history; long text; table-contained scrolling; missing salary"
+  ],
+  "widths": [
+    1440,
+    1280,
+    390
+  ],
+  "status": "passed"
+}
