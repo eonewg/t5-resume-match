@@ -49,7 +49,7 @@ ResumeData：
 
 上传默认上限 10 MiB，可通过进程环境变量 `T5_RESUME_UPLOAD_MAX_BYTES` 设置正整数字节数；提取文本仍遵守现有 50000 字符上限。文件名不参与路径构造，不持久保存原始文件；框架临时上传文件在处理完成后关闭。错误沿用公共错误结构：415 后缀/MIME 不支持，413 文件过大，422 空文件/损坏/无文字/文字过长，503 上传大小配置无效。错误不包含文件名、服务端路径或解析器异常栈。
 
-Resume 默认 `ResumeService` 已改为 AI-first：上传提取后的纯文本和粘贴原文都调用独立 AI 抽取器。模型仅输出 name、education、skills、experience 四个必需字段；拒绝额外字段、缺字段、非 JSON、重复键和类型错误。JSON/字段结构校验后（缺字段默认留空），系统组装原始 raw_text 为 ResumeData。模型不得生成 raw_text，失败不退回规则解析。旧 `OfflineResumeService` 仅保留为显式离线测试基线。
+Resume 默认 `ResumeService` 已改为 AI-first：上传提取后的纯文本和粘贴原文都调用独立 AI 抽取器。模型仅输出 name、education、skills、experience 四个字段；strict JSON Schema 请求完整字段，未知信息留空。本地校验允许缺字段并填入空值；拒绝额外字段、非 JSON、重复键和类型错误。JSON/字段结构校验后（缺字段默认留空），系统组装原始 raw_text 为 ResumeData。模型不得生成 raw_text，失败不退回规则解析。旧 `OfflineResumeService` 仅保留为显式离线测试基线。
 
 Resume 编辑器首次识别仅填充未保护字段；用户手动修改或确认的字段（包括空值/空数组）不再被重识别自动替换。主动逐项“采用建议”可以替换对应字段。保存后 GET 比较全部字段，验证一致才更新共享 resumeId；读取失败只重试读取已保存 ID，不重复 POST。AI 成功、失败、演示结果分别显示；失败支持重新识别和手动填写。
 

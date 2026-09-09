@@ -68,3 +68,11 @@ timeout、429、上游 5xx、401/403、配置、JSON、schema 错误返回固定
 本轮没有新增真实 AI 请求；历史五次评测结果保留，不能据此声称新实现已通过五份真实验收。一次性评测工具移除依赖已删除守卫的推测指标，仅保留对照锚点和人工核对提示。历史统计文件不改写。
 
 本轮验证：完整 Python 离线回归 478 passed、39 skipped（本地未配置可选集成测试条件），前端 76 passed；Ruff check/format 与 diff 检查通过。未重新执行真实 AI 或浏览器实时调用。
+
+## PR #10 合并后的补入分支
+
+从 `origin/feat/core-a` 的 `2746ca4` 创建 `feat/resume-ai-simplify-a`，将遗漏提交 `1fb5be5` cherry-pick 为 `8a1b094`。生产流程保持 raw_text → LLM structured output → strict schema → 用户核对 → 保存，不增加事实 guard。
+
+本基线重新验证：Resume 103 passed；Python 全量 532 passed、39 skipped（本地未配置可选集成条件）；前端 76 passed；`uv sync --locked`、全仓 Ruff check/format 和 diff 检查通过。两个既有依赖弃用警告。本次没有真实 AI 调用。
+
+补入范围仅 Resume 实现、Resume 测试和对应文档；API 契约只修正 Resume 段落的缺字段说明。Diagnosis、Jobs、Analytics、CI 公共策略及 PR #9 最终验收记录不变。新 PR 指向 `feat/core-a`，不自动合并。
