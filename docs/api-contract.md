@@ -1,6 +1,6 @@
 # 公共 API 契约 v1
 
-前缀 `/api/v1`，JSON 请求/响应；动态 OpenAPI 为 `/openapi.json`，交互文档 `/docs`。契约模型在 `backend/schemas/contracts.py`，未知输入字段拒绝，错误不回显简历内容。
+前缀 `/api/v1`，默认 JSON 请求/响应；文件上传使用 multipart/form-data。动态 OpenAPI 为 `/openapi.json`，交互文档 `/docs`。契约模型在 `backend/schemas/contracts.py`，未知输入字段拒绝，错误不回显简历内容。
 
 ## 路由
 
@@ -14,6 +14,7 @@
 | `GET /api/v1/modules` | 无 | 四个入口的 `is_mock` |
 | `POST /api/v1/resumes/parse` | `{"raw_text":"简历原文"}` | 201，Resume |
 | `POST /api/v1/resumes/preview` | `{"raw_text":"简历原文"}` | 200，ResumeData 草稿；不写库 |
+| `POST /api/v1/resumes/upload-preview` | multipart/form-data，`file` 文件字段 | 200，ResumeData 草稿，含提取的 raw_text；不写库 |
 | `POST /api/v1/resumes` | ResumeData | 201，保存结构化简历，Resume |
 | `GET /api/v1/resumes` | `limit=20&offset=0&order=asc` | Resume 数组；可用 order=desc 读最新记录 |
 | `GET /api/v1/resumes/{id}` | 无 | Resume |
@@ -39,6 +40,14 @@ ResumeData：
 ```
 
 `raw_text` 必填且逐字保留（含首尾空白和换行），纯空白拒绝；其余字段有默认值，未知 name 为 null。Resume 在其上增加服务端 `id=resume_<uuid>`。结构化保存不进行技能推断。preview 用于编辑前草稿，POST /resumes 保存确认后的新版本；不覆盖历史记录。
+
+文件预览仅增加输入适配：提取文本后复用相同 provider、ResumeData 和 `X-T5-Mock` 响应头。不会直接覆盖已确认字段或创建记录；用户核对后仍通过 `POST /resumes` 保存。提取的全文逐字进入 parser 并作为 raw_text 返回，不承诺恢复 PDF 的原始排版。
+
+- TXT：`.txt` + `text/plain`，UTF-8（去除开头 BOM），保留其余空白/换行；解码失败明确提示改用 UTF-8。
+- DOCX：`.docx` + `application/vnd.openxmlformats-officedocument.wordprocessingml.document`，读取正文段落及表格单元格内段落，按文档顺序换行连接；不执行嵌入内容、不读取外链，拒绝宏和 XML 实体。ZIP 总展开上限 30 MiB、最多 2000 个成员。
+- PDF：`.pdf` + `application/pdf`，仅文本层，无 OCR。加密 PDF 拒绝；最多 100 页，各解压流及累计页面内容限制 30 MiB。提取后少于 10 个文字/数字字符时返回：**未能从该 PDF 提取有效文字。扫描版简历暂不支持，请上传可复制文字的 PDF，或直接粘贴简历文本。**
+
+上传默认上限 10 MiB，可通过进程环境变量 `T5_RESUME_UPLOAD_MAX_BYTES` 设置正整数字节数；提取文本仍遵守现有 50000 字符上限。文件名不参与路径构造，不持久保存原始文件；框架临时上传文件在处理完成后关闭。错误沿用公共错误结构：415 后缀/MIME 不支持，413 文件过大，422 空文件/损坏/无文字/文字过长，503 上传大小配置无效。错误不包含文件名、服务端路径或解析器异常栈。
 
 Resume 编辑器已实现：首次解析仅填充未保护字段；用户手动修改或确认的字段（包括空值/空数组）不再被重解析自动替换。主动逐项“采用建议”可以替换对应字段。保存后 GET 比较全部字段，验证一致才更新共享 resumeId；读取失败只重试读取已保存 ID，不重复 POST。解析器识别明确的 Relevant/Other/Research/Professional Experience 标题；Markdown 同级未知标题结束当前章节，子标题作为经历/学校内容。不会根据标题猜技能。
 

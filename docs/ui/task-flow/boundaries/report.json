@@ -1,0 +1,13 @@
+{
+  "widths": [
+    1440,
+    1280,
+    390
+  ],
+  "checks": [
+    "1440px: exact scan-PDF message; empty/type/corrupt/size/offline rejection; actual drag/drop; protected blank/reparse/upload; raw archive and prior save unchanged; explicit adoption; direct history; paste fallback; long text; missing salary; filter error/retry",
+    "1280px: exact scan-PDF message; empty/type/corrupt/size/offline rejection; actual drag/drop; protected blank/reparse/upload; raw archive and prior save unchanged; explicit adoption; direct history; paste fallback; long text; missing salary; filter error/retry",
+    "390px: exact scan-PDF message; empty/type/corrupt/size/offline rejection; actual drag/drop; protected blank/reparse/upload; raw archive and prior save unchanged; explicit adoption; direct history; paste fallback; long text; missing salary; filter error/retry"
+  ],
+  "status": "passed"
+}

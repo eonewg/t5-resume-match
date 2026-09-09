@@ -1,4 +1,4 @@
-export function connectJobs({api, getState, updateSelection, subscribe, signal}, render) {
+export function connectJobs({api, getState, updateSelection, subscribe, signal, view}, render) {
   let state = {jobs: [], resumes: [], jdId: getState().jdId || '', resumeId: getState().resumeId || '',
     result: getState().result?.match || null, busy: false, error: '', notice: '', jobMock: null};
   let disposed = false, version = 0;
@@ -36,6 +36,14 @@ export function connectJobs({api, getState, updateSelection, subscribe, signal},
     } finally { if (ticket === version) {state.busy = false; show();} }
   }
   const load = () => task(async () => {
+    if (view === 'matching') {
+      const cached = getState().result?.match;
+      if (!cached || cached.resume_id !== state.resumeId || cached.jd_id !== state.jdId) return {notice: ''};
+      const [job, resume] = await Promise.all([
+        api.request('/api/v1/jobs/' + encodeURIComponent(state.jdId)),
+        api.request('/api/v1/resumes/' + encodeURIComponent(state.resumeId))]);
+      return {jobs: [job.data], resumes: [resume.data], result: cached, notice: ''};
+    }
     const [jobs, resumes, modes] = await Promise.all([
       api.request('/api/v1/jobs?limit=100'), api.request('/api/v1/resumes?limit=100'), api.request('/api/v1/modules')]);
     const jobRows = [...jobs.data], resumeRows = [...resumes.data];
@@ -44,13 +52,13 @@ export function connectJobs({api, getState, updateSelection, subscribe, signal},
     const cached = getState().result?.match;
     return {jobs: jobRows, resumes: resumeRows, jobMock: modes.data.jobs?.is_mock,
       result: cached?.resume_id === state.resumeId && cached?.jd_id === state.jdId ? cached : null,
-      notice: '已加载前 100 条已保存记录及工作台当前选择。'};
+      notice: ''};
   });
   const create = form => task(async () => {
     if (!form.title.trim() || !form.jd_text.trim()) throw Error('请填写岗位名称和 JD 原文。');
     const {data, isMock} = await api.request('/api/v1/jobs', {method: 'POST', body: form});
     return {jobs: [...state.jobs.filter(x => x.id !== data.id), data], jdId: data.id,
-      notice: isMock ? 'JD 已保存（Mock 解析）。' : 'JD 已解析并保存。'};
+      notice: isMock ? '岗位已保存并选中（演示解析）。' : '岗位已保存并选中。'};
   });
   const match = () => task(async () => {
     if (!state.resumeId || !state.jdId) throw Error('请选择已保存的简历与 JD。');

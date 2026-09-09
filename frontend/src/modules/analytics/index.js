@@ -23,14 +23,16 @@ export function mount(container, context) {
   for (const [labelText, field] of [['数据来源', source], ['采集日期 · 起', start], ['采集日期 · 止', end]]) {
     const group = node('div'); const label = node('label', labelText); label.htmlFor = field.id; group.append(label, field); form.append(group);
   }
-  const apply = node('button', '更新分析', 'button primary'); apply.type = 'submit'; form.append(apply);
+  const apply = node('button', '应用筛选', 'button secondary'); apply.type = 'submit'; form.append(apply);
+  const filters = node('details', '', 'analytics-filter-panel'); filters.id = 'analytics-filters';
+  filters.append(node('summary', '筛选来源与日期'), form);
   const library = node('details', '', 'analytics-library');
-  library.append(node('summary', '使用已归档的真实岗位'));
+  library.append(node('summary', '演示数据 / 数据管理'));
   library.append(node('p', '导入 2026 年 9 月 8 日采集的 5 份 Canonical 招聘快照。均来自同一雇主，薪资未披露；不能代表整个就业市场，也不代表岗位现在仍开放。'));
   const importButton = node('button', '导入 5 份真实岗位 快照', 'button secondary'); importButton.type = 'button'; importButton.id = 'analytics-import'; library.append(importButton);
   const status = node('p', '', 'analytics-status feedback'); status.id = 'analytics-status'; status.setAttribute('role', 'status'); status.setAttribute('aria-live', 'polite');
   const body = node('div'); body.id = 'analytics-results';
-  container.className = 'analytics-page'; container.replaceChildren(style, header, form, library, status, body);
+  container.className = 'analytics-page'; container.replaceChildren(style, header, filters, status, body, library);
 
   function table(headers, rows, className = '') {
     const wrapper = node('div', '', 'analytics-table-scroll'); wrapper.tabIndex = 0;
@@ -51,7 +53,11 @@ export function mount(container, context) {
   function renderResult(result) {
     body.replaceChildren();
     if (!result) return;
-    if (result.is_mock) body.append(node('p', '当前分析包含演示服务或演示输入，请勿用于真实市场结论。', 'notice'));
+    if (result.is_mock) {
+      const mode = node('details', '', 'helper-disclosure');
+      mode.append(node('summary', '演示数据'), node('p', '当前分析包含演示服务或演示输入，请勿用于真实市场结论。'));
+      body.append(mode);
+    }
     const data = result.market;
     if (!data) { body.append(node('p', '当前分析模块未提供完整市场指标，请联系维护者检查分析服务。', 'notice')); return; }
     const metrics = node('div', '', 'analytics-metrics');
@@ -59,7 +65,7 @@ export function mount(container, context) {
     for (const [value, title, detail] of [
       [data.sample_size, '岗位样本', `当前筛选 / 已录入 ${result.scope?.available_count ?? data.sample_size} 条`],
       [data.company_count, '已知雇主', '按当前样本中的公司计数'],
-      [data.skill_frequency.length, '技能 / 工具', '按 岗位 去重计数，工具也计入能力要求'],
+      [data.skill_frequency[0]?.skill || '暂无', '热门技能', `共 ${data.skill_frequency.length} 项技能 / 工具`],
       [data.salary_coverage.comparable_count, '可比较薪资', `未知或单位不明 ${unknown} 条`],
     ]) {
       const metric = node('article', '', 'card analytics-metric'); metric.append(node('p', title), node('strong', String(value)), node('small', detail)); metrics.append(metric);
@@ -72,7 +78,8 @@ export function mount(container, context) {
     if (result.scope?.excluded_mock_count) body.append(node('p', `已排除 ${result.scope.excluded_mock_count} 条标记为演示数据的记录。`, 'analytics-help'));
     if (!data.sample_size) {
       const empty = card('还没有可分析的岗位'); empty.id = 'analytics-empty';
-      empty.append(node('p', result.summary), node('p', '可以展开上方快照入口导入真实岗位，或切换到“全部来源”查看手动录入的岗位。'));
+      const next = node('a', '添加目标岗位', 'button primary'); next.href = '#jobs';
+      empty.append(node('p', result.summary), node('p', '添加岗位后即可了解技能需求；已有岗位可在筛选中选择“全部来源”。'), next);
       body.append(empty); return;
     }
     const chartGrid = node('div', '', 'analytics-chart-grid');
@@ -150,9 +157,9 @@ export function mount(container, context) {
   const controller = connectAnalytics(context, state => {
     source.value = state.filters.source_type; start.value = state.filters.date_from; end.value = state.filters.date_to;
     for (const field of [source, start, end, apply, importButton]) field.disabled = Boolean(state.busy);
-    status.textContent = userText(state.error || state.notice || (state.busy === 'import' ? '正在导入真实快照…' : state.busy ? '正在计算当前筛选…' : '已更新。'));
+    status.textContent = userText(state.error || state.notice || (state.busy === 'import' ? '正在导入真实快照…' : state.busy ? '正在整理市场信息…' : ''));
     setFeedback(status, {busy: Boolean(state.busy), error: state.error, success: Boolean(state.result)});
-    apply.textContent = state.busy ? '正在更新…' : '更新分析';
+    apply.textContent = state.busy ? '正在更新…' : '应用筛选';
     body.setAttribute('aria-busy', String(Boolean(state.busy))); renderResult(state.result);
   });
   form.addEventListener('submit', event => { event.preventDefault(); controller.load({source_type: source.value, date_from: start.value, date_to: end.value}); });

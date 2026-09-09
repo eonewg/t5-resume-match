@@ -15,10 +15,11 @@ export function createApi({ fetchImpl = globalThis.fetch, timeoutMs = 45000, dia
     const isDiagnosis = method === "POST" && ["/api/v1/diagnoses", "/api/v1/workflow"].includes(path);
     const timer = setTimeout(() => controller.abort(), isDiagnosis ? diagnosisTimeoutMs : timeoutMs);
     try {
+      const multipart = typeof FormData !== "undefined" && body instanceof FormData;
       const response = await fetchImpl(path, {
         method, signal: controller.signal,
-        headers: { Accept: "application/json", ...(body === undefined ? {} : { "Content-Type": "application/json" }) },
-        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+        headers: { Accept: "application/json", ...(body === undefined || multipart ? {} : { "Content-Type": "application/json" }) },
+        ...(body === undefined ? {} : { body: multipart ? body : JSON.stringify(body) }),
       });
       let data;
       try { data = await response.json(); }

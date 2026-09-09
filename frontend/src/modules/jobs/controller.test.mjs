@@ -39,3 +39,14 @@ test('malformed or mismatched result rejected',async()=>{
   const bad=result(false);bad.data.jd_id='wrong';const f=fixture(async()=>bad);
   await f.match();assert.match(f.views.at(-1).error,/契约/);assert.equal(f.views.at(-1).result,null);f.dispose();
 });
+
+test('matching empty page makes no list or matching requests',async()=>{
+ const abort=new AbortController();let shared={resumeId:null,jdId:null,result:null};let listener;const views=[];
+ const c=connectJobs({view:'matching',api:{request:()=>{throw Error('unexpected request');}},getState:()=>shared,updateSelection:change=>{shared={...shared,...change};listener(shared);},subscribe:fn=>{listener=fn;return()=>{};},signal:abort.signal},state=>views.push(state));
+ await c.load();assert.equal(views.at(-1).result,null);assert.equal(views.at(-1).error,'');c.dispose();
+});
+test('matching navigation restores the pair result without running it again',async()=>{
+ const match=result(false).data;let shared={resumeId:'r',jdId:'j',result:{match}};let listener;const paths=[],views=[];
+ const c=connectJobs({view:'matching',api:{request:async path=>{paths.push(path);return {data:{id:path.endsWith('/j')?'j':'r'}};}},getState:()=>shared,updateSelection:change=>{shared={...shared,...change};listener(shared);},subscribe:fn=>{listener=fn;return()=>{};},signal:new AbortController().signal},state=>views.push(state));
+ await c.load();assert.deepEqual(paths,['/api/v1/jobs/j','/api/v1/resumes/r']);assert.equal(views.at(-1).result.score,50);c.dispose();
+});

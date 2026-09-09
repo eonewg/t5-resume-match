@@ -26,8 +26,8 @@ function fingerprint(data) {
 export function connectResume(context, render, retained = null) {
   const {api, signal, getState, updateSelection} = context;
   let state = {values: blankValues(), protectedFields: [], reviewed: false, candidate: null,
-    parseMock: null, savedId: null, savedSnapshot: null, pendingSave: null, ...structuredClone(retained || {}),
-    rows: [], offset: 0, busy: '', error: '', notice: '', dirty: false};
+    imported: false, parseMock: null, savedId: null, savedSnapshot: null, pendingSave: null, ...structuredClone(retained || {}),
+    rows: [], offset: 0, busy: '', error: '', notice: '', dirty: false, historyError: false};
   let disposed = false, ticket = 0, rawRevision = 0;
   const active = () => !disposed && !signal.aborted;
   const refreshDirty = () => {
@@ -58,10 +58,15 @@ export function connectResume(context, render, retained = null) {
   async function task(kind, work) {
     if (!active() || state.busy) return;
     const current = ++ticket;
-    state.busy = kind; state.error = ''; state.notice = ''; show();
+    state.busy = kind; state.error = ''; state.notice = '';
+    if (kind === 'refresh') state.historyError = false;
+    show();
     const valid = () => active() && current === ticket;
     try { await work(valid); }
-    catch (error) { if (valid()) state.error = error.message || '请求失败，填写的内容已保留。'; }
+    catch (error) { if (valid()) {
+      state.error = error.message || '请求失败，填写的内容已保留。';
+      if (kind === 'refresh') state.historyError = true;
+    } }
     finally { if (valid()) { state.busy = ''; show(); } }
   }
   const parse = () => task('parse', async valid => {
@@ -72,7 +77,11 @@ export function connectResume(context, render, retained = null) {
     if (revision !== rawRevision) { state.notice = '原文已变化，旧解析结果未应用。请重新解析。'; return; }
     const data = checked(response.data);
     if (data.raw_text !== raw) throw Error('解析响应未保留原文，建议未应用。');
-    state.candidate = editable(data); state.parseMock = response.isMock === true;
+    acceptPreview(data, response.isMock);
+  });
+  function acceptPreview(data, isMock) {
+    state.imported = true;
+    state.candidate = editable(data); state.parseMock = isMock === true;
     let changed = false;
     for (const field of fields) {
       if (!state.protectedFields.includes(field)) {
@@ -84,6 +93,20 @@ export function connectResume(context, render, retained = null) {
     state.notice = state.protectedFields.length
       ? '解析完成。已编辑或确认字段保持不变；可以逐项查看并采用新建议。'
       : '解析完成。请核对结构化内容；未识别信息可留空或手动补充。';
+  }
+  const upload = file => task('upload', async valid => {
+    if (!file) throw Error('请选择一份简历文件。');
+    if (!/\.(pdf|docx|txt)$/i.test(file.name)) throw Error('请上传 PDF、DOCX 或 TXT 简历。');
+    if (!file.size) throw Error('文件为空，请选择包含简历内容的文件。');
+    if (file.size > 10 * 1024 * 1024) throw Error('文件超过 10 MB，请选择更小的文件。');
+    const body = new FormData(); body.append('file', file);
+    const response = await api.request('/api/v1/resumes/upload-preview', {method: 'POST', body});
+    if (!valid()) return;
+    const data = checked(response.data);
+    if (!data.raw_text.trim()) throw Error('未能提取有效文字，请直接粘贴简历文本。');
+    state.values.raw_text = data.raw_text; rawRevision++;
+    state.reviewed = false; invalidateSelection();
+    acceptPreview(data, response.isMock);
   });
   function apply(field) {
     if (!active() || state.busy || !fields.includes(field) || !state.candidate) return;
@@ -98,7 +121,7 @@ export function connectResume(context, render, retained = null) {
     state.rows = response.data.map(row => checked(row, true)); state.offset = offset;
   });
   function acceptSaved(data, isMock) {
-    state.values = editable(data); state.savedId = data.id; state.savedSnapshot = fingerprint(data);
+    state.imported = true; state.values = editable(data); state.savedId = data.id; state.savedSnapshot = fingerprint(data);
     state.protectedFields = [...fields]; state.reviewed = true; state.candidate = null;
     state.parseMock = isMock; state.pendingSave = null;
     state.rows = [data, ...state.rows.filter(row => row.id !== data.id)].slice(0, 20);
@@ -114,7 +137,7 @@ export function connectResume(context, render, retained = null) {
       const data = checked(response.data, true);
       if (data.id !== identifier) throw Error('服务返回了另一份简历，当前内容已保留。');
       acceptSaved(data, response.isMock === true);
-      state.notice = '已重新加载保存版本。全部字段已保护，重解析不会自动覆盖。';
+      state.notice = '已打开历史简历，确认过的内容会保留。';
     });
   }
   const save = () => task('save', async valid => {
@@ -147,7 +170,7 @@ export function connectResume(context, render, retained = null) {
       throw Error('重新读取内容与确认值不一致，尚未选择用于匹配。请重试读取或检查服务。');
     }
     acceptSaved(reread, response.isMock === true);
-    state.notice = '已保存并重新读取，全部字段一致。可继续前往岗位匹配。';
+    state.notice = '简历已保存，接下来选择目标岗位。';
   });
   function reset(discard = false) {
     refreshDirty();
@@ -155,16 +178,16 @@ export function connectResume(context, render, retained = null) {
     if (state.dirty && !discard) return {requiresConfirmation: true};
     invalidateSelection(); rawRevision++;
     state = {...state, values: blankValues(), protectedFields: [], reviewed: false, candidate: null,
-      parseMock: null, savedId: null, savedSnapshot: null, pendingSave: null, error: '', notice: '已开始一份新简历。'};
+      imported: false, parseMock: null, savedId: null, savedSnapshot: null, pendingSave: null, error: '', notice: '已开始一份新简历。'};
     show();
   }
   function getDraft() {
-    const keys = ['values', 'protectedFields', 'reviewed', 'candidate', 'parseMock', 'savedId', 'savedSnapshot', 'pendingSave'];
+    const keys = ['imported', 'values', 'protectedFields', 'reviewed', 'candidate', 'parseMock', 'savedId', 'savedSnapshot', 'pendingSave'];
     return structuredClone(Object.fromEntries(keys.map(key => [key, state[key]])));
   }
   function dispose() { disposed = true; ticket++; signal.removeEventListener('abort', dispose); }
   signal.addEventListener('abort', dispose, {once: true}); show();
-  return {edit, review, parse, apply, refresh, load, save, reset, getDraft, dispose,
+  return {edit, review, parse, upload, apply, refresh, load, save, reset, getDraft, dispose,
     async init() {
       await refresh();
       const identifier = getState().resumeId;

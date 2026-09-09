@@ -136,8 +136,9 @@ async function refreshStatus() {
     byId("mode-banner").hidden = !hasMock;
     const mockNames = Object.entries(data).filter(([, module]) => module.is_mock)
       .map(([key]) => moduleSlots[key]?.title || key);
-    byId("mode-summary").textContent = `演示服务 · ${mockNames.join("、")}`;
-    byId("mode-detail").textContent = `演示数据：${mockNames.join("、")}使用演示服务，请以各项结果标识为准。`;
+    byId("mode-summary").textContent = '演示模式';
+    const providers = Object.entries(data).map(([key, module]) => `${moduleSlots[key]?.title || key}：${module.provider || (module.is_mock ? '演示服务' : '真实服务')}`);
+    byId("mode-detail").textContent = `演示数据：${mockNames.join("、")}使用演示服务，请以各项结果标识为准，不用于真实求职结论。服务提供方：${providers.join('；')}。`;
   } catch {
     byId("connection-status").textContent = "服务暂不可用";
     byId("connection-status").dataset.status = "error";

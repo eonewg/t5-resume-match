@@ -63,5 +63,10 @@ export function connectDiagnosis({ api, getState, subscribe, signal, updateSelec
   }
   signal.addEventListener("abort", dispose, { once: true });
   if (signal.aborted) dispose();
-  return { run, dispose };
+  function startRequested() {
+    if (!current.result?.diagnosisRequested) return;
+    updateSelection?.({result: {...getState().result, diagnosisRequested: false}});
+    if (!record && validPair()) return run();
+  }
+  return { run, startRequested, dispose };
 }
