@@ -1,3 +1,4 @@
+import demoResume from '../../demo/fixtures/resume-zh.js';
 import {userText} from '../../core/presentation.js';
 import {connectResume} from './controller.js';
 import {fieldStatus, renderChips, setFeedback} from '../../core/ui.js';
@@ -27,7 +28,9 @@ export function mount(container, context) {
   const dropzone = button('', 'resume-dropzone'); dropzone.id = 'resume-dropzone';
   dropzone.append(node('span', '上传简历', 'resume-upload-title'), node('span', '拖入简历，或点击选择文件'), node('small', 'PDF / DOCX / TXT · 最大 10 MB'));
   const file = node('input'); file.type = 'file'; file.id = 'resume-file'; file.accept = '.pdf,.docx,.txt'; file.hidden = true;
-  importer.append(dropzone, file);
+  const demoFill = button('填入示例简历', 'button ghost'); demoFill.id = 'resume-demo-fill';
+  const demoHelp = node('p', '合成演示简历，仅填入原文；请自行点击解析、核对和保存。', 'resume-help');
+  importer.append(dropzone, file, demoFill, demoHelp);
   const grid = node('div', '', 'resume-grid');
   const sourcePanel = node('details', '', 'card resume-source');
   const sourceSummary = node('summary', '或直接粘贴简历文本'); sourcePanel.append(sourceSummary);
@@ -164,7 +167,7 @@ export function mount(container, context) {
     recovery.hidden = state.aiStatus !== 'failed';
     retryAI.disabled = manual.disabled = Boolean(state.busy);
     parse.hidden = state.aiStatus === 'failed';
-    for (const element of [newButton, dropzone, file, replaceFile, parse, confirm]) element.disabled = Boolean(state.busy);
+    for (const element of [newButton, dropzone, file, replaceFile, parse, confirm, demoFill]) element.disabled = Boolean(state.busy);
     addExperience.disabled = locked || state.values.experience.length >= 500;
     previous.disabled = Boolean(state.busy) || state.offset === 0;
     next.disabled = Boolean(state.busy) || state.rows.length < 20;
@@ -186,6 +189,11 @@ export function mount(container, context) {
     mode.textContent = '演示模式'; mode.title = '请自行核对事实，不把示例内容当作真实经历。';
     nextLink.hidden = !saved || Boolean(state.busy) || state.aiStatus === 'failed';
   }, retainedDraft);
+  demoFill.addEventListener('click', () => {
+    if (currentState.busy) return;
+    if (raw.value.trim() && raw.value !== demoResume && !window.confirm('填入示例简历会替换当前原文，是否继续？')) return;
+    controller.edit('raw_text', demoResume); sourcePanel.open = true; raw.focus(); raw.setSelectionRange(0, 0); raw.scrollTop = 0;
+  });
   raw.addEventListener('input', () => controller.edit('raw_text', raw.value));
   for (const key of Object.keys(inputs)) inputs[key].addEventListener('input', () => controller.edit(key, inputs[key].value));
   for (const key of Object.keys(labels)) applyButtons[key].addEventListener('click', () => controller.apply(key));

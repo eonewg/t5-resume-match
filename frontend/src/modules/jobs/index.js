@@ -1,3 +1,6 @@
+import cppDemo from '../../demo/fixtures/job-cpp.js';
+import goDemo from '../../demo/fixtures/job-go.js';
+import mlDemo from '../../demo/fixtures/job-ml.js';
 import {connectJobs} from './controller.js';
 import {userText} from '../../core/presentation.js';
 import {renderChips,setFeedback} from '../../core/ui.js';
@@ -11,6 +14,19 @@ export function mount(container,context){
  const jobList=node('div','','job-options');jobList.setAttribute('aria-label','选择目标岗位');
  const form=node('form'),title=node('input'),company=node('input'),raw=node('textarea');title.id='jobs-title';title.maxLength=200;title.required=true;company.id='jobs-company';company.maxLength=200;raw.id='jobs-text';raw.maxLength=50000;raw.required=true;raw.rows=5;raw.placeholder='粘贴完整岗位职责与任职要求…';
  for(const [text,field]of [['岗位名称',title],['公司（选填）',company],['岗位要求原文',raw]]){const label=node('label',text);label.htmlFor=field.id;form.append(label,field);}
+ let demoSelected = false;
+ const demoButtons = [cppDemo, goDemo, mlDemo].map(sample => {
+  const fill = button(sample.title); fill.id = 'jobs-demo-' + sample.id;
+  fill.addEventListener('click', () => {
+   if (current?.busy) return;
+   if ((title.value.trim() || company.value.trim() || raw.value.trim()) && !window.confirm('填入示例岗位会替换当前未保存表单，是否继续？')) return;
+   title.value = sample.title; company.value = ''; raw.value = sample.text; demoSelected = true; raw.focus(); raw.setSelectionRange(0, 0); raw.scrollTop = 0;
+  });
+  return fill;
+ });
+ const demoPicker = node('div', '', 'job-demo-options'); demoPicker.append(node('span', '填入示例岗位：'), ...demoButtons);
+ form.insertBefore(demoPicker, form.firstChild);
+ form.append(node('p', '合成演示岗位，仅填入表单；保存、匹配与优化均需手动点击。', 'helper-text'));
  const save=button('保存并选中',true);save.type='submit';form.append(save);const createPanel=node('details','','job-form');createPanel.append(node('summary','添加岗位'),form);
  const original=node('details','','job-original'),originalText=node('p'),source=node('p','','helper-text');originalText.id='jobs-original';original.append(node('summary','查看所选岗位要求'),originalText,source);
  const run=button('开始匹配',true);run.id='jobs-run';
@@ -26,7 +42,7 @@ export function mount(container,context){
  container.className='product-page '+(matching?'matching-page':'jobs-page');container.replaceChildren(node('p',matching?'03 / 看清差距':'02 / 找准方向','eyebrow'),node('h1',matching?'匹配分析':'目标岗位'),node('p',matching?'看清已经体现的能力，找到下一步补充的重点。':'选择你想申请的岗位，看看经历与要求的契合程度。','page-intro'));if(!matching)container.append(resume,choices);container.append(status,retry,empty,results,mode);
  let current,operation='load';
  const controller=connectJobs(context,state=>{
-  current=state;retry.hidden=!state.error||operation!=='load';retry.disabled=state.busy;for(const field of [save,run])field.disabled=state.busy;for(const field of [title,company,raw])field.readOnly=state.busy;
+  current=state;retry.hidden=!state.error||operation!=='load';retry.disabled=state.busy;for(const field of [save,run,...demoButtons])field.disabled=state.busy;for(const field of [title,company,raw])field.readOnly=state.busy;
   mode.hidden=matching||state.jobMock!==true;const busyText={load:'正在读取简历与岗位…',create:'正在整理岗位要求并保存…',match:'正在对照简历与岗位技能…'}[operation];status.textContent=userText(state.error||(state.busy?busyText:state.notice));status.hidden=!status.textContent;setFeedback(status,{busy:state.busy,error:state.error});
   run.textContent=state.busy&&operation==='match'?'正在匹配…':state.error&&operation==='match'?'重试匹配':'开始匹配';run.hidden=!state.resumeId||!state.jdId||createPanel.open;save.textContent=state.busy&&operation==='create'?'正在整理并保存…':'保存并选中';
   const currentResume=state.resumes.find(x=>x.id===state.resumeId);resume.hidden=!state.resumeId;choices.hidden=!state.resumeId;resumeName.textContent=currentResume?.name||'我的简历';const time=currentResume?.updated_at||currentResume?.created_at;resumeTime.textContent=time?'最后更新：'+new Date(time).toLocaleString('zh-CN'):'';
@@ -43,5 +59,5 @@ export function mount(container,context){
   const optimize=link('优化这份简历','#diagnosis',true);optimize.id='matching-optimize';optimize.addEventListener('click',()=>context.updateSelection({result:{...context.getState().result,diagnosisRequested:true}}));results.append(optimize);
  });
  retry.addEventListener('click',()=>{operation='load';controller.load();});
- createPanel.addEventListener('toggle',()=>{run.hidden=createPanel.open||!current?.resumeId||!current?.jdId;});form.addEventListener('submit',async event=>{event.preventDefault();operation='create';await controller.create({title:title.value,company:company.value||null,jd_text:raw.value});if(!current.error&&!context.signal.aborted){createPanel.open=false;picker.open=false;form.reset();}});run.addEventListener('click',async()=>{operation='match';await controller.match();if(current.result&&!context.signal.aborted)location.hash='matching';});controller.load();return()=>{controller.dispose();style.remove();};
+ createPanel.addEventListener('toggle',()=>{run.hidden=createPanel.open||!current?.resumeId||!current?.jdId;});form.addEventListener('submit',async event=>{event.preventDefault();operation='create';await controller.create({title:title.value,company:company.value||null,jd_text:raw.value,...(demoSelected?{source_type:'synthetic'}:{})});if(!current.error&&!context.signal.aborted){createPanel.open=false;picker.open=false;form.reset();demoSelected=false;}});run.addEventListener('click',async()=>{operation='match';await controller.match();if(current.result&&!context.signal.aborted)location.hash='matching';});controller.load();return()=>{controller.dispose();style.remove();};
 }
