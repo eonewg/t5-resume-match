@@ -15,6 +15,7 @@ from .config import DiagnosisSettings
 from .errors import (
     ConfigurationError,
     DiagnosisError,
+    FactGuardError,
     InvalidOutputError,
     PermanentLLMError,
     TemporaryLLMError,
@@ -130,7 +131,7 @@ class DiagnosisService:
                     detail = parse_detail(raw, data.resume_text)
                 except InvalidOutputError as error:
                     error.phase = "output_validation"
-                    if str(error).startswith("STAR"):
+                    if isinstance(error, FactGuardError):
                         error.phase = "fact_guard"
                     else:
                         diagnostic_raw = raw.strip() if isinstance(raw, str) else ""

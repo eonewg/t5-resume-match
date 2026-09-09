@@ -29,3 +29,15 @@ class PermanentLLMError(DiagnosisError):
 
 class InvalidOutputError(DiagnosisError):
     category = "invalid_output"
+
+
+class FactGuardError(InvalidOutputError):
+    """Specific guard failure with structural diagnostics, never input/output text."""
+
+    def __init__(self, message, *, reason, diagnostics):
+        super().__init__(message, phase="fact_guard")
+        self.reason = reason
+        self.diagnostics = diagnostics
+
+    def metadata(self):
+        return {**super().metadata(), "guard_reason": self.reason, **self.diagnostics}

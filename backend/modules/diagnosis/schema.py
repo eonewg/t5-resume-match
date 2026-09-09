@@ -4,7 +4,7 @@ from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, ValidationError
 
-from .errors import InvalidOutputError
+from .errors import FactGuardError, InvalidOutputError
 
 Content = Annotated[
     str, StringConstraints(strict=True, strip_whitespace=True, min_length=1, max_length=3000)
@@ -44,9 +44,20 @@ def parse_detail(raw: str, resume_text: str) -> DiagnosisDetail:
         detail = DiagnosisDetail.model_validate(json.loads(raw))
     except (ValueError, ValidationError, RecursionError):
         raise InvalidOutputError("模型输出不符合诊断 JSON 结构") from None
-    for rewrite in detail.star_rewrites:
+    for index, rewrite in enumerate(detail.star_rewrites):
         if rewrite.original not in resume_text:
-            raise InvalidOutputError("STAR 原文必须来自输入简历")
+            raise FactGuardError(
+                "STAR 原文必须来自输入简历",
+                reason="original_not_in_resume",
+                diagnostics={
+                    "rewrite_index": index,
+                    # Diagnostic only: neither normalization changes acceptance.
+                    "line_endings_only": rewrite.original.replace("\r\n", "\n")
+                    in resume_text.replace("\r\n", "\n"),
+                    "whitespace_only": " ".join(rewrite.original.split())
+                    in " ".join(resume_text.split()),
+                },
+            )
 
         # Guard unsupported Arabic numbers, including percentages and durations.
         # This is a guardrail, not proof of factual accuracy; human review remains necessary.
@@ -54,5 +65,14 @@ def parse_detail(raw: str, resume_text: str) -> DiagnosisDetail:
             return set(re.findall(r"\d+(?:\.\d+)?%?", text))
 
         if not numbers(rewrite.optimized).issubset(numbers(rewrite.original)):
-            raise InvalidOutputError("STAR 改写包含原文未提供的数字")
+            added = numbers(rewrite.optimized) - numbers(rewrite.original)
+            raise FactGuardError(
+                "STAR 改写包含原文未提供的数字",
+                reason="unsupported_number",
+                diagnostics={
+                    "rewrite_index": index,
+                    "unsupported_number_count": len(added),
+                    "numbers_elsewhere_in_resume": added.issubset(numbers(resume_text)),
+                },
+            )
     return detail

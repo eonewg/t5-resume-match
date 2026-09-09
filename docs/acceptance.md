@@ -132,3 +132,11 @@ A 自有模块执行相同门槛；新增提交重新检查，集成失败保留
 - 用户指定 `deepseek-ai/DeepSeek-V4-Flash` 并授权将配置与 Key 保存到未跟踪 `.env`。3 次真实调用均 HTTP 200/stop：最小 JSON smoke 通过，极简业务 schema/STAR/数字保护通过，原 Ling content_filter 输入在新模型上被本地 fact_guard 拒绝。
 - **Diagnosis 真实模型验收未通过**。此轮没有再出现上游过滤，但没有有效业务诊断；按用户停止条件未执行另一正常组合或真实浏览器调用，等待用户指定下一模型，不自动重试或挑选模型。
 - Python 全量 562 passed/39 skipped，frontend 77 passed，Ruff check/format 通过；可选跳过项不记为通过。模型实际结果及同一任务此前的 Ling 排查、离线界面恢复证据见 [迁移记录](final/diagnosis-siliconflow.md)。不改写旧评估、不合 main。
+
+## 2026-09-09：Diagnosis 事实保护具体定位与模型复核
+
+- 基线 `803f6d7`。新增脱敏 `guard_reason`：原文非精确子串 / 本条原文以外的数字，保持两项保护规则。定位调用明确第 1 条 original 内部空白改变；首尾空白原本已去除。统一整份简历的数字来源会允许跨经历移用，因此不放宽；空白归一化只作诊断。
+- Prompt 仅增加连续原文保留空白、本条数字来源两句。DeepSeek-V4-Flash 最终三组：极简通过；原真实组合第 2 条新增本条原文没有的数字失败；另一正常组合通过。三组均 HTTP 200/stop，未重试。
+- 按用户条件用 GLM-5.3 同真实输入对照一次，85.355 秒 read timeout，未取得状态或有效输出；未切换本地模型。真实 Edge 页面调用 DeepSeek 一次通过，API 201，桌面/390px 检查通过，Resume 模型调用 0。
+- 本轮调用 6 次（定位 1 + DeepSeek 三组 3 + GLM 对照 1 + 浏览器 1）。Diagnosis 237 passed；Python 570 passed/39 skipped；frontend 77 passed；Ruff 通过。详见 [本轮记录](final/diagnosis-siliconflow.md#事实保护定位与最终候选复核)。
+- **模型最终验收仍未通过**：当前配置 `SiliconFlow / deepseek-ai/DeepSeek-V4-Flash`，不将浏览器/部分样本成功替代真实组合验收。Resume/Key 未修改，未放宽 guard，未合 main。

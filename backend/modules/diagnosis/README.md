@@ -121,6 +121,9 @@ Pydantic schema、STAR 原文与数字校验；错误分类和真实失败不转
 用户已提供模型与凭据并授权保存到未跟踪 `.env`。当前配置的
 `deepseek-ai/DeepSeek-V4-Flash` 最小 smoke 与极简业务通过，但原过滤输入触发
 本地 fact_guard；已停止后续调用，尚未验收为最终方案。
+后续最小 Prompt 强化明确连续原文/空白与本条数字来源：DeepSeek 三组通过两组，真实
+组合仍为 `unsupported_number`；GLM-5.3 单次对照读取超时，当前配置继续保留 DeepSeek，
+不宣称最终验收成功。
 见 [实际调用记录](../../../docs/final/diagnosis-siliconflow.md)。
 真实验收先执行最小 API smoke，再通过 DiagnosisService 验证极简、原过滤输入和
 另一正常组合；每组一次，`MAX_ATTEMPTS=1`、`OUTPUT_RETRIES=0`、禁用缓存。
@@ -133,6 +136,9 @@ Pydantic schema、STAR 原文与数字校验；错误分类和真实失败不转
 - 只接受完整 JSON 对象，或单个完整的 JSON Markdown 围栏。拒绝夹杂解释文本的结果。
 - 严格校验类型、必填字段、未知字段、条数及长度。响应体和生成文本都有大小限制。
 - `original` 必须是简历原文片段，改写不得新增原文没有的阿拉伯数字。
+- 数字以当前 STAR `original` 为来源，不借用简历其他片段。失败元数据细分
+  `original_not_in_resume` 与 `unsupported_number`；内部空白归一化只用于定位原因，
+  不改变精确引用的接受条件。首尾空白继续按 schema 既有规则去除。
 - STAR 缺失内容使用“待补充”，不补造技能、公司、职责、效果数字；没有经历可返回空改写数组。
 - 空输出、截断、解析或结构错误、超时、连接失败、408/429/常见 5xx 共享一个有限重试预算。
 - 默认最多 3 次，间隔 1 秒、2 秒；格式失败追加修复提示。401、402 等配置/鉴权问题不重试。
