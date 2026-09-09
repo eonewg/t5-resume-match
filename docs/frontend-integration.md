@@ -1,54 +1,56 @@
-# 公共前端接入
+# 前端开发与接入
 
-## 运行与技术栈
+前端使用 React 19、TypeScript 严格模式、Vite 8 和 React Router。生产环境由 FastAPI 同源提供 `frontend/dist`；开发环境用 Vite 代理现有 API。后端业务接口、数据库、匹配算法与 AI Prompt 不因本次迁移改变。
 
-运行 `start.ps1`，打开 `http://127.0.0.1:8000/`。公共壳由 FastAPI 同源提供，使用 HTML、CSS 和原生 JavaScript ES modules；无需 npm 安装或构建。Node 22+ 只用于 `node scripts/check_frontend.mjs` 开发检查。
+## 运行
 
-四个前端模块均可从普通导航进入，无需 preview。Resume `/#resume` 提供受保护字段编辑、保存后重读与历史版本；Jobs `/#jobs` 消费已确认的版本；Analytics `/#analytics` 提供来源/日期筛选、真实快照导入、技能词云和分布、分币种/周期薪资图及来源表。Diagnosis 前端维持既有版本，新协议待 D PR 验收。`/docs` 与 `/openapi.json` 继续保留。
+开发机需要 Node.js 22+、npm 和项目 Python 环境。首次运行 `start.ps1` 时自动安装并构建缺失的前端产物；源码更新后运行 `start.ps1 -RebuildFrontend`。Windows 便携版用户无需 Node.js。
 
-## 自己的目录与入口
-
-| 角色 | 目录 | 预览 URL |
-| --- | --- | --- |
-| A | `frontend/src/modules/resume/` | `/?preview=resume#resume` |
-| D | `frontend/src/modules/jobs/` | `/?preview=jobs#jobs` |
-| D | `frontend/src/modules/diagnosis/` | `/?preview=diagnosis#diagnosis` |
-| A | `frontend/src/modules/analytics/` | `/?preview=analytics#analytics` |
-
-在自己的目录创建 `index.js`，可复制 [最小面板示例](../examples/frontend-panel.js) 的结构。公开导出：
-
-```javascript
-export function mount(container, { api, getState, updateSelection, subscribe, signal }) {
-  const title = document.createElement("h1");
-  title.textContent = "我的模块";
-  container.replaceChildren(title);
-  // 使用 api.request('/api/v1/...') 调用公开接口。
-  // 使用 getState() 读取工作台当前选择。
-  // 按需返回清理函数；切换页面时释放订阅、事件与定时器。
-  return () => {};
-}
+```powershell
+npm --prefix frontend ci
+npm --prefix frontend run build
+# 终端一：仓库根目录
+uv run --locked python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
+# 终端二：前端热更新
+npm --prefix frontend run dev
 ```
 
-无需改公共注册表即可用上表 URL 在本地预览，限定四个固定模块路径。尚未验收的模块在普通导航仍显示占位页面；验收后由 A 在 `frontend/src/core/modules.js` 设置对应 `load: () => import('../modules/<模块>/index.js')` 正式挂载。
+Vite 默认将 `/api`、`/health`、`/ready`、`/demo` 代理到 `http://127.0.0.1:8000`；可在前端开发环境中用 `T5_API_PROXY_TARGET` 更换目标。生产构建只包含静态文件，后端只挂载 `dist/assets`；未构建时根页面返回 503 和构建提示。
 
-预览只验证 UI 接入，不意味着后端已切换为真实 provider。需要联调时用本地 `.env` 配置自己的后端公开类，其余模块可保留 Mock。
+## 页面与状态
 
-## 共用能力
+| 路由 | 页面职责 |
+| --- | --- |
+| `/#/` | 首页工作台，根据当前状态展示下一步、四步进度、简历与岗位上下文 |
+| `/#/resume` | 导入、识别、受保护字段核对、保存后重读、历史选择 |
+| `/#/jobs` | 卡片选择目标岗位；次级入口添加岗位、填入合成样例 |
+| `/#/matching` | 后端匹配分数、已体现技能、未体现技能与下一步优化 |
+| `/#/diagnosis` | 总体建议、原文/建议表达/原因对照、复制与人工核实 |
+| `/#/analytics` | 辅助市场洞察，保留筛选、快照导入、技能与分组薪资统计 |
+| `/#/workspace` | 保留快捷原文分析流程 |
 
-- `api.request(path, {method, body})`：同源 JSON 调用，默认 45 秒超时，失败抛出带 message/status 的 ApiError，成功返回 `{data, isMock}`。公共便捷方法见 `frontend/src/core/api.js`。
-- `getState()`：返回当前 `resumeId`、`jdId`、`result`、`isMock` 的副本。状态只在当前页面内存中保留；刷新后需重新选择已存记录。
-- `updateSelection({...})`：只更新上述四个字段。修改输入时公共工作台会清除旧选择，避免显示过期结果。
-- `subscribe(listener)`：返回取消订阅函数。`mount` 可返回清理函数；`signal` 会在页面切走时中止，异步返回后也要检查取消状态。
-- `.card`、`.button.primary`、`.button.secondary` 和 CSS 变量可复用；自己的样式限于 `[data-module="resume"]` 等模块根节点，不覆盖其他模块全局样式。
+旧 `#resume` 等入口在首次加载时归一到新路由。导航由 React Router 管理，浏览器前进/后退可用。市场洞察位于辅助导航，不打断简历到优化的主流程。
 
-纯浏览器 ES modules 不支持直接 `import './styles.css'`。若使用独立 CSS，由模块创建 `<link rel="stylesheet">` 指向 `new URL('./styles.css', import.meta.url)`，卸载时移除。
+`WorkspaceProvider` 管理当前选择、结果和页面间草稿；路由离开时保留简历草稿，清理订阅并取消请求。草稿与当前选择仅在内存中保存，刷新后通过服务端历史重新选择，不向浏览器持久存储写入简历原文。更换简历或岗位后清除过期匹配/诊断；请求取消与序号检查阻止旧结果覆盖新状态。
 
-所有来自用户或 API 的文本使用 `textContent`、表单 value 等安全方式显示，不拼进 innerHTML。Mock 结果必须展示标签；公共壳对 Mock 匹配显示“—”而不把固定 0/50 分当成真实评分。
+## 代码边界
 
-## 验证与边界
+- `src/App.tsx`：路由、导航、服务状态、页面错误边界。
+- `src/pages/`：React 页面；`src/components/ui.tsx`：公共控件、反馈与空状态。
+- `src/core/contracts.ts`、`api.ts`：API 类型与统一客户端，保留 JSON、multipart、Mock 标识及结构化错误。普通请求 45 秒，诊断/工作流 120 秒，简历识别 150 秒；由用户主动重试。
+- `src/core/state.ts`、`WorkspaceContext.tsx`：共享选择、进度、缓存及 React 生命周期。
+- `src/modules/*/controller.ts`：迁移为 TypeScript 的既有业务状态转换，继续复用行为测试；不操作 DOM。
+- `src/demo/fixtures/*.ts`：合成文本，填入不触发解析、保存或付费调用。
+- `src/styles.css` 与 `src/shell.css`：基础模块样式及新产品布局，无重量级组件库。
 
-至少检查：正常返回、输入缺失、服务失败后可重试、长文本、390px 窄屏无整页横向溢出、切换页面不会残留事件订阅。组件可在成员自己的测试目录或前端模块目录放 `*.test.mjs`，使用 Node 内置测试；公共命令和 CI 自动发现 frontend/tests、frontend/src/modules 和 tests 下的全部此类文件。DOM/交互验证提供真实截图和复现步骤，由 A 结合接口验收。
+新增 UI 使用 React 组件和既有类型客户端，不再使用 `mount(container, context)` 或模块动态注册表。`examples/frontend-panel.js` 仅为历史开发期示例，不是当前接入入口。
 
-后台已有记录不会因前端失败被自动删除：简历和 JD 是独立创建请求，workflow 的匹配/诊断才在一个事务中。重试可能创建新的简历/JD，当前没有幂等上传和历史选择界面。A 须完成简历结构化编辑与保存读取、公共选择联动；D 完成 jobs/diagnosis 界面。
+## 检查
 
-公共导航、首页编排、API 客户端、共享状态、全局样式和静态路由属于 A；成员不要另起前端服务器或自行改这些文件。需要共享组件或依赖时先提交集成请求。
+```powershell
+npm --prefix frontend run build
+node scripts/check_frontend.mjs
+npm --prefix frontend run test:e2e
+```
+
+公共检查执行 TypeScript、Node 行为测试和 Vitest/Testing Library 页面测试。浏览器验收脚本启动临时 SQLite 服务，使用离线 Resume、显式 Mock Diagnosis 和真实 Jobs/Analytics，默认通过本机 Edge 执行；不调用付费 AI，也不打开用户数据库。覆盖 1440/1280/390px 的流程、边界与失败恢复，报告写入忽略目录 `.verification/react-product-shell`。真实 AI 效果需单独验证。迁移证据见 [产品前端迁移记录](frontend-product-shell.md)。

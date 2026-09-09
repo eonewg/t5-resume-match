@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { connectDiagnosis } from "./controller.js";
+import { connectDiagnosis } from "./controller.ts";
 
 function fixture(request, state = { resumeId: "r", jdId: "j", result: null }) {
   const abort = new AbortController();

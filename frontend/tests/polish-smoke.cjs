@@ -16,7 +16,7 @@ async function saved(page){const response=page.waitForResponse(r=>r.url().endsWi
   for(const width of report.widths){
    const page=await browser.newPage({viewport:{width,height:width===390?844:1000}});
    const errors=[];page.on('pageerror',e=>errors.push(e.message));
-   await page.route('**/api/v1/resumes?*',route=>route.abort());await page.goto(base);await page.locator('#resume-status[data-state=error]').waitFor();
+   await page.route('**/api/v1/resumes?*',route=>route.abort());await page.goto(base+'/#resume');await page.locator('#resume-status[data-state=error]').waitFor();
    await page.locator('#resume-history summary').click();await page.unroute('**/api/v1/resumes?*');
    await page.getByRole('button',{name:'重试读取历史简历',exact:true}).click();await page.locator('#resume-dropzone:enabled').waitFor();await page.locator('#resume-history summary').click();
    await page.locator('#resume-file').setInputFiles(path.join(__dirname,'fixtures/no-text.pdf'));
@@ -56,7 +56,7 @@ async function saved(page){const response=page.waitForResponse(r=>r.url().endsWi
    await page.locator('#resume-experience-0').fill(long);assert.equal(await page.locator('#resume-experience-0').inputValue(),long);
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await shot(page,'resume-long-'+width);
    // Paste fallback remains a complete independent entry, after a failed file import.
-   const paste=await browser.newPage({viewport:{width,height:width===390?844:1000}});await paste.goto(base);await paste.locator('#resume-dropzone:enabled').waitFor();
+   const paste=await browser.newPage({viewport:{width,height:width===390?844:1000}});await paste.goto(base+'/#resume');await paste.locator('#resume-dropzone:enabled').waitFor();
    await paste.locator('.resume-source summary').first().click();await paste.locator('#resume-raw').fill(raw);await paste.locator('#resume-parse').click();
    await paste.locator('.resume-fields:visible').waitFor();await paste.locator('#resume-status').filter({hasText:/AI 已完成结构化识别|演示识别结果/}).waitFor();await saved(paste);
    await paste.locator('#resume-next').click();await paste.locator('.current-resume').waitFor();await paste.locator('.job-form summary').click();await paste.locator('#jobs-title').fill('长文本展示测试');await paste.locator('#jobs-text').fill(long);

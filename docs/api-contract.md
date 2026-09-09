@@ -7,7 +7,7 @@
 | 方法与路径 | 请求 | 成功响应 |
 | --- | --- | --- |
 | `GET /` | 无 | 公共工作台 HTML，替代原来跳转 `/docs` 的行为 |
-| `GET /assets/{path}` | 无 | 前端静态资源，仅限 frontend/src |
+| `GET /assets/{path}` | 无 | Vite 构建的前端静态资源，仅限 frontend/dist/assets |
 | `GET /demo/sample.json` | 无 | 明确标注的合成样例 JSON，与成员自检共用 |
 | `GET /health` | 无 | 200，数据库连接正常 |
 | `GET /ready` | 无 | 200 全部配置真实入口；503 尚有 Mock |

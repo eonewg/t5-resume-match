@@ -31,7 +31,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app = FastAPI(title="T5 AI 简历诊断与岗位匹配", version="0.1.0", lifespan=lifespan)
     app.include_router(router)
-    app.mount("/assets", StaticFiles(directory=ROOT / "frontend/src"), name="frontend-assets")
+    frontend = ROOT / "frontend/dist"
+    app.mount(
+        "/assets",
+        StaticFiles(directory=frontend / "assets", check_dir=False),
+        name="frontend-assets",
+    )
 
     @app.exception_handler(StarletteHTTPException)
     async def http_error(request: Request, error):
@@ -69,7 +74,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/", include_in_schema=False)
     def home():
-        return FileResponse(ROOT / "frontend/index.html")
+        if not (frontend / "index.html").is_file():
+            raise HTTPException(503, "前端尚未构建，请先在 frontend 运行 npm ci 和 npm run build。")
+        return FileResponse(frontend / "index.html", headers={"Cache-Control": "no-cache"})
 
     @app.get("/demo/sample.json", include_in_schema=False)
     def demo_sample():

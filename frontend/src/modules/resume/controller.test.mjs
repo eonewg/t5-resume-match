@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {connectResume} from './controller.js';
-import {createWorkspace} from '../../core/workspace.js';
+import {connectResume} from './controller.ts';
+import {createWorkspace} from '../../core/state.ts';
 
 const parsed = raw => ({raw_text: raw, name: null, education: '本科', skills: ['Python'], experience: ['使用 Python 处理课程数据。']});
 function fixture(retained = null) {
@@ -160,7 +160,7 @@ test('invalid or empty files never send upload requests', async () => {
 });
 
 test('multipart requests leave boundary generation to fetch and preserve JSON request encoding', async () => {
-  const {createApi} = await import('../../core/api.js'); const calls = [];
+  const {createApi} = await import('../../core/api.ts'); const calls = [];
   const api = createApi({fetchImpl: async (path, options) => {
     calls.push({path, ...options}); return {ok: true, json: async () => ({}), headers: new Headers()};
   }});

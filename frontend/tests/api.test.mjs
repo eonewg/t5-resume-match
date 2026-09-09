@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createApi, ApiError } from "../src/core/api.js";
+import { createApi, ApiError } from "../src/core/api.ts";
 
 test("JSON requests preserve input and carry Mock provenance", async () => {
   let recorded;

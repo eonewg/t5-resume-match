@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {splitSuggestion,userText} from '../src/core/presentation.js';
-import {connectJobs} from '../src/modules/jobs/controller.js';
-import {createWorkspace} from '../src/core/workspace.js';
-import {fieldStatus} from '../src/core/ui.js';
+import {splitSuggestion,userText} from '../src/core/presentation.ts';
+import {connectJobs} from '../src/modules/jobs/controller.ts';
+import {createWorkspace} from '../src/core/state.ts';
+import {fieldStatus} from '../src/core/ui.ts';
 
 test('confirmed or protected empty fields never look like confirmed content',()=>{
   for(const value of ['', '  ', [], ['', '  ']]) {

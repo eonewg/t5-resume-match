@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { runWorkflow } from "../src/core/workflow.js";
-import { createWorkspace } from "../src/core/workspace.js";
+import { runWorkflow } from "../src/core/workflow.ts";
+import { createWorkspace } from "../src/core/state.ts";
 
 const input = { resumeText: " Python ", title: " 分析师 ", company: "", jdText: " SQL " };
 

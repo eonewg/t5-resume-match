@@ -1,0 +1,101 @@
+// Uses only the shared workspace and public API; no other member module imports.
+import type { ControllerContext, DiagnosisState } from '../../core/controller-types';
+import type { WorkspaceState } from '../../core/state';
+import type { DiagnosisRecord } from '../../core/contracts';
+import { failureMessage } from '../../core/errors';
+
+export function connectDiagnosis(
+  { api, getState, subscribe, signal, updateSelection }: ControllerContext,
+  render: (state: DiagnosisState) => void,
+) {
+  let disposed = false;
+  let version = 0;
+  let busy = false;
+  let current = getState();
+  let record = current.result?.diagnosis || null;
+  let error = '';
+  const validPair = () => Boolean(current.resumeId && current.jdId);
+  const samePair = (left: WorkspaceState, right: WorkspaceState) =>
+    left.resumeId === right.resumeId && left.jdId === right.jdId;
+  function display() {
+    if (!disposed && !signal.aborted) render({ current, record, busy, error, canRun: validPair() });
+  }
+  const unsubscribe = subscribe((next) => {
+    if (!samePair(next, current)) {
+      version += 1;
+      busy = false;
+      record = null;
+      error = '';
+    }
+    current = next;
+    const candidate = next.result?.diagnosis;
+    if (candidate?.resume_id === next.resumeId && candidate?.jd_id === next.jdId)
+      record = candidate;
+    display();
+  });
+  if (record?.resume_id !== current.resumeId || record?.jd_id !== current.jdId) record = null;
+  display();
+  async function run() {
+    if (busy || disposed || signal.aborted) return;
+    if (!validPair()) {
+      error = '请先在工作台保存简历与岗位，完成当前选择。';
+      display();
+      return;
+    }
+    const selected = { ...current };
+    const ticket = ++version;
+    busy = true;
+    record = null;
+    updateSelection?.({ result: { ...getState().result, diagnosis: null } });
+    error = '';
+    display();
+    try {
+      const response = await api.request<DiagnosisRecord>('/api/v1/diagnoses', {
+        method: 'POST',
+        body: { resume_id: selected.resumeId, jd_id: selected.jdId },
+      });
+      if (disposed || signal.aborted || ticket !== version || !samePair(selected, current)) return;
+      const data = response.data;
+      if (
+        data.resume_id !== selected.resumeId ||
+        data.jd_id !== selected.jdId ||
+        typeof data.summary !== 'string' ||
+        !Array.isArray(data.suggestions) ||
+        !data.suggestions.every((item) => typeof item === 'string') ||
+        typeof data.is_mock !== 'boolean'
+      ) {
+        throw new Error('诊断响应不符合公共契约，请稍后重试。');
+      }
+      record = { ...data, is_mock: data.is_mock || response.isMock === true };
+      updateSelection?.({ result: { ...getState().result, diagnosis: record } });
+    } catch (failure) {
+      if (!disposed && !signal.aborted && ticket === version) {
+        error = failureMessage(failure, '诊断失败，请重试。');
+        if (error.includes('上游模型内容过滤'))
+          error =
+            '当前简历或岗位输入触发上游模型内容过滤，未生成优化建议。请检查并修改输入、保存后重新诊断。';
+      }
+    } finally {
+      if (ticket === version) {
+        busy = false;
+        display();
+      }
+    }
+  }
+  function dispose() {
+    if (disposed) return;
+    disposed = true;
+    version += 1;
+    unsubscribe();
+    signal.removeEventListener('abort', dispose);
+  }
+  signal.addEventListener('abort', dispose, { once: true });
+  if (signal.aborted) dispose();
+  function startRequested() {
+    if (!current.result?.diagnosisRequested) return;
+    updateSelection?.({ result: { ...getState().result, diagnosisRequested: false } });
+    if (!record && validPair()) return run();
+  }
+  return { run, startRequested, dispose };
+}
+export type DiagnosisController = ReturnType<typeof connectDiagnosis>;

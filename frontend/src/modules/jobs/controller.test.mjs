@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {connectJobs} from './controller.js';
+import {connectJobs} from './controller.ts';
 function fixture(request, initial = {resumeId:'r',jdId:'j'}) {
   const abort = new AbortController(); let listener, disposed = 0; const views = [];
   const c = connectJobs({api:{request},getState:()=>initial,updateSelection:s=>listener(s),

@@ -84,10 +84,10 @@ async function save(page) {
       const created = page.waitForResponse(r => r.url().endsWith('/api/v1/jobs') && r.request().method()==='POST');
       await page.getByRole('button',{name:'保存并选中',exact:true}).click(); const job = await(await created).json();
       pair = {resume_id:saved.id,jd_id:job.id}; await page.locator('#jobs-run:visible:enabled').waitFor();
-      await page.locator('#jobs-run').click(); await page.waitForURL('**/#matching'); await page.locator('#jobs-result:visible').waitFor();
+      await page.locator('#jobs-run').click(); await page.waitForURL('**/#/matching'); await page.locator('#jobs-result:visible').waitFor();
       assert.equal(await page.locator('#module-view select').count(),0); assert.match(await page.locator('.match-score').innerText(),/\d/);
       await layout(page); await screenshot(page,'ai-to-matching-'+width);
-      await page.locator('#matching-optimize').click(); await page.waitForURL('**/#diagnosis'); await page.locator('.suggestion-compare').waitFor();
+      await page.locator('#matching-optimize').click(); await page.waitForURL('**/#/diagnosis'); await page.locator('.suggestion-compare').waitFor();
       assert.equal(diagnosisCalls,1); assert.match(await page.getByTestId('diagnosis-result-mode').innerText(),/演示数据/);
       assert.equal(await page.locator('#module-view select').count(),0); await layout(page); await screenshot(page,'ai-to-diagnosis-'+width);
       // New page: an AI failure after successful extraction must retain the full original.

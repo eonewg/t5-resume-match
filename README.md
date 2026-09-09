@@ -14,7 +14,7 @@
 | 层 | 技术 |
 | --- | --- |
 | 后端 | Python 3.11–3.13、FastAPI、SQLAlchemy 2、Pydantic v2、Uvicorn（[uv](https://docs.astral.sh/uv/getting-started/installation/) 管理依赖） |
-| 前端 | 原生 JavaScript ES modules，由 FastAPI 同源托管，无构建步骤 |
+| 前端 | React 19 + TypeScript + Vite，React Router 导航，构建后由 FastAPI 同源托管 |
 | 数据库 | 默认 SQLite；可选 PostgreSQL 17 + pgvector |
 | AI | DeepSeek 官方 API（OpenAI Chat Completions 协议） |
 
@@ -37,7 +37,7 @@
 
 ### 源码运行
 
-需要 Git、Python 3.11–3.13 和 [uv](https://docs.astral.sh/uv/getting-started/installation/)。
+需要 Git、Python 3.11–3.13、Node.js 22+（含 npm）和 [uv](https://docs.astral.sh/uv/getting-started/installation/)。便携版最终用户无需这些开发工具。
 
 ```powershell
 git clone https://github.com/eonewg/t5-resume-match.git
@@ -48,12 +48,14 @@ powershell -ExecutionPolicy Bypass -File .\start.ps1
 
 复制 `.env.example` 为 `.env` 并填入 `DEEPSEEK_API_KEY=你的密钥`；未配置密钥也能启动，但 AI 功能会返回配置错误。
 
-启动后打开 <http://127.0.0.1:8000/>，默认进入「我的简历」；交互式接口文档在 `/docs`。`Ctrl+C` 停止，`start.ps1 -Port 8001` 可更换端口。
+启动后打开 <http://127.0.0.1:8000/>，默认进入首页工作台，按「我的简历 → 目标岗位 → 匹配分析 → AI 优化」推进；市场洞察在辅助入口。交互式接口文档在 `/docs`。`Ctrl+C` 停止，`start.ps1 -Port 8001` 可更换端口。首次启动自动构建缺失的前端产物；更新前端源码后运行 `start.ps1 -RebuildFrontend`。热更新开发见 [前端接入说明](docs/frontend-integration.md)。
 
 其他系统或手动启动：
 
 ```sh
 uv sync --locked
+npm --prefix frontend ci
+npm --prefix frontend run build
 uv run --locked python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 ```
 
@@ -75,7 +77,7 @@ backend/
   core/               配置、数据库、模块加载等公共设施
   modules/            resume / jobs / diagnosis / analytics 业务模块
   api/  schemas/  models/
-frontend/             原生 JS 前端页面
+frontend/             React + TypeScript 页面、状态与 API 客户端；Vite 构建
 scripts/              启动、构建便携版、smoke、数据导入与校验脚本
 docs/                 详细文档
 tests/  examples/     自动化测试与合成样例
@@ -91,7 +93,9 @@ uv run --locked python scripts/smoke.py    # 端到端冒烟：简历 → 岗位
 uv run --locked pytest -q                  # 单元与集成测试（使用独立临时数据库）
 uv run --locked ruff check backend tests scripts examples
 uv run --locked ruff format --check backend tests scripts examples
-node scripts/check_frontend.mjs            # 前端静态检查
+node scripts/check_frontend.mjs            # TypeScript、行为和 React 页面测试
+npm --prefix frontend run build            # 生产构建（完整 pytest 前先构建）
+npm --prefix frontend run test:e2e          # 隔离服务 + 本机 Edge，离线 AI 浏览器验收
 ```
 
 ## 已知限制

@@ -1,5 +1,6 @@
 export default {
-  id: 'ml', title: '机器学习平台工程师',
+  id: 'ml',
+  title: '机器学习平台工程师',
   text: `合成演示岗位 / Synthetic Demo JD
 机器学习平台工程师
 本岗位仅用于产品体验，不对应真实公司或真实招聘信息。

@@ -11,7 +11,7 @@ fs.mkdirSync(out,{recursive:true});
  const browser=await chromium.launch({channel:'msedge',headless:true});
  const report={kind:'offline AI failure fixture; no external model call',widths:[],status:'running'};
  try {
-  for(const width of [1440,390]) {
+  for(const width of [1440,1280,390]) {
    const page=await browser.newPage({viewport:{width,height:width===390?844:1000}});
    let uploadCalls=0,retries=0;
    await page.route('**/api/v1/resumes/upload-preview',route=>{uploadCalls++;return route.fulfill({status:504,json:{error:{code:'504',message:{code:'timeout',message:'AI 简历识别超时，请重试或手动填写。',raw_text:raw}}}});});
@@ -20,7 +20,7 @@ fs.mkdirSync(out,{recursive:true});
    await page.locator('#resume-dropzone:enabled').waitFor();
    await page.locator('#resume-file').setInputFiles('tests/resume/fixtures/stefano-user.txt');
    await page.locator('#resume-ai-retry:visible').waitFor();
-   assert.equal(await page.locator('#resume-raw').inputValue(),raw);
+   assert.equal(await page.locator('#resume-raw').inputValue(),raw.replace(/\r\n?/g,'\n'));
    assert.match(await page.locator('#resume-status').innerText(),/AI 暂时无法识别/);
    assert.ok(!(await page.locator('.resume-fields').isVisible()));
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
@@ -28,7 +28,7 @@ fs.mkdirSync(out,{recursive:true});
    await page.locator('#resume-ai-retry').click();
    await page.locator('#resume-status').filter({hasText:'繁忙'}).waitFor();
    assert.equal(retries,1);assert.equal(uploadCalls,1);
-   assert.equal(await page.locator('#resume-raw').inputValue(),raw);
+   assert.equal(await page.locator('#resume-raw').inputValue(),raw.replace(/\r\n?/g,'\n'));
    await page.locator('#resume-manual').click();
    await page.locator('#resume-name').fill('斯特凡诺 (Stefano)');
    await page.locator('#resume-education').fill('某重点大学 计算机科学与技术 工学学士');

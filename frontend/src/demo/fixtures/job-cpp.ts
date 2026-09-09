@@ -1,5 +1,6 @@
 export default {
-  id: 'cpp', title: 'C++ 后台开发工程师',
+  id: 'cpp',
+  title: 'C++ 后台开发工程师',
   text: `合成演示岗位 / Synthetic Demo JD
 C++ 后台开发工程师（校招）
 本岗位仅用于产品体验，不对应真实公司或真实招聘信息。

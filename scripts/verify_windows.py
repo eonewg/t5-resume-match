@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 import socket
 import subprocess
 import sys
@@ -72,7 +73,14 @@ def verify(folder):
                 else:
                     raise RuntimeError("EXE did not start")
                 statuses = {}
-                for path in ["/health", "/ready", "/", "/assets/app.js", "/demo/sample.json"]:
+                with urlopen("http://127.0.0.1:8000/", timeout=5) as response:
+                    html = response.read().decode("utf-8")
+                assets = re.findall(r'(?:src|href)="(/assets/[^\"]+)"', html)
+                assert any(path.endswith(".js") for path in assets)
+                assert any(path.endswith(".css") for path in assets)
+                assert not (folder / "_internal/frontend/node_modules").exists()
+                assert not (folder / "_internal/frontend/src").exists()
+                for path in ["/health", "/ready", "/", "/demo/sample.json", *assets]:
                     with urlopen("http://127.0.0.1:8000" + path, timeout=5) as response:
                         statuses[path] = response.status
                         assert response.status == 200
