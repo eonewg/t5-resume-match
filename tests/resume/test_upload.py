@@ -18,7 +18,13 @@ RAW = "  姓名：测试同学\r\n技能：Python、SQL\r\n项目经历：课程
 
 @pytest.fixture
 def client(tmp_path):
-    app = create_app(Settings(_env_file=None, database_url=f"sqlite:///{tmp_path / 'upload.db'}"))
+    app = create_app(
+        Settings(
+            _env_file=None,
+            resume_provider="backend.modules.resume.public:OfflineResumeService",
+            database_url=f"sqlite:///{tmp_path / 'upload.db'}",
+        )
+    )
     with TestClient(app) as client:
         yield client
 

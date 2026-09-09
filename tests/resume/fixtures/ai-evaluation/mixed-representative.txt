@@ -1,0 +1,35 @@
+Alex Chen / 陈晓
+Backend Engineering Intern / 后端实习生
+Contact: alex.fixture@example.invalid
+
+Education
+2023.09 – 2027.06 (expected)
+Example Institute of Technology, B.Eng. in Software Engineering
+示例理工学院，软件工程，本科在读
+
+Technical Skills / 专业技能
+Python, SQL, TypeScript, FastAPI, PostgreSQL, Git, Docker, Linux
+Used Redis in a course project; basic Bash scripting.
+Planning to learn Kubernetes next semester. No experience with Rust.
+
+Professional Experience
+2025.06 – 2025.08 | Remote
+Example Learning Lab / 示例学习实验室 — Software Engineering Intern
+Built a Python import script for 320 anonymized course records and added 18 validation tests.
+Used SQL and PostgreSQL to check duplicate entries; did not design the database schema.
+The script was evaluated offline. No production deployment or revenue impact is claimed.
+
+Projects
+Campus Reading List / 校园阅读清单
+2025.02 – 2025.04 | Course project, team of 2
+Implemented a FastAPI service and a TypeScript client; used Redis to cache book metadata.
+Packaged the service with Docker on Linux and tracked changes with Git.
+Tested 25 API cases; no measured latency improvement is available.
+
+Campus Practice
+Peer Coding Clinic / 同伴编程答疑
+2024.10 – 2024.12
+Helped 8 students review Python exercises over 5 sessions; wrote Bash scripts to prepare exercise folders.
+
+Honors
+2025 Campus Service Award. This is an award, not an employment role.

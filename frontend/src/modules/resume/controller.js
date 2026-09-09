@@ -26,7 +26,7 @@ function fingerprint(data) {
 export function connectResume(context, render, retained = null) {
   const {api, signal, getState, updateSelection} = context;
   let state = {values: blankValues(), protectedFields: [], reviewed: false, candidate: null,
-    imported: false, parseMock: null, savedId: null, savedSnapshot: null, pendingSave: null, ...structuredClone(retained || {}),
+    aiStatus: 'idle', imported: false, parseMock: null, savedId: null, savedSnapshot: null, pendingSave: null, ...structuredClone(retained || {}),
     rows: [], offset: 0, busy: '', error: '', notice: '', dirty: false, historyError: false};
   let disposed = false, ticket = 0, rawRevision = 0;
   const active = () => !disposed && !signal.aborted;
@@ -44,7 +44,7 @@ export function connectResume(context, render, retained = null) {
     if (!fields.includes(field) && field !== 'raw_text') throw Error('Unknown resume field');
     state.values[field] = structuredClone(value);
     state.reviewed = false;
-    if (field === 'raw_text') { rawRevision++; state.candidate = null; }
+    if (field === 'raw_text') { rawRevision++; state.candidate = null; state.aiStatus = 'idle'; }
     else if (!state.protectedFields.includes(field)) state.protectedFields.push(field);
     state.error = ''; state.notice = '有未确认的修改；保存后才会用于岗位匹配。';
     invalidateSelection(); show();
@@ -60,6 +60,7 @@ export function connectResume(context, render, retained = null) {
     const current = ++ticket;
     state.busy = kind; state.error = ''; state.notice = '';
     if (kind === 'refresh') state.historyError = false;
+    if (['parse', 'upload'].includes(kind)) { state.candidate = null; state.aiStatus = 'idle'; }
     show();
     const valid = () => active() && current === ticket;
     try { await work(valid); }
@@ -72,15 +73,22 @@ export function connectResume(context, render, retained = null) {
   const parse = () => task('parse', async valid => {
     const raw = state.values.raw_text, revision = rawRevision;
     if (!raw.trim()) throw Error('请先粘贴简历原文。');
-    const response = await api.request('/api/v1/resumes/preview', {method: 'POST', body: {raw_text: raw}});
+    let response;
+    try { response = await api.request('/api/v1/resumes/preview', {method: 'POST', body: {raw_text: raw}}); }
+    catch (error) {
+      if (!valid() || revision !== rawRevision) return;
+      state.aiStatus = 'failed'; state.parseMock = null;
+      throw error;
+    }
     if (!valid()) return;
     if (revision !== rawRevision) { state.notice = '原文已变化，旧解析结果未应用。请重新解析。'; return; }
-    const data = checked(response.data);
-    if (data.raw_text !== raw) throw Error('解析响应未保留原文，建议未应用。');
+    let data;
+    try { data = checked(response.data); if (data.raw_text !== raw) throw Error('识别响应未保留原文，结果未应用。'); }
+    catch (error) { state.aiStatus = 'failed'; state.parseMock = null; throw error; }
     acceptPreview(data, response.isMock);
   });
   function acceptPreview(data, isMock) {
-    state.imported = true;
+    state.imported = true; state.aiStatus = isMock === true ? 'mock' : 'success';
     state.candidate = editable(data); state.parseMock = isMock === true;
     let changed = false;
     for (const field of fields) {
@@ -90,9 +98,8 @@ export function connectResume(context, render, retained = null) {
       }
     }
     if (changed) { state.reviewed = false; invalidateSelection(); }
-    state.notice = state.protectedFields.length
-      ? '解析完成。已编辑或确认字段保持不变；可以逐项查看并采用新建议。'
-      : '解析完成。请核对结构化内容；未识别信息可留空或手动补充。';
+    state.notice = (isMock === true ? '演示识别结果，请核对事实；这不是实时 AI 识别。' : 'AI 已完成结构化识别，请核对后保存。')
+      + (state.protectedFields.length ? '已编辑或确认字段保持不变，可逐项采用新的识别结果。' : '');
   }
   const upload = file => task('upload', async valid => {
     if (!file) throw Error('请选择一份简历文件。');
@@ -100,7 +107,16 @@ export function connectResume(context, render, retained = null) {
     if (!file.size) throw Error('文件为空，请选择包含简历内容的文件。');
     if (file.size > 10 * 1024 * 1024) throw Error('文件超过 10 MB，请选择更小的文件。');
     const body = new FormData(); body.append('file', file);
-    const response = await api.request('/api/v1/resumes/upload-preview', {method: 'POST', body});
+    let response;
+    try { response = await api.request('/api/v1/resumes/upload-preview', {method: 'POST', body}); }
+    catch (error) {
+      if (!valid()) return;
+      if (typeof error.rawText === 'string' && error.rawText.trim()) {
+        state.values.raw_text = error.rawText; rawRevision++;
+        state.reviewed = false; state.parseMock = null; state.aiStatus = 'failed'; invalidateSelection();
+      }
+      throw error;
+    }
     if (!valid()) return;
     const data = checked(response.data);
     if (!data.raw_text.trim()) throw Error('未能提取有效文字，请直接粘贴简历文本。');
@@ -108,6 +124,13 @@ export function connectResume(context, render, retained = null) {
     state.reviewed = false; invalidateSelection();
     acceptPreview(data, response.isMock);
   });
+  function manual() {
+    if (!active() || state.busy || !state.values.raw_text.trim()) return;
+    state.imported = true; state.aiStatus = 'manual'; state.candidate = null; state.parseMock = null;
+    state.reviewed = false; state.error = '';
+    state.notice = '请对照原文手动填写，原文仍完整保留。填写后核对并保存。';
+    show();
+  }
   function apply(field) {
     if (!active() || state.busy || !fields.includes(field) || !state.candidate) return;
     // Only an explicit per-field action may replace a protected value.
@@ -121,7 +144,7 @@ export function connectResume(context, render, retained = null) {
     state.rows = response.data.map(row => checked(row, true)); state.offset = offset;
   });
   function acceptSaved(data, isMock) {
-    state.imported = true; state.values = editable(data); state.savedId = data.id; state.savedSnapshot = fingerprint(data);
+    state.aiStatus = 'idle'; state.imported = true; state.values = editable(data); state.savedId = data.id; state.savedSnapshot = fingerprint(data);
     state.protectedFields = [...fields]; state.reviewed = true; state.candidate = null;
     state.parseMock = isMock; state.pendingSave = null;
     state.rows = [data, ...state.rows.filter(row => row.id !== data.id)].slice(0, 20);
@@ -178,16 +201,16 @@ export function connectResume(context, render, retained = null) {
     if (state.dirty && !discard) return {requiresConfirmation: true};
     invalidateSelection(); rawRevision++;
     state = {...state, values: blankValues(), protectedFields: [], reviewed: false, candidate: null,
-      imported: false, parseMock: null, savedId: null, savedSnapshot: null, pendingSave: null, error: '', notice: '已开始一份新简历。'};
+      aiStatus: 'idle', imported: false, parseMock: null, savedId: null, savedSnapshot: null, pendingSave: null, error: '', notice: '已开始一份新简历。'};
     show();
   }
   function getDraft() {
-    const keys = ['imported', 'values', 'protectedFields', 'reviewed', 'candidate', 'parseMock', 'savedId', 'savedSnapshot', 'pendingSave'];
+    const keys = ['aiStatus', 'imported', 'values', 'protectedFields', 'reviewed', 'candidate', 'parseMock', 'savedId', 'savedSnapshot', 'pendingSave'];
     return structuredClone(Object.fromEntries(keys.map(key => [key, state[key]])));
   }
   function dispose() { disposed = true; ticket++; signal.removeEventListener('abort', dispose); }
   signal.addEventListener('abort', dispose, {once: true}); show();
-  return {edit, review, parse, upload, apply, refresh, load, save, reset, getDraft, dispose,
+  return {edit, review, parse, upload, manual, apply, refresh, load, save, reset, getDraft, dispose,
     async init() {
       await refresh();
       const identifier = getState().resumeId;

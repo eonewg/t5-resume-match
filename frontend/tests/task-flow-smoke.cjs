@@ -42,7 +42,7 @@ async function layout(page) {
    const uploading=page.waitForResponse(r=>r.url().endsWith('/resumes/upload-preview'));
    await page.locator('#resume-file').setInputFiles(path.join(fixtures,'resume.'+extension));
    await held;await page.locator('#resume-status[data-state=busy]').waitFor();
-   assert.match(await page.locator('#resume-status').innerText(),/正在读取并整理简历/);
+   assert.match(await page.locator('#resume-status').innerText(),/正在用 AI 识别简历内容/);
    await shot(page,'upload-loading-'+width);release();
    const response=await uploading;assert.equal(response.status(),200);const preview=await response.json();
    await page.locator('.resume-fields:visible').waitFor();await page.locator('#resume-save:disabled').waitFor();

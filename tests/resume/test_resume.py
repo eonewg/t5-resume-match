@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 from backend.core.config import Settings
 from backend.core.providers import Provider
 from backend.main import create_app
-from backend.modules.resume.public import ResumeService
+from backend.modules.resume.public import OfflineResumeService as ResumeService
 from backend.schemas.contracts import ResumeData, TextInput
 
 
@@ -126,10 +126,16 @@ def test_experience_heading_does_not_invent_skills_from_intentions_or_similar_wo
 
 @pytest.fixture
 def app(tmp_path):
-    return create_app(Settings(_env_file=None, database_url=f"sqlite:///{tmp_path / 'resume.db'}"))
+    return create_app(
+        Settings(
+            _env_file=None,
+            resume_provider="backend.modules.resume.public:OfflineResumeService",
+            database_url=f"sqlite:///{tmp_path / 'resume.db'}",
+        )
+    )
 
 
-def test_real_default_preview_edit_save_read_restart(app):
+def test_offline_baseline_preview_edit_save_read_restart(app):
     original = "  姓名：课程样例\r\n技能：Python\r\n项目经历：使用 Python 清洗课程数据\n "
     with TestClient(app) as client:
         assert client.get("/api/v1/modules").json()["resume"] == {"is_mock": False}

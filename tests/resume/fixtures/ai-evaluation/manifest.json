@@ -1,0 +1,1100 @@
+{
+  "schema_version": 1,
+  "purpose": "Resume AI extraction evaluation; expected annotations are prepared from input text, not model results.",
+  "status": "fixtures_ready_model_evaluation_not_run",
+  "review_policy": {
+    "name": "Exact explicit evidence; redacted input must stay empty.",
+    "education": "Review every required evidence item; equivalent language/format accepted only without added facts.",
+    "skill_precision": "Supported predicted skill count / all predicted skill count. Each prediction requires explicit positive skill/use evidence in input; extra supported skills are allowed. Empty predictions => precision N/A, recall 0.",
+    "skill_recall": "Covered required canonical groups / total required canonical groups. Alias groups normalize spelling, not facts; a combined C/C++ prediction can cover C and C++ when both explicitly present. Human review accepts additional sound aliases.",
+    "experience_completeness": "Covered required experience titles / total required titles. A single output item may cover multiple titles only if all their facts remain discernible and correctly attributed.",
+    "numbers": "Check each output numeric token against its exact source context, not only document-wide existence. For every numeric_fact_evidence item record preserved/omitted/changed; omission is completeness loss, mutation or invented attribution is fidelity failure.",
+    "hallucination": "Review all output claims; absence of obvious numeric errors is not a proof of no hallucinations.",
+    "awards": "Never invent an employment entry from an award. Existing project-linked award statements may remain inside that original project.",
+    "result_recording": "Record actual provider/model/date, raw_text integrity, per-sample seven criteria, supported/unsupported/missed skills, output paths and reviewer notes. Do not mark PASS merely for valid JSON.",
+    "thresholds": "Report measured values and failures separately; no automatic overall acceptance threshold is invented by this fixture set."
+  },
+  "samples": [
+    {
+      "id": "student-01",
+      "provenance": "existing_public_student_resume_redacted",
+      "input": {
+        "path": "data/holdout/2026-09-08/resumes/student-01.json",
+        "format": "json",
+        "text_key": "raw_text",
+        "text_sha256": "e4391a6f469202a6bf683587a5d7e449f08234cd531e6a4c42d6398cf5378492"
+      },
+      "source_metadata_path": "data/holdout/2026-09-08/resumes/student-01.json",
+      "expected": {
+        "name": {
+          "kind": "empty",
+          "reason": "姓名已脱敏；禁止由来源URL、导师或机构名推断。"
+        },
+        "education_required_evidence": [
+          "Arizona State University",
+          "Bachelor of Science",
+          "Computer Science",
+          "Expected December 2018",
+          "3.68/4.0"
+        ],
+        "skills_required": [
+          {
+            "canonical": "JavaScript",
+            "accepted_aliases": [
+              "JavaScript",
+              "JavaScript (ES6)"
+            ]
+          },
+          {
+            "canonical": "Java",
+            "accepted_aliases": [
+              "Java"
+            ]
+          },
+          {
+            "canonical": "C#",
+            "accepted_aliases": [
+              "C#"
+            ]
+          },
+          {
+            "canonical": "SQL",
+            "accepted_aliases": [
+              "SQL"
+            ]
+          },
+          {
+            "canonical": "HTML",
+            "accepted_aliases": [
+              "HTML"
+            ]
+          },
+          {
+            "canonical": "CSS",
+            "accepted_aliases": [
+              "CSS",
+              "CSS/Sass"
+            ]
+          },
+          {
+            "canonical": "Sass",
+            "accepted_aliases": [
+              "Sass",
+              "CSS/Sass"
+            ]
+          },
+          {
+            "canonical": "C/C++",
+            "accepted_aliases": [
+              "C/C++",
+              "C / C++",
+              "C++"
+            ]
+          },
+          {
+            "canonical": "Python",
+            "accepted_aliases": [
+              "Python"
+            ]
+          },
+          {
+            "canonical": "Matlab",
+            "accepted_aliases": [
+              "Matlab",
+              "MATLAB"
+            ]
+          },
+          {
+            "canonical": "Bootstrap",
+            "accepted_aliases": [
+              "Bootstrap"
+            ]
+          },
+          {
+            "canonical": ".NET",
+            "accepted_aliases": [
+              ".NET"
+            ]
+          },
+          {
+            "canonical": "Node.js",
+            "accepted_aliases": [
+              "Node.js",
+              "Node",
+              "NodeJS"
+            ]
+          },
+          {
+            "canonical": "jQuery",
+            "accepted_aliases": [
+              "jQuery"
+            ]
+          },
+          {
+            "canonical": "Jekyll",
+            "accepted_aliases": [
+              "Jekyll"
+            ]
+          },
+          {
+            "canonical": "Express",
+            "accepted_aliases": [
+              "Express",
+              "ExpressJS"
+            ]
+          },
+          {
+            "canonical": "React",
+            "accepted_aliases": [
+              "React"
+            ]
+          },
+          {
+            "canonical": "Angular",
+            "accepted_aliases": [
+              "Angular"
+            ]
+          },
+          {
+            "canonical": "Photoshop",
+            "accepted_aliases": [
+              "Photoshop"
+            ]
+          },
+          {
+            "canonical": "Illustrator",
+            "accepted_aliases": [
+              "Illustrator"
+            ]
+          },
+          {
+            "canonical": "Bash",
+            "accepted_aliases": [
+              "Bash"
+            ]
+          },
+          {
+            "canonical": "Git",
+            "accepted_aliases": [
+              "Git"
+            ]
+          },
+          {
+            "canonical": "Gulp",
+            "accepted_aliases": [
+              "Gulp"
+            ]
+          },
+          {
+            "canonical": "WordPress",
+            "accepted_aliases": [
+              "WordPress"
+            ]
+          },
+          {
+            "canonical": "Axure RP",
+            "accepted_aliases": [
+              "Axure RP",
+              "AxureRP"
+            ]
+          },
+          {
+            "canonical": "Amazon AWS",
+            "accepted_aliases": [
+              "Amazon AWS",
+              "AWS"
+            ]
+          },
+          {
+            "canonical": "LaTeX",
+            "accepted_aliases": [
+              "LaTeX"
+            ]
+          },
+          {
+            "canonical": "MySQL",
+            "accepted_aliases": [
+              "MySQL"
+            ]
+          },
+          {
+            "canonical": "PugJS",
+            "accepted_aliases": [
+              "PugJS",
+              "Pug.js"
+            ]
+          }
+        ],
+        "skills_forbidden": [
+          "Kubernetes",
+          "Rust"
+        ],
+        "experience_required_titles": [
+          "SafeDevils",
+          "SFLE Knowledgebase",
+          "Sound Waves",
+          "OneLap",
+          "Teaching Assistant",
+          "Student Facilitator",
+          "Vice President"
+        ],
+        "numeric_fact_evidence": [
+          "class of 40 freshmen students",
+          "workshops for 80 students",
+          "58 student leaders",
+          "5 large-scale events",
+          "over 6,000 students"
+        ],
+        "manual_checks": [
+          "经历及数字须归属于原文对应项目，不得跨项目拼接。",
+          "奖项可保留在相关项目描述，但不能新建为工作经历。",
+          "所有新增技能须有人工作为专业技能或实际使用的原文证据；下列required不是封闭白名单。",
+          "raw_text必须与输入逐字相同。"
+        ]
+      }
+    },
+    {
+      "id": "student-02",
+      "provenance": "existing_public_student_resume_redacted",
+      "input": {
+        "path": "data/holdout/2026-09-08/resumes/student-02.json",
+        "format": "json",
+        "text_key": "raw_text",
+        "text_sha256": "21da8a8d9a48af0f9f7ecfbd4e269f787aad82fc9d3f01e5402fde8f8c86f043"
+      },
+      "source_metadata_path": "data/holdout/2026-09-08/resumes/student-02.json",
+      "expected": {
+        "name": {
+          "kind": "empty",
+          "reason": "姓名已脱敏；禁止由来源URL、导师或机构名推断。"
+        },
+        "education_required_evidence": [
+          "Southwest Petroleum University",
+          "September 2023",
+          "Undergraduate Student",
+          "Data Science and Big Data Technology",
+          "4.13/5.0",
+          "1/66"
+        ],
+        "skills_required": [
+          {
+            "canonical": "C/C++",
+            "accepted_aliases": [
+              "C/C++",
+              "C / C++",
+              "C++"
+            ]
+          },
+          {
+            "canonical": "Fortran",
+            "accepted_aliases": [
+              "Fortran"
+            ]
+          },
+          {
+            "canonical": "Python",
+            "accepted_aliases": [
+              "Python"
+            ]
+          },
+          {
+            "canonical": "CUDA",
+            "accepted_aliases": [
+              "CUDA",
+              "CUDA C++"
+            ]
+          },
+          {
+            "canonical": "HIP",
+            "accepted_aliases": [
+              "HIP"
+            ]
+          },
+          {
+            "canonical": "OpenMP",
+            "accepted_aliases": [
+              "OpenMP",
+              "MPI+OpenMP"
+            ]
+          },
+          {
+            "canonical": "MPI",
+            "accepted_aliases": [
+              "MPI",
+              "MPI+OpenMP"
+            ]
+          },
+          {
+            "canonical": "Sunway",
+            "accepted_aliases": [
+              "Sunway"
+            ]
+          },
+          {
+            "canonical": "MATLAB",
+            "accepted_aliases": [
+              "MATLAB",
+              "Matlab"
+            ]
+          },
+          {
+            "canonical": "VTune",
+            "accepted_aliases": [
+              "VTune"
+            ]
+          },
+          {
+            "canonical": "athread",
+            "accepted_aliases": [
+              "athread"
+            ]
+          }
+        ],
+        "skills_forbidden": [
+          "Kubernetes",
+          "Rust"
+        ],
+        "experience_required_titles": [
+          "Tecorigin Deep Learning Operator Performance Optimization",
+          "Sunway PCG Solver Optimization",
+          "Parallel Computing Optimization for Oil Spill Prediction Model",
+          "3D Ultrasound Speckle Tracking Algorithm Optimization",
+          "CUDA Acceleration for Large-Scale Image Pretraining Data Generation"
+        ],
+        "numeric_fact_evidence": [
+          "93.1%",
+          "234KB",
+          "1820.78ms to 489.18ms",
+          "3.7x",
+          "64-core",
+          "40+",
+          "1287s to 32.5s",
+          "39.6x",
+          "2482.14x",
+          "11.11x",
+          "16.32s to 0.22s",
+          "73x",
+          "8192 × 8192",
+          "3.16s",
+          "13.0x",
+          "2.35x",
+          "69.1x"
+        ],
+        "manual_checks": [
+          "经历及数字须归属于原文对应项目，不得跨项目拼接。",
+          "奖项可保留在相关项目描述，但不能新建为工作经历。",
+          "所有新增技能须有人工作为专业技能或实际使用的原文证据；下列required不是封闭白名单。",
+          "raw_text必须与输入逐字相同。"
+        ]
+      }
+    },
+    {
+      "id": "student-03",
+      "provenance": "existing_public_student_resume_redacted",
+      "input": {
+        "path": "data/holdout/2026-09-08/resumes/student-03.json",
+        "format": "json",
+        "text_key": "raw_text",
+        "text_sha256": "55c76ec9c5099cc980f703a4aff308cc401aeba924b8285252b203c651f53b8e"
+      },
+      "source_metadata_path": "data/holdout/2026-09-08/resumes/student-03.json",
+      "expected": {
+        "name": {
+          "kind": "empty",
+          "reason": "姓名已脱敏；禁止由来源URL、导师或机构名推断。"
+        },
+        "education_required_evidence": [
+          "University of Washington",
+          "B.S. in Chemical Engineering",
+          "Nanoscience and Molecular Engineering",
+          "Applied Mathematics and Chemistry",
+          "3.97",
+          "June 2023",
+          "Brown University",
+          "Pre-Baccalaureate Program",
+          "Kinglee High School"
+        ],
+        "skills_required": [
+          {
+            "canonical": "Python",
+            "accepted_aliases": [
+              "Python"
+            ]
+          },
+          {
+            "canonical": "image processing",
+            "accepted_aliases": [
+              "image processing"
+            ]
+          },
+          {
+            "canonical": "machine learning",
+            "accepted_aliases": [
+              "machine learning"
+            ]
+          },
+          {
+            "canonical": "confocal microscopy",
+            "accepted_aliases": [
+              "confocal microscopy",
+              "confocal microscope"
+            ]
+          },
+          {
+            "canonical": "UV-visible spectroscopy",
+            "accepted_aliases": [
+              "UV-visible spectroscopy"
+            ]
+          },
+          {
+            "canonical": "Raman spectroscopy",
+            "accepted_aliases": [
+              "Raman spectroscopy"
+            ]
+          }
+        ],
+        "skills_forbidden": [
+          "Kubernetes",
+          "Rust"
+        ],
+        "experience_required_titles": [
+          "Undergraduate Research Assistant",
+          "Summer Undergraduate Research Scholar",
+          "Calculus Teaching Assistant",
+          "Webmaster",
+          "Secretary",
+          "Research and Development Officer",
+          "Maple Hall Council SEED Representative",
+          "Peer Tutor of Math, Science, and English",
+          "Student Council Historian and Secretary",
+          "Lab Peer Supervisor"
+        ],
+        "numeric_fact_evidence": [
+          "3 datasets",
+          "102 murine breast cancer tissue slices",
+          "24.5 hr",
+          "4 hours weekly to 5 students",
+          "400+ members",
+          "2 Peer Tutor Awards",
+          "1000+ CNY",
+          "200+ books",
+          "9th-grade"
+        ],
+        "manual_checks": [
+          "经历及数字须归属于原文对应项目，不得跨项目拼接。",
+          "奖项可保留在相关项目描述，但不能新建为工作经历。",
+          "所有新增技能须有人工作为专业技能或实际使用的原文证据；下列required不是封闭白名单。",
+          "raw_text必须与输入逐字相同。"
+        ]
+      }
+    },
+    {
+      "id": "stefano-user",
+      "provenance": "user_provided_not_independently_fact_verified",
+      "input": {
+        "path": "tests/resume/fixtures/stefano-user.txt",
+        "format": "text",
+        "text_sha256": "cc3a41b1081c521f132961ad0d46b09e1a00dae4eb26da1db7344123c0579704"
+      },
+      "source_note": "用户提供的完整原文，文件由主Agent原样保存。本标注只核对抽取忠实性，不独立证明履历事实。不得用合成代表性样本内容补入该原文。",
+      "expected": {
+        "name": {
+          "kind": "explicit",
+          "accepted": [
+            "斯特凡诺 (Stefano)"
+          ],
+          "note": "首行还有装饰分隔符和求职意向，只提取姓名。"
+        },
+        "education_required_evidence": [
+          "某重点大学 (985/211)",
+          "计算机科学与技术",
+          "工学学士",
+          "2023.09 - 2027.06 (预计)",
+          "3.82 / 4.00",
+          "专业前 5%"
+        ],
+        "skills_required": [
+          {
+            "canonical": "C",
+            "accepted_aliases": [
+              "C",
+              "C/C++",
+              "C / C++"
+            ]
+          },
+          {
+            "canonical": "C++",
+            "accepted_aliases": [
+              "C++",
+              "C/C++",
+              "C / C++"
+            ]
+          },
+          {
+            "canonical": "Python",
+            "accepted_aliases": [
+              "Python"
+            ]
+          },
+          {
+            "canonical": "Go",
+            "accepted_aliases": [
+              "Go"
+            ]
+          },
+          {
+            "canonical": "SQL",
+            "accepted_aliases": [
+              "SQL"
+            ]
+          },
+          {
+            "canonical": "Bash",
+            "accepted_aliases": [
+              "Bash"
+            ]
+          },
+          {
+            "canonical": "Java",
+            "accepted_aliases": [
+              "Java"
+            ]
+          },
+          {
+            "canonical": "TypeScript",
+            "accepted_aliases": [
+              "TypeScript"
+            ]
+          },
+          {
+            "canonical": "Linux",
+            "accepted_aliases": [
+              "Linux"
+            ]
+          },
+          {
+            "canonical": "epoll",
+            "accepted_aliases": [
+              "epoll"
+            ]
+          },
+          {
+            "canonical": "HTTP",
+            "accepted_aliases": [
+              "HTTP",
+              "HTTP/HTTPS"
+            ]
+          },
+          {
+            "canonical": "HTTPS",
+            "accepted_aliases": [
+              "HTTPS",
+              "HTTP/HTTPS"
+            ]
+          },
+          {
+            "canonical": "WebSocket",
+            "accepted_aliases": [
+              "WebSocket"
+            ]
+          },
+          {
+            "canonical": "MySQL",
+            "accepted_aliases": [
+              "MySQL"
+            ]
+          },
+          {
+            "canonical": "PostgreSQL",
+            "accepted_aliases": [
+              "PostgreSQL"
+            ]
+          },
+          {
+            "canonical": "Redis",
+            "accepted_aliases": [
+              "Redis"
+            ]
+          },
+          {
+            "canonical": "Git",
+            "accepted_aliases": [
+              "Git",
+              "Git/GitHub"
+            ]
+          },
+          {
+            "canonical": "GitHub",
+            "accepted_aliases": [
+              "GitHub",
+              "Git/GitHub"
+            ]
+          },
+          {
+            "canonical": "Docker",
+            "accepted_aliases": [
+              "Docker"
+            ]
+          },
+          {
+            "canonical": "GDB",
+            "accepted_aliases": [
+              "GDB"
+            ]
+          },
+          {
+            "canonical": "Make",
+            "accepted_aliases": [
+              "Make",
+              "Make/CMake"
+            ]
+          },
+          {
+            "canonical": "CMake",
+            "accepted_aliases": [
+              "CMake",
+              "Make/CMake"
+            ]
+          },
+          {
+            "canonical": "FastAPI",
+            "accepted_aliases": [
+              "FastAPI"
+            ]
+          },
+          {
+            "canonical": "React",
+            "accepted_aliases": [
+              "React"
+            ]
+          },
+          {
+            "canonical": "Node.js",
+            "accepted_aliases": [
+              "Node.js",
+              "NodeJS"
+            ]
+          },
+          {
+            "canonical": "Reactor",
+            "accepted_aliases": [
+              "Reactor"
+            ]
+          },
+          {
+            "canonical": "TCP/IP",
+            "accepted_aliases": [
+              "TCP/IP"
+            ]
+          },
+          {
+            "canonical": "RESTful",
+            "accepted_aliases": [
+              "RESTful"
+            ]
+          },
+          {
+            "canonical": "Ubuntu",
+            "accepted_aliases": [
+              "Ubuntu"
+            ]
+          },
+          {
+            "canonical": "Valgrind",
+            "accepted_aliases": [
+              "Valgrind"
+            ]
+          },
+          {
+            "canonical": "WebBench",
+            "accepted_aliases": [
+              "WebBench"
+            ]
+          },
+          {
+            "canonical": "Docker Compose",
+            "accepted_aliases": [
+              "Docker Compose"
+            ]
+          },
+          {
+            "canonical": "Swagger",
+            "accepted_aliases": [
+              "Swagger"
+            ]
+          },
+          {
+            "canonical": "GitHub Actions",
+            "accepted_aliases": [
+              "GitHub Actions"
+            ]
+          }
+        ],
+        "skills_forbidden": [
+          "Kubernetes",
+          "Rust"
+        ],
+        "experience_required_titles": [
+          "轻量级高性能并发 Web 服务器",
+          "分布式异步任务队列与调度中心",
+          "实时协作在线代码板",
+          "高校网络与计算中心",
+          "计算机协会 (ACM Student Chapter)"
+        ],
+        "numeric_fact_evidence": [
+          "10,000 并发连接",
+          "12,000+",
+          "40+ 台",
+          "500+ 名",
+          "30%",
+          "20+ 名"
+        ],
+        "manual_checks": [
+          "前3条项目和后2条校园技术实践都应保留；计算机协会经历须包含同伴学业导师角色。",
+          "40+计算节点、500+学生、30%运维耗时降低属于网络与计算中心；20+学生属于协会导师经历，不得混淆。",
+          "10,000并发、12,000+ QPS属于Web服务器，不属于另外两个项目。",
+          "不得将45支团队等竞赛事实变成工作或项目指标；奖项没有独立schema字段时保留在raw_text即可。",
+          "不得把装饰行、求职意向、GitHub账户名抽为姓名。",
+          "原文只称了解Java和TypeScript；抽取可以保留技术名，但不得改写为熟练掌握。",
+          "当前原文没有计划学习Kubernetes/不了解Rust语句；该语义边界另用supplementary合成样本验证，不应擅自加入用户原文。",
+          "raw_text必须与用户输入字节解码后的文字完全一致，不增加尾换行。"
+        ]
+      }
+    },
+    {
+      "id": "mixed-representative",
+      "provenance": "synthetic_representative_not_user_original",
+      "input": {
+        "path": "tests/resume/fixtures/ai-evaluation/mixed-representative.txt",
+        "format": "text",
+        "text_sha256": "dea51a81480cf873a726bb1c863f7ec4c33fcaeb4d525869a2117e66c4cad477"
+      },
+      "source_note": "独立合成的中英混排学生实习简历；所有姓名、学校、经历和数字仅为测试输入设定。",
+      "expected": {
+        "name": {
+          "kind": "explicit",
+          "accepted": [
+            "Alex Chen / 陈晓"
+          ],
+          "note": "保留中英文对应姓名；合理空白/斜杠格式差异由人工复核。"
+        },
+        "education_required_evidence": [
+          "Example Institute of Technology",
+          "B.Eng.",
+          "Software Engineering",
+          "2023.09",
+          "2027.06",
+          "expected"
+        ],
+        "skills_required": [
+          {
+            "canonical": "Python",
+            "accepted_aliases": [
+              "Python"
+            ]
+          },
+          {
+            "canonical": "SQL",
+            "accepted_aliases": [
+              "SQL"
+            ]
+          },
+          {
+            "canonical": "TypeScript",
+            "accepted_aliases": [
+              "TypeScript"
+            ]
+          },
+          {
+            "canonical": "FastAPI",
+            "accepted_aliases": [
+              "FastAPI"
+            ]
+          },
+          {
+            "canonical": "PostgreSQL",
+            "accepted_aliases": [
+              "PostgreSQL"
+            ]
+          },
+          {
+            "canonical": "Git",
+            "accepted_aliases": [
+              "Git"
+            ]
+          },
+          {
+            "canonical": "Docker",
+            "accepted_aliases": [
+              "Docker"
+            ]
+          },
+          {
+            "canonical": "Linux",
+            "accepted_aliases": [
+              "Linux"
+            ]
+          },
+          {
+            "canonical": "Redis",
+            "accepted_aliases": [
+              "Redis"
+            ]
+          },
+          {
+            "canonical": "Bash",
+            "accepted_aliases": [
+              "Bash"
+            ]
+          }
+        ],
+        "skills_forbidden": [
+          "Kubernetes",
+          "Rust"
+        ],
+        "experience_required_titles": [
+          "Example Learning Lab",
+          "Campus Reading List",
+          "Peer Coding Clinic"
+        ],
+        "numeric_fact_evidence": [
+          "320 anonymized course records",
+          "18 validation tests",
+          "team of 2",
+          "25 API cases",
+          "8 students",
+          "5 sessions"
+        ],
+        "manual_checks": [
+          "不得把计划学习或不了解的技术列为已有技能。",
+          "未上线、无生产指标等限制不得丢失或反转。",
+          "仅要求保留实际出现的数字；不因评测要求而补全不存在的指标。",
+          "学校、日期、项目规模均为本合成fixture设定，绝非用户真实履历。",
+          "奖项只能保留在raw_text，不新建工作经历。",
+          "raw_text必须与输入逐字相同。"
+        ]
+      }
+    }
+  ],
+  "supplementary_samples": [
+    {
+      "id": "stefano-representative",
+      "provenance": "synthetic_representative_not_user_original",
+      "input": {
+        "path": "tests/resume/fixtures/ai-evaluation/stefano-representative.txt",
+        "format": "text",
+        "text_sha256": "5cf15c89901f41b2bfc42714d9e475535b179da879f58eb537fcbb2fe51b4faf"
+      },
+      "source_note": "根据用户91e72b08请求中披露的标题、姓名、五条经历名、技能与否定/计划语义构造。未收到完整真实简历；日期、联系方式、教育机构、职责和数字均为明确合成，不声称复现原件全部事实。",
+      "expected": {
+        "name": {
+          "kind": "explicit",
+          "accepted": [
+            "斯特凡诺 (Stefano)"
+          ],
+          "note": "保留中英文对应姓名；合理空白/斜杠格式差异由人工复核。"
+        },
+        "education_required_evidence": [
+          "示例科技大学",
+          "计算机科学与技术",
+          "本科",
+          "2022.09",
+          "2026.06"
+        ],
+        "skills_required": [
+          {
+            "canonical": "C",
+            "accepted_aliases": [
+              "C"
+            ]
+          },
+          {
+            "canonical": "C++",
+            "accepted_aliases": [
+              "C++",
+              "C/C++",
+              "C / C++"
+            ]
+          },
+          {
+            "canonical": "Python",
+            "accepted_aliases": [
+              "Python"
+            ]
+          },
+          {
+            "canonical": "Go",
+            "accepted_aliases": [
+              "Go"
+            ]
+          },
+          {
+            "canonical": "SQL",
+            "accepted_aliases": [
+              "SQL"
+            ]
+          },
+          {
+            "canonical": "Bash",
+            "accepted_aliases": [
+              "Bash"
+            ]
+          },
+          {
+            "canonical": "Java",
+            "accepted_aliases": [
+              "Java"
+            ]
+          },
+          {
+            "canonical": "TypeScript",
+            "accepted_aliases": [
+              "TypeScript"
+            ]
+          },
+          {
+            "canonical": "Linux",
+            "accepted_aliases": [
+              "Linux"
+            ]
+          },
+          {
+            "canonical": "epoll",
+            "accepted_aliases": [
+              "epoll"
+            ]
+          },
+          {
+            "canonical": "HTTP",
+            "accepted_aliases": [
+              "HTTP",
+              "HTTP/HTTPS"
+            ]
+          },
+          {
+            "canonical": "HTTPS",
+            "accepted_aliases": [
+              "HTTPS",
+              "HTTP/HTTPS"
+            ]
+          },
+          {
+            "canonical": "WebSocket",
+            "accepted_aliases": [
+              "WebSocket"
+            ]
+          },
+          {
+            "canonical": "MySQL",
+            "accepted_aliases": [
+              "MySQL"
+            ]
+          },
+          {
+            "canonical": "PostgreSQL",
+            "accepted_aliases": [
+              "PostgreSQL"
+            ]
+          },
+          {
+            "canonical": "Redis",
+            "accepted_aliases": [
+              "Redis"
+            ]
+          },
+          {
+            "canonical": "Git",
+            "accepted_aliases": [
+              "Git",
+              "Git/GitHub"
+            ]
+          },
+          {
+            "canonical": "GitHub",
+            "accepted_aliases": [
+              "GitHub",
+              "Git/GitHub"
+            ]
+          },
+          {
+            "canonical": "Docker",
+            "accepted_aliases": [
+              "Docker"
+            ]
+          },
+          {
+            "canonical": "GDB",
+            "accepted_aliases": [
+              "GDB"
+            ]
+          },
+          {
+            "canonical": "Make",
+            "accepted_aliases": [
+              "Make",
+              "Make/CMake"
+            ]
+          },
+          {
+            "canonical": "CMake",
+            "accepted_aliases": [
+              "CMake",
+              "Make/CMake"
+            ]
+          },
+          {
+            "canonical": "FastAPI",
+            "accepted_aliases": [
+              "FastAPI"
+            ]
+          },
+          {
+            "canonical": "React",
+            "accepted_aliases": [
+              "React"
+            ]
+          },
+          {
+            "canonical": "Node.js",
+            "accepted_aliases": [
+              "Node.js",
+              "NodeJS"
+            ]
+          }
+        ],
+        "skills_forbidden": [
+          "Kubernetes",
+          "Rust"
+        ],
+        "experience_required_titles": [
+          "轻量级高性能并发 Web 服务器",
+          "分布式异步任务队列与调度中心",
+          "实时协作在线代码板",
+          "高校网络与计算中心",
+          "计算机协会同伴学业导师"
+        ],
+        "numeric_fact_evidence": [
+          "1200 个并发连接",
+          "860 QPS",
+          "3 人课程项目",
+          "3 次失败重试",
+          "48 个任务",
+          "2 人课程项目",
+          "6 人同时编辑",
+          "36 台设备",
+          "12 名同学",
+          "4 次 Git 与 Docker"
+        ],
+        "manual_checks": [
+          "不得把计划学习或不了解的技术列为已有技能。",
+          "未上线、无生产指标等限制不得丢失或反转。",
+          "仅要求保留实际出现的数字；不因评测要求而补全不存在的指标。",
+          "学校、日期、项目规模均为本合成fixture设定，绝非用户真实履历。",
+          "奖项只能保留在raw_text，不新建工作经历。",
+          "raw_text必须与输入逐字相同。"
+        ]
+      },
+      "purpose": "Supplementary negative/planned-skill regression, not part of the primary five-sample evaluation."
+    }
+  ]
+}

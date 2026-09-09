@@ -6,14 +6,15 @@ export class ApiError extends Error {
   }
 }
 
-export function createApi({ fetchImpl = globalThis.fetch, timeoutMs = 45000, diagnosisTimeoutMs = 120000 } = {}) {
+export function createApi({ fetchImpl = globalThis.fetch, timeoutMs = 45000, diagnosisTimeoutMs = 120000, resumeTimeoutMs = 150000 } = {}) {
   async function request(path, { method = "GET", body } = {}) {
     if (!path.startsWith("/") || path.startsWith("//") || path.includes("\\")) {
       throw new ApiError("仅支持当前服务内的请求。");
     }
     const controller = new AbortController();
     const isDiagnosis = method === "POST" && ["/api/v1/diagnoses", "/api/v1/workflow"].includes(path);
-    const timer = setTimeout(() => controller.abort(), isDiagnosis ? diagnosisTimeoutMs : timeoutMs);
+    const isResume = method === "POST" && ['/api/v1/resumes/parse', '/api/v1/resumes/preview', '/api/v1/resumes/upload-preview'].includes(path);
+    const timer = setTimeout(() => controller.abort(), isDiagnosis ? diagnosisTimeoutMs : isResume ? resumeTimeoutMs : timeoutMs);
     try {
       const multipart = typeof FormData !== "undefined" && body instanceof FormData;
       const response = await fetchImpl(path, {
@@ -27,7 +28,11 @@ export function createApi({ fetchImpl = globalThis.fetch, timeoutMs = 45000, dia
       if (!response.ok) {
         const detail = data?.error?.message;
         const message = typeof detail === "string" ? detail : detail?.message;
-        throw new ApiError(message || "请求未完成，请稍后重试。", response.status);
+        const error = new ApiError(message || "请求未完成，请稍后重试。", response.status);
+        if (path === '/api/v1/resumes/upload-preview' && typeof detail?.raw_text === 'string') {
+          error.rawText = detail.raw_text;
+        }
+        throw error;
       }
       return { data, isMock: data?.is_mock === true || response.headers.get("X-T5-Mock") === "true" };
     } catch (error) {

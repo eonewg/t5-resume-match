@@ -35,15 +35,15 @@ async function saved(page){const response=page.waitForResponse(r=>r.url().endsWi
    // Exercise actual DataTransfer drop handler, not the file input handler.
    const transfer=await page.evaluateHandle(text=>{const dt=new DataTransfer();dt.items.add(new File([text],'学生 简历 (测试)&.txt',{type:'text/plain'}));return dt;},raw);
    await page.locator('#resume-dropzone').dispatchEvent('drop',{dataTransfer:transfer});await transfer.dispose();
-   await page.locator('.resume-fields:visible').waitFor();await page.locator('#resume-status').filter({hasText:'解析完成'}).waitFor();
+   await page.locator('.resume-fields:visible').waitFor();await page.locator('#resume-status').filter({hasText:/AI 已完成结构化识别|演示识别结果/}).waitFor();
    assert.equal(await page.locator('#resume-raw').inputValue(),raw);
    await page.locator('#resume-education').fill('');await page.locator('#resume-skills').fill('SQL');await page.locator('#resume-reviewed').check();
    const field=page.locator('.resume-field').filter({has:page.locator('#resume-education')}).locator('.resume-field-badge');assert.equal(await field.innerText(),'未填写');
-   await page.locator('#resume-parse').click();await page.locator('#resume-status').filter({hasText:'解析完成'}).waitFor();assert.equal(await page.locator('#resume-education').inputValue(),'');
+   await page.locator('#resume-parse').click();await page.locator('#resume-status').filter({hasText:/AI 已完成结构化识别|演示识别结果/}).waitFor();assert.equal(await page.locator('#resume-education').inputValue(),'');
    const first=await saved(page);
    const replacement='姓名：另一位同学\n教育背景：硕士\n技能：Python\n项目经历：不同的原文内容。';
    await page.locator('#resume-file').setInputFiles({name:'替换原文.txt',mimeType:'text/plain',buffer:Buffer.from(replacement)});
-   await page.locator('#resume-status').filter({hasText:'解析完成'}).waitFor();
+   await page.locator('#resume-status').filter({hasText:/AI 已完成结构化识别|演示识别结果/}).waitFor();
    assert.equal(await page.locator('#resume-name').inputValue(),first.name);assert.equal(await page.locator('#resume-education').inputValue(),'');assert.equal(await page.locator('#resume-skills').inputValue(),'SQL');
    assert.equal(await page.locator('#resume-raw').inputValue(),replacement);assert.ok(!(await page.locator('#resume-next').isVisible()));
    assert.deepEqual(await(await page.request.get(base+'/api/v1/resumes/'+first.id)).json(),first,'upload never overwrites stored facts');
@@ -58,7 +58,7 @@ async function saved(page){const response=page.waitForResponse(r=>r.url().endsWi
    // Paste fallback remains a complete independent entry, after a failed file import.
    const paste=await browser.newPage({viewport:{width,height:width===390?844:1000}});await paste.goto(base);await paste.locator('#resume-dropzone:enabled').waitFor();
    await paste.locator('.resume-source summary').first().click();await paste.locator('#resume-raw').fill(raw);await paste.locator('#resume-parse').click();
-   await paste.locator('.resume-fields:visible').waitFor();await paste.locator('#resume-status').filter({hasText:'解析完成'}).waitFor();await saved(paste);
+   await paste.locator('.resume-fields:visible').waitFor();await paste.locator('#resume-status').filter({hasText:/AI 已完成结构化识别|演示识别结果/}).waitFor();await saved(paste);
    await paste.locator('#resume-next').click();await paste.locator('.current-resume').waitFor();await paste.locator('.job-form summary').click();await paste.locator('#jobs-title').fill('长文本展示测试');await paste.locator('#jobs-text').fill(long);
    assert.ok(await paste.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await shot(paste,'jobs-long-'+width);
    // Market absences stay absences; a UI fixture does not modify stored samples.

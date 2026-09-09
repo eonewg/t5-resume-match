@@ -37,12 +37,12 @@ export function mount(container, context) {
   const count = node('p', '', 'resume-help');
   const parse = button('整理简历内容', 'button primary'); parse.id = 'resume-parse';
   const sourceHelp = node('details', '', 'helper-disclosure'); sourceHelp.append(node('summary', '原文与解析说明'),
-    node('p', '原文会随当前版本保存。只保留明确表达的信息；未识别字段请核对原文后补充。', 'resume-help'));
+    node('p', 'AI 只负责从原文提取信息，不会自动补充不存在的经历。原文仍完整保留，包括未单独展示的奖项等内容。', 'resume-help'));
   const replaceFile = button('改用文件导入', 'button ghost'); replaceFile.id = 'resume-replace-file';
   sourcePanel.append(rawLabel, raw, count, parse, replaceFile, sourceHelp);
   const editPanel = node('section', '', 'card resume-fields');
   const editHeading = node('div', '', 'section-heading'); const stage = node('span', '未开始', 'status-badge'); stage.id = 'resume-stage';
-  editHeading.append(node('h2', '核对简历'), stage); editPanel.append(editHeading);
+  editHeading.append(node('h2', '核对简历'), stage); editPanel.append(editHeading, node('p', 'AI 仅从原文提取信息，事实仍需你核对。原文与未单独展示的内容会完整保留。', 'resume-help'));
   const basicFields = node('div', '', 'resume-basics'); editPanel.append(basicFields);
   const inputs = {}, badges = {}, proposals = {}, applyButtons = {};
   const labels = {name: '姓名', education: '教育背景', skills: '技能 / 工具', experience: '项目 / 工作经历'};
@@ -79,6 +79,9 @@ export function mount(container, context) {
   const mode = node('p', '', 'status-badge'); mode.id = 'resume-mode'; mode.hidden = true;
   const status = node('p', '', 'resume-status feedback'); status.id = 'resume-status'; status.setAttribute('role', 'status');
   status.setAttribute('aria-live', 'polite');
+  const recovery = node('div', '', 'resume-actions'); recovery.id = 'resume-ai-recovery';
+  const retryAI = button('重新识别', 'button primary'); retryAI.id = 'resume-ai-retry';
+  const manual = button('手动填写'); manual.id = 'resume-manual'; recovery.append(retryAI, manual);
   const confirmLabel = node('label', '', 'resume-confirm');
   const confirm = node('input'); confirm.type = 'checkbox'; confirm.id = 'resume-reviewed';
   confirmLabel.append(confirm, node('span', '我已核对以上简历内容，未确认的信息保持空白。'));
@@ -87,7 +90,7 @@ export function mount(container, context) {
   const actions = node('div', '', 'resume-actions'); actions.append(save, nextLink);
   const footer = node('section', '', 'card resume-save-panel'); footer.append(confirmLabel, actions);
   editPanel.append(footer);
-  container.className = 'resume-editor'; container.replaceChildren(style, heading, description, status, mode, grid);
+  container.className = 'resume-editor'; container.replaceChildren(style, heading, description, status, recovery, mode, grid);
 
   let currentState;
   const controller = connectResume(context, state => {
@@ -153,11 +156,14 @@ export function mount(container, context) {
     const imported = Boolean(state.imported || state.savedId || state.candidate);
     grid.classList.toggle('is-reviewing', imported);
     editPanel.hidden = !imported;
-    dropzone.hidden = imported;
+    dropzone.hidden = imported || state.aiStatus === 'failed';
     sourceSummary.textContent = imported ? '简历原文与重新整理' : '或直接粘贴简历文本';
     if (imported && !grid.dataset.reviewing) sourcePanel.open = true;
     grid.dataset.reviewing = imported ? 'yes' : '';
     if (!imported && state.values.raw_text) sourcePanel.open = true;
+    recovery.hidden = state.aiStatus !== 'failed';
+    retryAI.disabled = manual.disabled = Boolean(state.busy);
+    parse.hidden = state.aiStatus === 'failed';
     for (const element of [newButton, dropzone, file, replaceFile, parse, confirm]) element.disabled = Boolean(state.busy);
     addExperience.disabled = locked || state.values.experience.length >= 500;
     previous.disabled = Boolean(state.busy) || state.offset === 0;
@@ -166,11 +172,11 @@ export function mount(container, context) {
     confirm.checked = state.reviewed;
     save.disabled = Boolean(state.busy) || !state.reviewed || !state.values.raw_text.trim();
     save.textContent = state.busy === 'save' ? '保存并核对中…' : state.pendingSave ? '重试确认保存' : '确认并保存';
-    parse.textContent = state.busy === 'parse' ? '正在整理…' : imported ? '重新整理原文' : '整理简历内容';
+    parse.textContent = state.busy === 'parse' ? 'AI 识别中…' : imported ? '重新识别原文' : '用 AI 识别简历';
     const saved = Boolean(state.savedId && state.reviewed && !state.dirty && !state.pendingSave);
-    stage.textContent = state.busy === 'parse' ? '正在解析' : saved ? '已保存' : state.reviewed ? '已确认' : state.parseMock !== null ? '待核对' : state.dirty ? '已修改' : '未开始';
+    stage.textContent = ['parse', 'upload'].includes(state.busy) ? 'AI 识别中' : state.aiStatus === 'failed' ? 'AI 识别失败' : state.aiStatus === 'manual' ? '手动填写' : state.aiStatus === 'mock' ? '演示结果' : saved ? '已保存' : state.reviewed ? '已确认' : state.parseMock !== null ? '待核对' : state.dirty ? '已修改' : '未开始';
     stage.dataset.state = state.busy ? 'busy' : saved || state.reviewed ? 'success' : 'neutral';
-    status.textContent = userText(state.error || (['parse', 'upload'].includes(state.busy) ? '正在读取并整理简历……' : state.busy === 'save' ? '正在保存简历……' : state.notice || (state.busy ? '正在读取简历……' : saved ? '简历已保存，接下来选择目标岗位。' : imported ? '请核对内容，未识别的信息可以补充或留空。' : '')));
+    status.textContent = userText((state.aiStatus === 'failed' ? 'AI 暂时无法识别这份简历。原文已保留，可以重试或手动填写。' + (state.error ? ' ' + state.error : '') : state.error) || (['parse', 'upload'].includes(state.busy) ? '正在用 AI 识别简历内容……' : state.busy === 'save' ? '正在保存简历……' : state.notice || (state.busy ? '正在读取简历……' : saved ? '简历已保存，接下来选择目标岗位。' : imported ? '请核对内容，未识别的信息可以补充或留空。' : '')));
     status.hidden = !status.textContent;
     setFeedback(status, {busy: Boolean(state.busy), error: state.error, success: saved});
     save.hidden = saved; confirmLabel.hidden = saved;
@@ -178,11 +184,12 @@ export function mount(container, context) {
     parse.className = 'button ' + (!imported ? 'primary' : 'secondary');
     mode.hidden = state.parseMock !== true;
     mode.textContent = '演示模式'; mode.title = '请自行核对事实，不把示例内容当作真实经历。';
-    nextLink.hidden = !saved || Boolean(state.busy);
+    nextLink.hidden = !saved || Boolean(state.busy) || state.aiStatus === 'failed';
   }, retainedDraft);
   raw.addEventListener('input', () => controller.edit('raw_text', raw.value));
   for (const key of Object.keys(inputs)) inputs[key].addEventListener('input', () => controller.edit(key, inputs[key].value));
   for (const key of Object.keys(labels)) applyButtons[key].addEventListener('click', () => controller.apply(key));
+  retryAI.addEventListener('click', controller.parse); manual.addEventListener('click', controller.manual);
   parse.addEventListener('click', controller.parse); save.addEventListener('click', controller.save);
   confirm.addEventListener('change', () => controller.review(confirm.checked));
   addExperience.addEventListener('click', () => controller.edit('experience', [...currentState.values.experience, '']));

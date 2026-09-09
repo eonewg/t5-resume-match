@@ -105,6 +105,17 @@ def test_d_offline_probe_never_constructs_or_calls_service(monkeypatch):
     assert probe("diagnosis", module_with(monkeypatch, PaidService)).startswith("OFFLINE")
 
 
+def test_resume_offline_probe_never_constructs_or_calls_service(monkeypatch):
+    class PaidService:
+        def __init__(self):
+            raise AssertionError("Do not initialize the paid client")
+
+        def parse(self, data):
+            raise AssertionError("Do not call the paid client")
+
+    assert probe("resume", module_with(monkeypatch, PaidService)).startswith("OFFLINE")
+
+
 def test_ci_requires_target_member_even_when_missing(tmp_path):
     assert ci_modules("feat/intelligence-d", tmp_path) == ["jobs", "diagnosis"]
     assert ci_modules("feat/diagnosis-llm-d", tmp_path) == ["jobs", "diagnosis"]

@@ -1,4 +1,4 @@
-"""Conservative, offline parsing. Every extracted value comes from the input."""
+"""AI-first public provider; the old parser remains an explicit offline test baseline."""
 
 import re
 
@@ -143,7 +143,7 @@ def heading(line):
     return None
 
 
-class ResumeService:
+class OfflineResumeService:
     """Parse labeled Chinese/English sections; missing information stays empty."""
 
     def parse(self, data: TextInput) -> ResumeData:
@@ -215,3 +215,10 @@ class ResumeService:
             experience=experiences,
             raw_text=data.raw_text,
         )
+
+
+from backend.modules.resume.ai import ResumeAIService  # noqa: E402
+
+
+class ResumeService(ResumeAIService):
+    """Default public entrypoint: AI extraction with no rule-based fallback."""

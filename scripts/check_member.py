@@ -59,6 +59,8 @@ def probe(module: str, target: str, *, examples=False, live=False):
         require(not getattr(cls, "is_mock", False), "入口仍声明 is_mock=True，尚未交付真实实现")
     if module == "diagnosis" and not (examples or live):
         return "OFFLINE: diagnosis 仅检查入口与同步签名；不构造实例、不调用 AI。需模块离线测试验证输出。"
+    if module == "resume" and not (examples or live):
+        return "OFFLINE: resume 仅检查入口与同步签名；不构造实例、不调用 AI。需模块离线测试及单独真实抽取评测。"
 
     provider = load_provider(spec.key, target)
     require(examples or not provider.is_mock, "实例仍声明 is_mock=True")

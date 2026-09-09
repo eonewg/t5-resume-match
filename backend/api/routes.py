@@ -17,6 +17,7 @@ from backend.core.services import (
     require_row,
 )
 from backend.models.entities import DiagnosisRow, JDRow, MatchRow, ResumeRow
+from backend.modules.resume.ai import ResumeAIError
 from backend.modules.resume.upload import (
     UploadError,
     extract_text,
@@ -58,7 +59,15 @@ def mark_mock(response: Response, is_mock: bool):
 
 
 def parse_resume_data(provider, data):
-    result = invoke(provider, "parse", ResumeData, data)
+    try:
+        result = provider.service.parse(data)
+        result = ResumeData.model_validate(
+            result.model_dump() if isinstance(result, ResumeData) else result, strict=True
+        )
+    except ResumeAIError as exc:
+        raise HTTPException(exc.status_code, {"code": exc.code, "message": exc.message}) from None
+    except Exception:
+        raise HTTPException(502, "AI 暂时无法识别这份简历。请重试或手动填写。") from None
     if result.raw_text != data.raw_text:
         raise HTTPException(502, "简历解析未保留原文")
     return result
@@ -105,7 +114,12 @@ def preview_resume_upload(file: UploadFile, request: Request, response: Response
         raise HTTPException(exc.status_code, str(exc)) from None
     finally:
         file.file.close()
-    return preview_resume(TextInput(raw_text=text), request, response)
+    try:
+        return preview_resume(TextInput(raw_text=text), request, response)
+    except HTTPException as exc:
+        # Return the extracted source only to the uploading client, never to logs or storage.
+        detail = exc.detail if isinstance(exc.detail, dict) else {"message": exc.detail}
+        raise HTTPException(exc.status_code, {**detail, "raw_text": text}) from None
 
 
 @router.post("/resumes", response_model=Resume, status_code=201, tags=["resume"])
