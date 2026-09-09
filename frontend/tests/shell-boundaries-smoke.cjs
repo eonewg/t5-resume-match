@@ -1,3 +1,4 @@
+const viewports = require('./viewports.cjs');
 // Dashboard/router/clipboard/Mock/analytics acceptance; AI output is an explicit fixture.
 const {chromium} = require('playwright');
 const assert = require('node:assert/strict');
@@ -17,8 +18,8 @@ async function shot(page,name) {
 (async()=>{
  const browser=await chromium.launch({channel:'msedge',headless:true});
  try {
-  for (const width of [1440,1280,390]) {
-   const context=await browser.newContext({viewport:{width,height:width===390?844:1000},permissions:['clipboard-read','clipboard-write']});
+  for (const width of viewports.widths) {
+   const context=await browser.newContext({viewport:{width,height:viewports.height(width)},permissions:['clipboard-read','clipboard-write']});
    const page=await context.newPage(); const errors=[]; page.on('pageerror',e=>errors.push(e.message));
    const resumeBody={raw_text:'  合成验收原文\r\nSQL  ',name:'React 流程 '+width,education:'本科',skills:['SQL'],experience:['整理 120 条课程记录。']};
    const saved=await(await page.request.post(base+'/api/v1/resumes',{data:resumeBody})).json();

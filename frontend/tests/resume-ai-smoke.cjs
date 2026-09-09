@@ -60,7 +60,7 @@ async function save(page) {
           suggestions:['【岗位建议】请对照岗位核对已有技能。','【STAR】原文：维护学院计算节点。\n优化：维护学院计算节点。【待补充：实际维护范围】\n理由：只用于界面链路验收。']}});
       });
       await page.goto(base+'/#resume'); await page.locator('#resume-dropzone:enabled').waitFor();
-      assert.ok(!(await page.locator('.resume-fields').isVisible()));
+      assert.equal(await page.locator('#resume-name').inputValue(),'');
       const responsePromise = page.waitForResponse(r => r.url().endsWith('/resumes/upload-preview'));
       await page.locator('#resume-file').setInputFiles(sourcePath);
       await page.locator('#resume-status[data-state=busy]').waitFor();
@@ -98,7 +98,7 @@ async function save(page) {
       await recovery.locator('#resume-file').setInputFiles(sourcePath); await recovery.locator('#resume-ai-recovery:visible').waitFor();
       assert.equal(await recovery.locator('#resume-raw').inputValue(),raw.replace(/\r\n?/g,'\n'));
       assert.match(await recovery.locator('#resume-status').innerText(),/AI 暂时无法识别/);
-      assert.ok(!(await recovery.locator('.resume-fields').isVisible())); await layout(recovery); await screenshot(recovery,'ai-failure-'+width);
+      assert.equal(await recovery.locator('#resume-name').inputValue(),''); await layout(recovery); await screenshot(recovery,'ai-failure-'+width);
       let retries=0;
       await recovery.route('**/api/v1/resumes/preview', async route => {
         retries++; assert.equal(route.request().postDataJSON().raw_text,raw);

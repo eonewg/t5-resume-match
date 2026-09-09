@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { connectResume, type ResumeController } from '../modules/resume/controller.ts';
-import { useController } from '../core/WorkspaceContext';
+import { useNavigate } from 'react-router-dom';
+import { useController, useWorkspace } from '../core/WorkspaceContext';
 import type { ResumeField } from '../core/controller-types';
 import { fieldStatus } from '../core/ui.ts';
 import demoResume from '../demo/fixtures/resume-zh.ts';
-import { Button, Chips, Feedback, NextLink } from '../components/ui';
+import { Button, Feedback, NextLink, PageHeading } from '../components/ui';
 
 const start = (controller: ResumeController) => {
   void controller.init();
@@ -17,9 +18,11 @@ const labels: Record<ResumeField, string> = {
 };
 export default function ResumePage() {
   const { state: s, controller } = useController(connectResume, start, 'resume');
+  const navigate = useNavigate();
+  const { store } = useWorkspace();
   const file = useRef<HTMLInputElement>(null);
   const history = useRef<HTMLDetailsElement>(null);
-  const [sourceOpen, setSourceOpen] = useState(false);
+  const [sourceOpen, setSourceOpen] = useState(true);
   const [dragging, setDragging] = useState(false);
   const imported = Boolean(s?.imported || s?.savedId || s?.candidate);
   useEffect(() => {
@@ -71,13 +74,21 @@ export default function ResumePage() {
     if (c.getDraft().savedId === id && history.current) history.current.open = false;
   }
   function reset() {
-    const result = c.reset();
+    if (!window.confirm('清空当前草稿并重新开始？已保存的历史简历不会删除。')) return;
+    c.reset(true);
+    setSourceOpen(true);
+  }
+  async function saveAndContinue() {
+    await c.save();
+    const current = c.getDraft();
     if (
-      result?.requiresConfirmation &&
-      window.confirm('导入另一份简历会清空当前未保存修改，是否继续？')
+      controller.current === c &&
+      current.savedId &&
+      !current.pendingSave &&
+      current.reviewed &&
+      store.getState().resumeId === current.savedId
     )
-      c.reset(true);
-    setSourceOpen(false);
+      navigate('/jobs');
   }
   function field(key: ResumeField) {
     const badge = fieldStatus(s!.values[key], s!.protectedFields.includes(key), s!.reviewed);
@@ -149,12 +160,6 @@ export default function ResumePage() {
           </>
         ) : (
           <>
-            {key === 'skills' && s!.values.skills.trim() && (
-              <Chips
-                className="resume-skill-chips"
-                values={s!.values.skills.split(/\r?\n/).filter(Boolean)}
-              />
-            )}
             {key === 'name' ? (
               <input
                 id="resume-name"
@@ -173,9 +178,6 @@ export default function ResumePage() {
                 onChange={(e) => c.edit(key, e.target.value)}
               />
             )}
-            {key === 'skills' && (
-              <p className="resume-help">每行一项，仅填写你具备的技能。清空也会保留。</p>
-            )}
           </>
         )}
         <details id={`resume-suggestion-${key}`} className="resume-suggestion" hidden={!differs}>
@@ -192,69 +194,16 @@ export default function ResumePage() {
   }
   return (
     <div className="resume-editor" data-module="resume">
-      <div className="section-heading">
-        <div>
-          <p className="eyebrow">01 / 确认事实</p>
-          <h1 tabIndex={-1}>我的简历</h1>
-        </div>
-        <details id="resume-history" className="resume-history" ref={history}>
-          <summary>历史简历</summary>
-          <div className="resume-history-list">
-            {s.rows.map((row) => (
-              <button
-                type="button"
-                className="resume-history-item"
-                data-resume-id={row.id}
-                key={row.id}
-                disabled={Boolean(s.busy)}
-                onClick={() => void load(row.id)}
-              >
-                <strong>{row.name || '未命名简历'}</strong>
-                <span>{row.id === s.savedId ? '当前简历' : '已保存'}</span>
-                <small>
-                  {[row.education, row.skills.join('、'), row.experience[0]]
-                    .filter(Boolean)
-                    .join(' · ')
-                    .slice(0, 90)}
-                </small>
-              </button>
-            ))}
-            {!s.rows.length && <p className="resume-help">保存后的简历会出现在这里。</p>}
-          </div>
-          {s.historyError && (
-            <Button disabled={Boolean(s.busy)} onClick={() => void c.refresh(s.offset)}>
-              重试读取历史简历
-            </Button>
-          )}
-          {(s.offset > 0 || s.rows.length >= 20) && (
-            <div>
-              <Button
-                disabled={Boolean(s.busy) || s.offset === 0}
-                onClick={() => void c.refresh(Math.max(0, s.offset - 20))}
-              >
-                较新的简历
-              </Button>
-              <Button
-                disabled={Boolean(s.busy) || s.rows.length < 20}
-                onClick={() => void c.refresh(s.offset + 20)}
-              >
-                更早的简历
-              </Button>
-            </div>
-          )}
-          <Button id="resume-new" tone="ghost" disabled={Boolean(s.busy)} onClick={reset}>
-            导入另一份简历
-          </Button>
-        </details>
-      </div>
-      <p className="resume-lead">先上传或粘贴简历。AI 识别后，由你核对并保存，再继续选择岗位。</p>
+      <PageHeading eyebrow="01 / 确认事实" title="我的简历">
+        导入原文，核对右侧字段，确认后进入岗位分析。
+      </PageHeading>
       <Feedback id="resume-status" error={s.error ? status : undefined} busy={Boolean(s.busy)}>
         {status}
       </Feedback>
       <div id="resume-ai-recovery" className="resume-actions" hidden={s.aiStatus !== 'failed'}>
         <Button
           id="resume-ai-retry"
-          tone="primary"
+          tone="secondary"
           disabled={Boolean(s.busy)}
           onClick={() => void c.parse()}
         >
@@ -267,117 +216,182 @@ export default function ResumePage() {
       <p id="resume-mode" className="status-badge" hidden={s.parseMock !== true}>
         Mock · 演示识别，请自行核对事实
       </p>
-      {saved && (
-        <div className="next-action card">
-          <div>
-            <strong>简历已确认，可以开始找方向了</strong>
-            <p>下一步：选择你准备申请的岗位。</p>
-          </div>
-          <NextLink id="resume-next" to="/jobs">
-            选择目标岗位 →
-          </NextLink>
-        </div>
-      )}
       <div className={`resume-grid ${imported ? 'is-reviewing' : ''}`}>
         <section className="resume-import">
-          <button
-            id="resume-dropzone"
-            type="button"
-            hidden={imported || s.aiStatus === 'failed'}
-            disabled={Boolean(s.busy)}
-            className={`resume-dropzone ${dragging ? 'drag-over' : ''}`}
-            onClick={() => file.current?.click()}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setDragging(true);
-            }}
-            onDragLeave={() => setDragging(false)}
-            onDrop={(e) => {
-              e.preventDefault();
-              setDragging(false);
-              if (!s.busy) void c.upload(e.dataTransfer.files[0]);
-            }}
-          >
-            <span className="resume-upload-title">上传简历</span>
-            <span>拖入简历，或点击选择文件</span>
-            <small>PDF / DOCX / TXT · 最大 10 MB</small>
-          </button>
-          <input
-            id="resume-file"
-            type="file"
-            ref={file}
-            hidden
-            accept=".pdf,.docx,.txt"
-            disabled={Boolean(s.busy)}
-            onChange={(e) => {
-              const selected = e.target.files?.[0];
-              if (selected) void c.upload(selected);
-              e.target.value = '';
-            }}
-          />
-          <details
-            className="card resume-source"
-            open={sourceOpen}
-            onToggle={(e) => setSourceOpen(e.currentTarget.open)}
-          >
-            <summary>{imported ? '简历原文与重新整理' : '或直接粘贴简历文本'}</summary>
-            <label htmlFor="resume-raw">粘贴完整原文</label>
-            <textarea
-              id="resume-raw"
-              rows={10}
-              maxLength={50000}
-              value={s.values.raw_text}
-              readOnly={locked}
-              placeholder="在这里粘贴教育背景、技能和项目经历…"
-              onChange={(e) => c.edit('raw_text', e.target.value)}
-            />
-            <p className="resume-help">{s.values.raw_text.length} / 50000 字符</p>
-            <Button
-              id="resume-parse"
-              hidden={s.aiStatus === 'failed'}
-              tone={imported ? 'secondary' : 'primary'}
+          <div className="resume-source-workspace card">
+            <h2>原文与导入</h2>
+            <button
+              id="resume-dropzone"
+              type="button"
+              hidden={imported || s.aiStatus === 'failed'}
               disabled={Boolean(s.busy)}
-              onClick={() => void c.parse()}
+              className={`resume-dropzone ${dragging ? 'drag-over' : ''}`}
+              onClick={() => file.current?.click()}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragging(true);
+              }}
+              onDragLeave={() => setDragging(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragging(false);
+                if (!s.busy) void c.upload(e.dataTransfer.files[0]);
+              }}
             >
-              {s.busy === 'parse' ? 'AI 识别中…' : imported ? '重新识别原文' : '用 AI 识别简历'}
-            </Button>
+              <span className="resume-upload-title">上传简历</span>
+              <span>拖入简历，或点击选择文件</span>
+              <small>PDF / DOCX / TXT · 最大 10 MB</small>
+            </button>
+            <input
+              id="resume-file"
+              type="file"
+              ref={file}
+              hidden
+              accept=".pdf,.docx,.txt"
+              disabled={Boolean(s.busy)}
+              onChange={(e) => {
+                const selected = e.target.files?.[0];
+                if (selected) void c.upload(selected);
+                e.target.value = '';
+              }}
+            />
+            <details
+              className="resume-source"
+              open={sourceOpen}
+              onToggle={(e) => setSourceOpen(e.currentTarget.open)}
+            >
+              <summary>{imported ? '简历原文与重新整理' : '或直接粘贴简历文本'}</summary>
+              <label htmlFor="resume-raw">粘贴完整原文</label>
+              <textarea
+                id="resume-raw"
+                rows={10}
+                maxLength={50000}
+                value={s.values.raw_text}
+                readOnly={locked}
+                placeholder="在这里粘贴教育背景、技能和项目经历…"
+                onChange={(e) => c.edit('raw_text', e.target.value)}
+              />
+              <p className="resume-help">{s.values.raw_text.length} / 50000 字符</p>
+              <Button
+                id="resume-parse"
+                hidden={s.aiStatus === 'failed'}
+                tone="secondary"
+                disabled={Boolean(s.busy)}
+                onClick={() => void c.parse()}
+              >
+                {s.busy === 'parse' ? 'AI 识别中…' : imported ? '重新识别原文' : '用 AI 识别简历'}
+              </Button>
+              <Button
+                id="resume-replace-file"
+                tone="ghost"
+                disabled={Boolean(s.busy)}
+                onClick={() => file.current?.click()}
+              >
+                改用文件导入
+              </Button>
+              <details className="helper-disclosure">
+                <summary>原文与解析说明</summary>
+                <p>
+                  AI
+                  只从原文提取信息。原文逐字保留，包括未单独展示的奖项等内容；不会自动补充经历或替换已保护字段。扫描
+                  PDF 暂不支持，请粘贴文字。
+                </p>
+              </details>
+            </details>
             <Button
-              id="resume-replace-file"
+              id="resume-demo-fill"
               tone="ghost"
               disabled={Boolean(s.busy)}
-              onClick={() => file.current?.click()}
+              onClick={() => {
+                if (
+                  s.values.raw_text.trim() &&
+                  s.values.raw_text !== demoResume &&
+                  !window.confirm('填入示例简历会替换当前原文，是否继续？')
+                )
+                  return;
+                c.edit('raw_text', demoResume);
+                setSourceOpen(true);
+              }}
             >
-              改用文件导入
+              填入示例简历
             </Button>
-            <details className="helper-disclosure">
-              <summary>原文与解析说明</summary>
-              <p>
-                AI
-                只从原文提取信息。原文逐字保留，包括未单独展示的奖项等内容；不会自动补充经历或替换已保护字段。扫描
-                PDF 暂不支持，请粘贴文字。
-              </p>
+            <details className="resume-draft-tools">
+              <summary>草稿操作</summary>
+              <p className="helper-text">只影响当前编辑内容，已保存的历史版本不会删除。</p>
+              <div className="inline-actions">
+                <Button
+                  id="resume-clear-fields"
+                  tone="danger"
+                  disabled={Boolean(s.busy)}
+                  onClick={() => {
+                    if (window.confirm('清空已解析字段？保留原文，之后可重新识别。'))
+                      c.clearFields();
+                  }}
+                >
+                  清空已解析字段
+                </Button>
+                <Button
+                  id="resume-clear-draft"
+                  tone="danger"
+                  disabled={Boolean(s.busy)}
+                  onClick={reset}
+                >
+                  清空当前草稿
+                </Button>
+                <Button id="resume-new" tone="ghost" disabled={Boolean(s.busy)} onClick={reset}>
+                  重新开始
+                </Button>
+              </div>
             </details>
-          </details>
-          <Button
-            id="resume-demo-fill"
-            tone="ghost"
-            disabled={Boolean(s.busy)}
-            onClick={() => {
-              if (
-                s.values.raw_text.trim() &&
-                s.values.raw_text !== demoResume &&
-                !window.confirm('填入示例简历会替换当前原文，是否继续？')
-              )
-                return;
-              c.edit('raw_text', demoResume);
-              setSourceOpen(true);
-            }}
-          >
-            填入示例简历
-          </Button>
-          <p className="resume-help">合成演示简历，仅填入原文；识别、核对和保存均由你发起。</p>
+            <details id="resume-history" className="resume-history" ref={history}>
+              <summary>历史简历</summary>
+              <div className="resume-history-list">
+                {s.rows.map((row) => (
+                  <button
+                    type="button"
+                    className="resume-history-item"
+                    data-resume-id={row.id}
+                    key={row.id}
+                    disabled={Boolean(s.busy)}
+                    onClick={() => void load(row.id)}
+                  >
+                    <strong>{row.name || '未命名简历'}</strong>
+                    <span>{row.id === s.savedId ? '当前简历' : '已保存'}</span>
+                    <small>
+                      {[row.education, row.skills.join('、'), row.experience[0]]
+                        .filter(Boolean)
+                        .join(' · ')
+                        .slice(0, 90)}
+                    </small>
+                  </button>
+                ))}
+                {!s.rows.length && <p className="resume-help">保存后的简历会出现在这里。</p>}
+              </div>
+              {s.historyError && (
+                <Button disabled={Boolean(s.busy)} onClick={() => void c.refresh(s.offset)}>
+                  重试读取历史简历
+                </Button>
+              )}
+              {(s.offset > 0 || s.rows.length >= 20) && (
+                <div>
+                  <Button
+                    disabled={Boolean(s.busy) || s.offset === 0}
+                    onClick={() => void c.refresh(Math.max(0, s.offset - 20))}
+                  >
+                    较新的简历
+                  </Button>
+                  <Button
+                    disabled={Boolean(s.busy) || s.rows.length < 20}
+                    onClick={() => void c.refresh(s.offset + 20)}
+                  >
+                    更早的简历
+                  </Button>
+                </div>
+              )}
+            </details>
+          </div>
         </section>
-        <section className="card resume-fields" hidden={!imported}>
+        <section className="card resume-fields">
           <div className="section-heading">
             <h2>核对简历</h2>
             <span
@@ -388,9 +402,14 @@ export default function ResumePage() {
               {stage}
             </span>
           </div>
-          <p className="resume-help">
-            AI 识别不等于事实认证。请逐项核对；你修改或确认过的字段（包括空值）会保留。
-          </p>
+          <p className="resume-help">修改或确认过的字段会保留；重新识别后，可单独采用新建议。</p>
+          {saved && (
+            <div className="resume-confirmed-action">
+              <NextLink id="resume-next" to="/jobs">
+                确认并进入目标岗位 →
+              </NextLink>
+            </div>
+          )}
           <div className="resume-basics">
             {field('name')}
             {field('education')}
@@ -411,7 +430,7 @@ export default function ResumePage() {
             <div className="resume-actions">
               <Button
                 id="resume-save"
-                tone={s.reviewed ? 'primary' : 'secondary'}
+                tone="secondary"
                 disabled={Boolean(s.busy) || !s.reviewed || !s.values.raw_text.trim()}
                 onClick={() => void c.save()}
               >
@@ -420,6 +439,14 @@ export default function ResumePage() {
                   : s.pendingSave
                     ? '重试确认保存'
                     : '确认并保存'}
+              </Button>
+              <Button
+                id="resume-save-next"
+                tone="primary"
+                disabled={Boolean(s.busy) || !s.reviewed || !s.values.raw_text.trim()}
+                onClick={() => void saveAndContinue()}
+              >
+                确认并进入目标岗位
               </Button>
             </div>
           </section>

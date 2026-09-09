@@ -1,3 +1,4 @@
+const viewports = require('./viewports.cjs');
 // Real HTTP/UI flow. Diagnosis is an explicit fixture, never a model-quality claim.
 const {chromium} = require('playwright');
 const assert = require('node:assert/strict');
@@ -6,7 +7,7 @@ const path = require('node:path');
 const base = process.env.T5_SMOKE_URL || 'http://127.0.0.1:8770';
 const out = process.env.T5_SMOKE_OUT || '.verification/task-flow';
 const fixtures = path.join(__dirname, 'fixtures');
-const report = {ai: 'offline Resume provider and explicit Mock Diagnosis; no model-quality claim', widths: [1440,1280,390], checks: [], screens: [], model: 'explicit is_mock fixture; no paid API', status: 'running'};
+const report = {ai: 'offline Resume provider and explicit Mock Diagnosis; no model-quality claim', widths: viewports.widths, checks: [], screens: [], model: 'explicit is_mock fixture; no paid API', status: 'running'};
 fs.mkdirSync(out, {recursive:true});
 async function shot(page,name) {
   await page.evaluate(()=>scrollTo(0,0)); const file=path.join(out,name+'.png');
@@ -21,7 +22,7 @@ async function layout(page) {
  const browser=await chromium.launch({channel:'msedge',headless:true});
  try {
   for(const [index,width] of report.widths.entries()) {
-   const page=await browser.newPage({viewport:{width,height:width===390?844:1000}});
+   const page=await browser.newPage({viewport:{width,height:viewports.height(width)}});
    const errors=[];page.on('pageerror',e=>errors.push(e.message));
    await page.goto(base+'/#matching');
    await page.getByRole('heading',{name:'还没有匹配结果',exact:true}).waitFor();
@@ -33,10 +34,10 @@ async function layout(page) {
    assert.ok(!(await page.locator('#diagnosis-run').isVisible()));
    await layout(page);await shot(page,'diagnosis-empty-'+width);
    await page.locator('[data-view=resume]').click();await page.locator('#resume-dropzone:enabled').waitFor();
-   assert.ok(!(await page.locator('.resume-fields').isVisible()));assert.ok(!(await page.locator('#resume-raw').isVisible()));
+   assert.equal(await page.locator('#resume-name').inputValue(),'');assert.equal(await page.locator('#resume-raw').inputValue(),'');
    assert.equal(await page.locator('#resume-history').getAttribute('open'),null);
    await layout(page);await shot(page,'resume-empty-'+width);
-   const extension=['txt','docx','pdf'][index];
+   const extension=['txt','docx','pdf'][index % 3];
    let release,intercepted;const held=new Promise(resolve=>{intercepted=resolve;});
    await page.route('**/api/v1/resumes/upload-preview',async route=>{await new Promise(resolve=>{release=resolve;intercepted();});await route.continue();});
    const uploading=page.waitForResponse(r=>r.url().endsWith('/resumes/upload-preview'));
@@ -71,7 +72,7 @@ async function layout(page) {
    await page.locator('#jobs-run').click();await page.waitForURL('**/#/matching');await page.locator('#jobs-result:visible').waitFor();
    assert.equal(await page.locator('#module-view select').count(),0);assert.match(await page.locator('.match-score').innerText(),/33.33%/);
    assert.deepEqual(await page.locator('.ability-grid section:first-child li').allTextContents(),['SQL']);
-   assert.match(await page.locator('.gap-explanation').innerText(),/不代表你不会/);await layout(page);await shot(page,'matching-'+width);
+   assert.match(await page.locator('#match-context-note').innerText(),/不代表你不会/);await layout(page);await shot(page,'matching-'+width);
    let diagnosisCalls=0;
    await page.route('**/api/v1/diagnoses',async route=>{
     diagnosisCalls++;assert.deepEqual(route.request().postDataJSON(),{resume_id:saved.id,jd_id:job.id});

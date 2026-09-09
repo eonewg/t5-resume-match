@@ -7,7 +7,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const root = path.resolve(__dirname, '../..');
 process.chdir(root);
-const out = path.join(root, '.verification/react-product-shell');
+const desktop = process.argv.includes('--desktop');
+const out = path.join(root, desktop ? '.verification/desktop-workspace' : '.verification/react-product-shell');
 fs.mkdirSync(out, {recursive:true});
 async function run(file, env) {
   const child = spawn(process.execPath, [path.join(__dirname, file)], {cwd:root, env, stdio:'inherit', windowsHide:true});
@@ -31,11 +32,11 @@ async function run(file, env) {
     if (!ready) throw Error('Isolated server startup timed out');
     const imported = await fetch(base+'/api/v1/analytics/sample-jobs', {method:'POST'});
     if (!imported.ok) throw Error('Test market snapshot import failed');
-    const env={...process.env,T5_SMOKE_URL:base,T5_SMOKE_OUT:path.join(out,'flow'),T5_POLISH_OUT:path.join(out,'boundaries'),T5_RESUME_RECOVERY_OUT:path.join(out,'recovery'),T5_SHELL_OUT:path.join(out,'shell')};
-    const suites = {flow:'task-flow-smoke.cjs', boundaries:'polish-smoke.cjs', recovery:'resume-ai-recovery-smoke.cjs', shell:'shell-boundaries-smoke.cjs'};
-    const requested = process.argv.slice(2);
+    const env={...process.env,T5_DESKTOP:desktop?'1':'0',T5_DESKTOP_OUT:path.join(out,'desktop'),T5_SMOKE_URL:base,T5_SMOKE_OUT:path.join(out,'flow'),T5_POLISH_OUT:path.join(out,'boundaries'),T5_RESUME_RECOVERY_OUT:path.join(out,'recovery'),T5_SHELL_OUT:path.join(out,'shell')};
+    const suites = {flow:'task-flow-smoke.cjs', boundaries:'polish-smoke.cjs', recovery:'resume-ai-recovery-smoke.cjs', shell:'shell-boundaries-smoke.cjs', ...(desktop ? {desktop:'desktop-workspace-smoke.cjs'} : {})};
+    const requested = process.argv.slice(2).filter(arg=>arg !== '--desktop');
     if (requested.some(key=>!suites[key])) throw Error('Unknown suite; use flow, boundaries, recovery or shell');
     for (const file of requested.length ? requested.map(key=>suites[key]) : Object.values(suites)) await run(file,env);
-    console.log('PASS: React workflow, boundaries and recovery at 1440/1280/390. Offline AI; no model-quality claim.');
+    console.log('PASS: React workflow, boundaries and recovery at requested viewport sizes. Offline AI; no model-quality claim.');
   } finally {server.kill(); if (server.exitCode === null) await once(server,'exit'); fs.closeSync(logfile);}
 })().catch(error=>{console.error(error);process.exitCode=1;});

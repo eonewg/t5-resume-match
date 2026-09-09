@@ -54,17 +54,8 @@ export default function HomePage() {
   ];
   return (
     <div className="home-page" data-module="home">
-      <p className="eyebrow">你的求职准备工作台</p>
-      <h1 tabIndex={-1}>
-        让每一次投递，
-        <br />
-        都有明确方向。
-      </h1>
-      <p className="home-lead">
-        从真实经历出发，对照目标岗位看清差距，
-        <br className="desktop-break" />
-        把简历优化成更准确、有针对性的表达。
-      </p>
+      <h1 tabIndex={-1}>求职准备工作台</h1>
+      <p className="home-lead">确认简历，选定岗位，完成一次有针对性的准备。</p>
       <section className="home-next card" aria-labelledby="home-next-title">
         <div>
           <p className="eyebrow">
@@ -93,7 +84,7 @@ export default function HomePage() {
                   {i < active ? '✓' : `0${i + 1}`}
                 </span>
                 <strong>{item.title}</strong>
-                <small>{item.detail}</small>
+
                 <span className="step-status">
                   {i < active ? '已就绪' : i === active ? '进行这一步' : '待进行'}
                 </span>
@@ -114,9 +105,7 @@ export default function HomePage() {
                   : '尚未确认简历')}
           </h2>
           <p>
-            {state.resumeId
-              ? '只有保存并核对一致的内容，才用于匹配与优化。'
-              : '支持 PDF、DOCX、TXT 或直接粘贴原文。'}
+            {state.resumeId ? '已确认，可用于岗位分析。' : '支持 PDF、DOCX、TXT 或直接粘贴原文。'}
           </p>
           <Link to="/resume">{state.resumeId ? '查看确认版本' : '导入或选择历史简历'} →</Link>
         </section>
@@ -128,17 +117,14 @@ export default function HomePage() {
               ? state.result.match.is_mock
                 ? 'Mock · 本次匹配为演示结果，不提供真实评分。'
                 : `当前匹配度 ${state.result.match.score}% · ${state.result.match.missing_skills.length} 项技能尚未在简历中体现。`
-              : '先确定一个目标，让每条建议都有具体依据。'}
+              : '选择准备申请的岗位。'}
           </p>
           <Link to="/jobs">{state.jdId ? '查看或更换目标' : '选择准备申请的岗位'} →</Link>
         </section>
       </div>
       <aside className="home-insight">
-        <div>
-          <h2>还在探索方向？</h2>
-          <p>用已录入岗位的技能与薪资分布辅助判断，不将有限样本外推整个市场。</p>
-        </div>
-        <Link to="/analytics">浏览市场洞察 ↗</Link>
+        <span>探索其他方向</span>
+        <Link to="/analytics">市场洞察 ↗</Link>
       </aside>
     </div>
   );

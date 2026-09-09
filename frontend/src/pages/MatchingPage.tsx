@@ -54,18 +54,20 @@ export default function MatchingPage() {
               <p className="eyebrow">本次目标</p>
               <h3>{job?.title || '已选择岗位'}</h3>
               <p>{job?.company || '公司暂未提供'}</p>
+              <p className="match-conclusion">
+                {r.is_mock
+                  ? '当前为演示匹配，请以真实简历分析为准。'
+                  : `简历已体现 ${r.matched_skills.length} 项岗位技能，${r.missing_skills.length ? `还有 ${r.missing_skills.length} 项可结合真实经历补充。` : '暂未发现待补充的技能项。'}`}
+              </p>
               <Link to="/jobs">更换目标岗位</Link>
             </div>
           </div>
-          <p className="gap-explanation">
-            “简历未体现”表示当前简历缺少直接证据，<strong>不代表你不会</strong>
-            。请依据真实经历补充，不为提高分数编造技能。
-          </p>
+
           <div className="ability-grid">
             {(
               [
-                ['已匹配技能', r.matched_skills, 'matched', 'matched-skills'],
-                ['简历未体现的技能', r.missing_skills, 'missing', 'missing-skills'],
+                ['已体现能力', r.matched_skills, 'matched', 'matched-skills'],
+                ['简历尚未体现', r.missing_skills, 'missing', 'missing-skills'],
               ] as const
             ).map(([label, values, tone, id]) => (
               <section className={tone} key={id}>
@@ -89,12 +91,24 @@ export default function MatchingPage() {
           <section className="match-evidence">
             <h3>差距分析与评分依据</h3>
             <ul id="gap-analysis">
-              {r.gap_analysis.map((value, i) => (
+              {r.gap_analysis.slice(0, 3).map((value, i) => (
                 <li key={i}>{value}</li>
               ))}
             </ul>
+            {r.gap_analysis.length > 3 && (
+              <details className="more-evidence">
+                <summary>展开其余 {r.gap_analysis.length - 3} 条依据</summary>
+                <ul>
+                  {r.gap_analysis.slice(3).map((value, i) => (
+                    <li key={i}>{value}</li>
+                  ))}
+                </ul>
+              </details>
+            )}
           </section>
-          <p className="helper-text">该分数表示关键词 / 能力覆盖情况，不代表录用概率。</p>
+          <p id="match-context-note" className="helper-text">
+            简历未体现不代表你不会；请按真实经历补充。分数反映能力覆盖，不代表录用概率。
+          </p>
           <div className="inline-actions">
             <Link
               id="matching-optimize"

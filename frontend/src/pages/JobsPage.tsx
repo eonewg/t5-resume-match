@@ -45,7 +45,7 @@ export default function JobsPage() {
             <div>
               <span className="eyebrow">当前简历</span>
               <strong>{resume?.name || '我的简历'}</strong>
-              <span className="helper-text">使用已保存并确认的版本</span>
+              <span className="helper-text">已确认</span>
             </div>
             <NextLink to="/resume" primary={false}>
               更换简历
@@ -75,14 +75,14 @@ export default function JobsPage() {
                     ? '正在匹配…'
                     : s.error && operation === 'match'
                       ? '重试匹配'
-                      : '查看匹配分析 →'}
+                      : '用当前简历分析这个岗位'}
                 </Button>
               )}
             </section>
           )}
           <section aria-labelledby="job-choice-title">
             <div className="section-heading">
-              <h2 id="job-choice-title">{job ? '其他岗位' : '选择目标岗位'}</h2>
+              <h2 id="job-choice-title">选择目标岗位</h2>
               <span className="helper-text">{s.jobs.length} 个已录入岗位</span>
             </div>
             <div className="job-options" aria-label="选择目标岗位">
@@ -213,7 +213,8 @@ export default function JobsPage() {
               <p id="jobs-original">{job.jd_text}</p>
               <p className="helper-text">
                 来源：
-                {job.source_name || (job.source_type === 'synthetic' ? '合成演示' : '暂未提供')}{' '}
+                {job.source_name ||
+                  (job.source_type === 'synthetic' ? '合成演示' : '暂未提供')}{' '}
                 {job.source_url && <SafeSource url={job.source_url}>查看来源</SafeSource>}
               </p>
             </details>

@@ -173,7 +173,7 @@ describe('React lifecycle and protected fields', () => {
     fireEvent.change(input('resume-education'), { target: { value: '' } });
     fireEvent.change(input('resume-skills'), { target: { value: 'SQL' } });
     fireEvent.click(document.querySelector('[data-view=home]')!);
-    await screen.findByRole('heading', { name: /让每一次投递/ });
+    await screen.findByRole('heading', { name: /求职准备工作台/ });
     fireEvent.click(document.querySelector('[data-view=resume]')!);
     await settleResume();
     expect(input('resume-skills').value).toBe('SQL');
@@ -286,5 +286,92 @@ describe('matching and diagnosis rendering', () => {
     expect(document.querySelector('.suggestion-compare section:first-child p')?.textContent).toBe(
       '处理课程记录',
     );
+  });
+});
+
+describe('desktop workspace operations', () => {
+  it('cancelled clearing preserves edits; explicit clear leaves history untouched and makes no request', async () => {
+    page('/resume');
+    await settleResume();
+    fireEvent.change(input('resume-raw'), { target: { value: '保留原文' } });
+    fireEvent.change(input('resume-name'), { target: { value: '用户姓名' } });
+    const count = requests.length;
+    vi.mocked(window.confirm).mockReturnValueOnce(false);
+    fireEvent.click(input('resume-clear-fields'));
+    expect(input('resume-name').value).toBe('用户姓名');
+    fireEvent.click(input('resume-clear-fields'));
+    expect(input('resume-name').value).toBe('');
+    expect(input('resume-raw').value).toBe('保留原文');
+    vi.mocked(window.confirm).mockReturnValueOnce(false);
+    fireEvent.click(input('resume-clear-draft'));
+    expect(input('resume-raw').value).toBe('保留原文');
+    fireEvent.click(input('resume-clear-draft'));
+    expect(input('resume-raw').value).toBe('');
+    expect(document.querySelector('[data-resume-id="r"]')).not.toBe(null);
+    expect(requests.length).toBe(count);
+  });
+  it('continue waits for verified readback and retries only the read after a save failure', async () => {
+    let saved: Resume | null = null;
+    let fail = true;
+    handler = (path, options) => {
+      if (path === '/api/v1/resumes' && options.method === 'POST') {
+        saved = { ...JSON.parse(options.body as string), id: 'next' };
+        return json(saved, 201);
+      }
+      if (path === '/api/v1/resumes/next')
+        return fail ? json({ error: { message: '暂时不可用' } }, 503) : json(saved);
+    };
+    page('/resume');
+    await settleResume();
+    fireEvent.change(input('resume-raw'), { target: { value: '确认的原文' } });
+    fireEvent.click(input('resume-reviewed'));
+    fireEvent.click(input('resume-save-next'));
+    await screen.findByText(/保存已成功，但重新读取未完成/);
+    expect(document.querySelector('[data-module="resume"]')).not.toBe(null);
+    fail = false;
+    fireEvent.click(input('resume-save-next'));
+    await screen.findByRole('heading', { name: '目标岗位', exact: true });
+    expect(
+      requests.filter((r) => r.path === '/api/v1/resumes' && r.options.method === 'POST'),
+    ).toHaveLength(1);
+  });
+  it('keeps every suggestion accessible while limiting initial priorities and experience comparisons', async () => {
+    const suggestions = [
+      ...Array.from({ length: 6 }, (_, i) => `【岗位建议】补充技能应用 ${i}。完整依据 ${i}。`),
+      ...Array.from(
+        { length: 7 },
+        (_, i) => `【STAR】原文：原文 ${i}\n优化：建议 ${i}\n理由：明确项目结果 ${i}`,
+      ),
+      '不要虚构经历',
+    ];
+    handler = (path) =>
+      path === '/api/v1/diagnoses'
+        ? json(
+            {
+              id: 'd',
+              resume_id: 'r',
+              jd_id: 'j',
+              is_mock: false,
+              summary: '先补充项目证据。然后调整表达。',
+              suggestions,
+            },
+            201,
+          )
+        : undefined;
+    page('/diagnosis', true);
+    await screen.findByRole('button', { name: '生成优化建议' });
+    fireEvent.click(input('diagnosis-run'));
+    await screen.findByRole('heading', { name: '优先修改' });
+    expect(document.querySelectorAll('.priority-list li')).toHaveLength(3);
+    expect(document.querySelectorAll('.experience-improvements > .suggestion-entry')).toHaveLength(
+      2,
+    );
+    expect((document.querySelector('.additional-experiences') as HTMLDetailsElement).open).toBe(
+      false,
+    );
+    expect(document.querySelectorAll('.additional-experiences .suggestion-entry')).toHaveLength(5);
+    expect((document.querySelector('.other-suggestions') as HTMLDetailsElement).open).toBe(false);
+    expect(document.querySelector('.other-suggestions')?.textContent).toContain('完整依据 5');
+    expect(document.querySelector('.summary-full')?.textContent).toContain('然后调整表达');
   });
 });

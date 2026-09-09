@@ -236,3 +236,20 @@ test('structured AI draft with empty fields and grouped skills enters review and
   assert.deepEqual(f.saved.get('resume_1').skills, ['PostgreSQL']);
   assert.equal(f.saved.get('resume_1').raw_text, raw);
 });
+
+test('clear parsed fields preserves source and history, invalidates results and allows fresh reparse', async () => {
+  const f = fixture(); const raw = '  原文 Python\n保留字节  ';
+  f.controller.edit('raw_text', raw); await f.controller.parse(); f.controller.review(true); await f.controller.save();
+  const original = structuredClone(f.saved.get('resume_1')); const calls = f.calls.length;
+  f.workspace.updateSelection({result:{match:{score:90}}});
+  f.controller.clearFields();
+  assert.equal(f.calls.length, calls, 'clearing never writes or calls AI');
+  assert.equal(f.state().values.raw_text,raw); assert.deepEqual(f.state().values.experience,[]);
+  assert.equal(f.state().values.skills,''); assert.deepEqual(f.state().protectedFields,[]);
+  assert.equal(f.state().reviewed,false); assert.equal(f.workspace.getState().resumeId,null);
+  assert.equal(f.workspace.getState().result,null); assert.deepEqual(f.saved.get('resume_1'), original);
+  await f.controller.parse(); assert.equal(f.state().values.skills,'Python');
+  f.controller.reset(true); assert.equal(f.state().values.raw_text,'');
+  assert.deepEqual(f.saved.get('resume_1'),original); await f.controller.load('resume_1');
+  assert.equal(f.state().values.raw_text,raw);
+});

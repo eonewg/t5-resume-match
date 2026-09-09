@@ -385,6 +385,26 @@ export function connectResume(
     };
     show();
   }
+  function clearFields() {
+    if (!active() || state.busy) return;
+    invalidateSelection();
+    state = {
+      ...state,
+      values: { ...blankValues(), raw_text: state.values.raw_text },
+      protectedFields: [],
+      reviewed: false,
+      candidate: null,
+      imported: true,
+      savedId: null,
+      savedSnapshot: null,
+      pendingSave: null,
+      parseMock: null,
+      aiStatus: 'manual',
+      error: '',
+      notice: '已清空字段，原文保留。可重新识别或手动填写。',
+    };
+    show();
+  }
   function getDraft(): ResumeDraft {
     const {
       aiStatus,
@@ -429,6 +449,7 @@ export function connectResume(
     load,
     save,
     reset,
+    clearFields,
     getDraft,
     dispose,
     async init() {

@@ -1,3 +1,4 @@
+const viewports = require('./viewports.cjs');
 // Offline browser acceptance of the AI failure path; no model-quality claim.
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
@@ -11,8 +12,8 @@ fs.mkdirSync(out,{recursive:true});
  const browser=await chromium.launch({channel:'msedge',headless:true});
  const report={kind:'offline AI failure fixture; no external model call',widths:[],status:'running'};
  try {
-  for(const width of [1440,1280,390]) {
-   const page=await browser.newPage({viewport:{width,height:width===390?844:1000}});
+  for(const width of viewports.widths) {
+   const page=await browser.newPage({viewport:{width,height:viewports.height(width)}});
    let uploadCalls=0,retries=0;
    await page.route('**/api/v1/resumes/upload-preview',route=>{uploadCalls++;return route.fulfill({status:504,json:{error:{code:'504',message:{code:'timeout',message:'AI 简历识别超时，请重试或手动填写。',raw_text:raw}}}});});
    await page.route('**/api/v1/resumes/preview',route=>{retries++;assert.equal(route.request().postDataJSON().raw_text,raw);return route.fulfill({status:503,json:{error:{message:{code:'rate_limit',message:'AI 简历识别服务繁忙，请稍后重试或手动填写。'}}}});});
@@ -22,7 +23,7 @@ fs.mkdirSync(out,{recursive:true});
    await page.locator('#resume-ai-retry:visible').waitFor();
    assert.equal(await page.locator('#resume-raw').inputValue(),raw.replace(/\r\n?/g,'\n'));
    assert.match(await page.locator('#resume-status').innerText(),/AI 暂时无法识别/);
-   assert.ok(!(await page.locator('.resume-fields').isVisible()));
+   assert.equal(await page.locator('#resume-name').inputValue(),'');
    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
    await page.screenshot({path:path.join(out,`failure-${width}.png`),fullPage:true});
    await page.locator('#resume-ai-retry').click();

@@ -6,6 +6,7 @@ import './modules/resume/styles.css';
 import './modules/jobs/styles.css';
 import './modules/analytics/styles.css';
 import './shell.css';
+import './desktop.css';
 
 // Keep existing bookmarks (#resume, #jobs, etc.) while Router owns new navigation.
 if (/^#(?:home|resume|jobs|matching|diagnosis|analytics|workspace)$/.test(location.hash)) {
