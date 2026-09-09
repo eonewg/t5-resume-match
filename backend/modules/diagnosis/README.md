@@ -4,6 +4,8 @@
 
 完整配置、能力表和真实验收见 [多协议验收记录](../../../docs/integration_requests/D-diagnosis-llm.md)。
 
+当前正式运行统一使用 DeepSeek 官方 `https://api.deepseek.com`、`deepseek-v4-flash`、OpenAI Chat JSON Output。无密钥可启动，但 AI 请求明确失败；不自动切换其他供应商或 Mock。默认沿用非思考策略，显式受支持 effort 保持有效。见 [当前迁移说明](../../../docs/current-provider.md)。
+
 ## 接入公共系统
 
 由 A 在根 `.env` 配置（不要提交真实密钥）：
@@ -11,6 +13,9 @@
 ```dotenv
 T5_DIAGNOSIS_PROVIDER=backend.modules.diagnosis.public:DiagnosisService
 DEEPSEEK_API_KEY=
+T5_DIAGNOSIS_LLM_VENDOR=deepseek
+T5_DIAGNOSIS_JSON_MODE=true
+T5_DIAGNOSIS_REASONING_EFFORT=none
 T5_DIAGNOSIS_MODEL=deepseek-v4-flash
 ```
 
@@ -83,8 +88,8 @@ uv run --frozen uvicorn backend.modules.diagnosis.web:create_app --factory --hos
 | --- | --- | --- |
 | `T5_DIAGNOSIS_LLM_VENDOR` | deepseek | openai / anthropic / deepseek / qwen / custom |
 | `T5_DIAGNOSIS_API_STYLE` | preset 决定 | openai_chat / openai_responses / anthropic_messages |
-| `T5_DIAGNOSIS_API_KEY` | 空 | 推荐密钥变量，仅服务端读取 |
-| `DEEPSEEK_API_KEY` | 空 | 仅 DeepSeek preset 的旧密钥兼容；新变量优先 |
+| `T5_DIAGNOSIS_API_KEY` | 空 | 模块覆盖密钥，优先于共享密钥，仅服务端读取 |
+| `DEEPSEEK_API_KEY` | 空 | 官方 DeepSeek 共享密钥，可同时驱动 Resume；模块变量优先 |
 | `T5_DIAGNOSIS_ENDPOINT_PATH` | 未设置 | 根相对路径覆盖，例如 /v2/messages |
 | `T5_DIAGNOSIS_REASONING_EFFORT` | 未设置 | 仅已确认模型能力允许设置，否则配置错误 |
 | `T5_DIAGNOSIS_BASE_URL` | `https://api.deepseek.com` | HTTPS 地址；默认由 preset 决定，custom 必填 |
@@ -101,7 +106,7 @@ uv run --frozen uvicorn backend.modules.diagnosis.web:create_app --factory --hos
 
 ## 校验与恢复
 
-### SiliconFlow 接入（最终候选已验收）
+### SiliconFlow 历史接入（既有验收事实，非当前配置）
 
 复用 `custom + openai_chat`，无专用客户端或新增 SDK。配置
 `T5_DIAGNOSIS_LLM_VENDOR=custom`、`T5_DIAGNOSIS_API_STYLE=openai_chat`、

@@ -21,6 +21,7 @@ FACTS = {
 def settings(**kwargs):
     return ResumeSettings(
         _env_file=None,
+        llm_vendor="custom",
         llm_model="test-model",
         llm_api_key="secret-key",
         llm_base_url="https://example.invalid/v1",

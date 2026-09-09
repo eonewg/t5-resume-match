@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Literal
 from urllib.parse import urlsplit
 
-from pydantic import Field, SecretStr
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -13,16 +13,37 @@ class ResumeSettings(BaseSettings):
         env_prefix="T5_RESUME_",
         env_file=Path(__file__).resolve().parents[3] / ".env",
         extra="ignore",
+        populate_by_name=True,
         hide_input_in_errors=True,
     )
     ai_enabled: bool = True
-    llm_vendor: str = "custom"
-    llm_model: str = ""
+    llm_vendor: str = "deepseek"
+    llm_model: str = "deepseek-v4-flash"
     llm_api_key: SecretStr = SecretStr("")
-    llm_base_url: str = ""
+    shared_api_key: SecretStr = Field(
+        default=SecretStr(""), validation_alias="DEEPSEEK_API_KEY", exclude=True, repr=False
+    )
+    llm_base_url: str = "https://api.deepseek.com"
     llm_timeout: float = Field(default=30, gt=0, le=120)
     api_style: Literal["chat_completions", "responses"] = "chat_completions"
-    structured_output: Literal["json_schema", "json_object"] = "json_schema"
+    structured_output: Literal["json_schema", "json_object"] = "json_object"
+
+    @model_validator(mode="after")
+    def resolve_key(self):
+        if self.llm_vendor == "deepseek" and not self.llm_api_key.get_secret_value():
+            self.llm_api_key = self.shared_api_key
+        return self
+
+    @property
+    def supports_thinking_toggle(self) -> bool:
+        """Known Chat capabilities; legacy custom Ling remains explicit opt-in."""
+        if self.api_style != "chat_completions":
+            return False
+        return (
+            self.llm_vendor == "deepseek"
+            and urlsplit(self.endpoint).hostname == "api.deepseek.com"
+            and self.llm_model in {"deepseek-v4-flash", "deepseek-v4-pro"}
+        ) or (self.llm_vendor == "custom" and self.llm_model.casefold() == "ling-3.0-flash")
 
     @property
     def endpoint(self) -> str:
