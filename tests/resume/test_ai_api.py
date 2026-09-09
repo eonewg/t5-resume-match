@@ -100,7 +100,6 @@ def test_ai_failure_never_returns_rules_or_creates_a_record(setup, path):
         ("forbidden", 502),
         ("json", 502),
         ("schema", 502),
-        ("guard", 502),
         ("network", 502),
     ],
 )
@@ -127,7 +126,7 @@ def test_upload_ai_errors_retain_source_but_hide_transport_secrets(setup, kind, 
             return b"sensitive-upstream-body"
         if kind == "schema":
             return envelope({**FACTS, "raw_text": "sensitive-upstream-body"})
-        return envelope({**FACTS, "experience": ["整理 999999 条课程数据。"]})
+        pytest.fail("unhandled error fixture")
 
     service.transport = send
     result = send_upload(client)
@@ -236,3 +235,30 @@ def test_empty_ai_fields_are_a_valid_draft_with_verbatim_source(setup):
     result = client.post("/api/v1/resumes/preview", json={"raw_text": "  暂无个人信息。\n"})
     assert result.status_code == 200
     assert result.json() == {**facts, "raw_text": "  暂无个人信息。\n"}
+
+
+@pytest.mark.parametrize("upload", [False, True])
+def test_grouped_skills_and_missing_fields_can_be_reviewed_saved_and_read(setup, upload):
+    client, service = setup
+    skills = ["Python, SQL / PostgreSQL", "执行计划分析"]
+    service.transport = lambda *args: envelope({"skills": skills})
+    result = (
+        send_upload(client)
+        if upload
+        else client.post("/api/v1/resumes/preview", json={"raw_text": RAW})
+    )
+    assert result.status_code == 200
+    draft = result.json()
+    assert draft == {
+        "name": None,
+        "education": "",
+        "skills": skills,
+        "experience": [],
+        "raw_text": RAW,
+    }
+    assert client.get("/api/v1/resumes").json() == []
+    confirmed = {**draft, "name": "用户核对姓名"}
+    saved = client.post("/api/v1/resumes", json=confirmed)
+    assert saved.status_code == 201
+    identifier = saved.json()["id"]
+    assert client.get(f"/api/v1/resumes/{identifier}").json() == {**confirmed, "id": identifier}

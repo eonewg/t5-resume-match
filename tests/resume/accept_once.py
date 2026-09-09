@@ -5,6 +5,7 @@ import hashlib
 import json
 import re
 import time
+import unicodedata
 from datetime import UTC, datetime
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -17,7 +18,6 @@ from backend.modules.resume.ai import (
     transport,
 )
 from backend.modules.resume.config import ResumeSettings
-from backend.modules.resume.guard import normalize, numbers, skill_evidence, supported_passage
 from backend.schemas.contracts import TextInput
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -70,6 +70,11 @@ def prepare(sample):
     return raw, edits, expected_name
 
 
+def normalize(text):
+    """Normalize evaluation anchors only; never a production acceptance check."""
+    return re.sub(r"\s+", "", unicodedata.normalize("NFKC", text).casefold())
+
+
 def metrics(facts, raw, sample, expected_name):
     expected = sample["expected"]
     skills = facts["skills"]
@@ -82,7 +87,6 @@ def metrics(facts, raw, sample, expected_name):
             for skill in skills
         ):
             covered.append(group["canonical"])
-    supported = [s for s in skills if skill_evidence(s, raw)]
     education_missing = [
         s
         for s in expected["education_required_evidence"]
@@ -101,18 +105,14 @@ def metrics(facts, raw, sample, expected_name):
         if expected_name["kind"] == "empty"
         else any(normalize(facts["name"] or "") == normalize(s) for s in expected_name["accepted"])
     )
-    additions = sorted(numbers(facts["education"] + "\n" + joined) - numbers(raw))
     return {
         "name_correct": name_ok,
         "education_missing_exact_anchors": education_missing,
         "skills_predicted": skills,
-        "skill_text_evidence_count": len(supported),
-        "skill_text_precision": len(supported) / len(skills) if skills else None,
         "skill_required_covered": len(covered),
         "skill_required_count": len(required),
         "skill_required_recall": len(covered) / len(required),
         "skill_missing_groups": [g["canonical"] for g in required if g["canonical"] not in covered],
-        "unsupported_skills": [s for s in skills if s not in supported],
         "forbidden_skills": [
             s
             for s in skills
@@ -121,10 +121,6 @@ def metrics(facts, raw, sample, expected_name):
         "experience_count": len(passages),
         "experience_missing_exact_titles": missing_experience,
         "numeric_missing_exact_anchors": missing_numbers,
-        "numeric_additions": additions,
-        "novel_passage_count": sum(
-            not supported_passage(s, raw) for s in [facts["education"], *passages]
-        ),
         "experience_short_excerpts": [s[:90] for s in passages[:5]],
         "review_status": "requires_semantic_review_not_automatic_pass",
     }

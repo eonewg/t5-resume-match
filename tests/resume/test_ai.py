@@ -1,4 +1,4 @@
-"""Resume AI protocol and fact guard; injected transport never contacts a model."""
+"""Resume AI protocol and user-review drafts; injected transport never contacts a model."""
 
 import json
 from urllib.error import HTTPError, URLError
@@ -96,14 +96,14 @@ def test_strict_schema_rejects_extra_and_wrong_types(change):
 
 
 @pytest.mark.parametrize("field", list(FACTS))
-def test_all_fields_are_required(field):
+def test_missing_fields_default_to_empty(field):
     facts = dict(FACTS)
     del facts[field]
-    with pytest.raises(ResumeAIError) as exc:
-        ResumeAIService(settings(), lambda *a: response(json.dumps(facts))).parse(
-            TextInput(raw_text=RAW)
-        )
-    assert exc.value.code == "schema"
+    result = ResumeAIService(settings(), lambda *a: response(json.dumps(facts))).parse(
+        TextInput(raw_text=RAW)
+    )
+    empty = {"name": None, "education": "", "skills": [], "experience": []}
+    assert result.model_dump() == {**facts, field: empty[field], "raw_text": RAW}
 
 
 def test_empty_unknown_fields_are_valid():
@@ -112,24 +112,6 @@ def test_empty_unknown_fields_are_valid():
         TextInput(raw_text="未提供个人经历。")
     )
     assert result.model_dump() == {**facts, "raw_text": "未提供个人经历。"}
-
-
-@pytest.mark.parametrize(
-    "change",
-    [
-        {"name": "虚构姓名"},
-        {"skills": ["Rust"]},
-        {"experience": ["使用 Python 整理 300 条数据，提升 20%。"]},
-        {"experience": ["使用 Python 整理 30 条数据，提升 20 人。"]},
-        {"experience": ["管理跨国金融机构客户账户并推动海外销售渠道建设和战略收购整合。"]},
-    ],
-)
-def test_obvious_hallucinations_rejected(change):
-    with pytest.raises(ResumeAIError) as exc:
-        ResumeAIService(settings(), lambda *a: response(json.dumps({**FACTS, **change}))).parse(
-            TextInput(raw_text=RAW)
-        )
-    assert exc.value.code == "guard"
 
 
 @pytest.mark.parametrize(
@@ -171,19 +153,6 @@ def test_failure_does_not_change_source_and_explicit_retry_calls_again():
     assert service.parse(source).raw_text == RAW
 
 
-@pytest.mark.parametrize(
-    "raw,skill",
-    [("计划学习 Kubernetes", "Kubernetes"), ("不了解 Rust", "Rust"), ("技能：NoSQL", "SQL")],
-)
-def test_skill_evidence_respects_negation_and_token_boundaries(raw, skill):
-    facts = {"name": None, "education": "", "skills": [skill], "experience": []}
-    with pytest.raises(ResumeAIError) as exc:
-        ResumeAIService(settings(), lambda *a: response(json.dumps(facts))).parse(
-            TextInput(raw_text=raw)
-        )
-    assert exc.value.code == "guard"
-
-
 def test_default_is_ai_enabled_and_config_failure_is_explicit():
     config = ResumeSettings(_env_file=None)
     assert config.ai_enabled is True
@@ -214,68 +183,20 @@ def test_english_skill_tokens_and_common_symbols():
     assert result.skills == facts["skills"]
 
 
-def test_added_unit_after_plus_number_is_rejected():
-    raw = "Processed 40+ files."
-    facts = {"name": None, "education": "", "skills": [], "experience": ["Processed 40+人."]}
-    with pytest.raises(ResumeAIError) as exc:
-        ResumeAIService(settings(), lambda *a: response(json.dumps(facts))).parse(
-            TextInput(raw_text=raw)
-        )
-    assert exc.value.code == "guard"
-
-
 @pytest.mark.parametrize(
-    "raw,positive,negative",
+    "skills",
     [
-        ("Used Python for data analysis. Planning to learn Rust next year.", "Python", "Rust"),
-        ("Used Python but no experience with Rust.", "Python", "Rust"),
-        ("No experience with Rust but used Python for analysis.", "Python", "Rust"),
-        ("Planning to learn Rust but already use Node.js.", "Node.js", "Rust"),
-        ("Used .NET. No experience with Rust.", ".NET", "Rust"),
-        ("Used Node.js. Have not used Rust.", "Node.js", "Rust"),
+        ["Python, SQL, TypeScript / FastAPI、PostgreSQL"],
+        ["Operator, memory access, communication, and performance bottleneck analysis"],
+        ["MySQL", "PostgreSQL"],
+        ["brightfield microscopy video data analysis"],
+        [],
     ],
 )
-def test_english_negation_scope_preserves_existing_skills(raw, positive, negative):
-    facts = {"name": None, "education": "", "skills": [positive], "experience": []}
+def test_semantic_quality_does_not_block_valid_drafts(skills):
+    raw = "使用 MySQL、PostgreSQL 进行执行计划分析；其他技能见项目描述。"
+    facts = {**FACTS, "skills": skills}
     result = ResumeAIService(settings(), lambda *a: response(json.dumps(facts))).parse(
         TextInput(raw_text=raw)
     )
-    assert result.skills == [positive]
-    facts["skills"] = [negative]
-    with pytest.raises(ResumeAIError) as exc:
-        ResumeAIService(settings(), lambda *a: response(json.dumps(facts))).parse(
-            TextInput(raw_text=raw)
-        )
-    assert exc.value.code == "guard"
-
-
-def test_mixed_fixture_skills_exclude_negative_and_planned_technology():
-    from pathlib import Path
-
-    raw = (Path(__file__).parent / "fixtures/ai-evaluation/mixed-representative.txt").read_text(
-        encoding="utf-8"
-    )
-    facts = {
-        "name": "Alex Chen / 陈晓",
-        "education": "",
-        "skills": [
-            "Python",
-            "SQL",
-            "TypeScript",
-            "FastAPI",
-            "PostgreSQL",
-            "Git",
-            "Docker",
-            "Linux",
-            "Redis",
-            "Bash",
-        ],
-        "experience": [],
-    }
-    service = ResumeAIService(settings(), lambda *a: response(json.dumps(facts)))
-    assert service.parse(TextInput(raw_text=raw)).skills == facts["skills"]
-    for unsupported in ["Rust", "Kubernetes"]:
-        facts["skills"] = [unsupported]
-        with pytest.raises(ResumeAIError) as exc:
-            service.parse(TextInput(raw_text=raw))
-        assert exc.value.code == "guard"
+    assert result.model_dump() == {**facts, "raw_text": raw}
