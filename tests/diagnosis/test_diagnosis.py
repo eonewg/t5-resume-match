@@ -83,7 +83,7 @@ def test_mock_client_marker_cannot_be_hidden_by_standalone_app():
 )
 def test_malformed_output_repaired(bad):
     client = ScriptedLLM(bad, valid())
-    assert service(client).diagnose(data()).summary
+    assert service(client, output_retries=1).diagnose(data()).summary
     assert len(client.messages) == 2
     assert "上次输出未通过校验" in client.messages[-1][0]["content"]
 
@@ -127,13 +127,13 @@ def test_unsupported_star_facts_rejected(field, value):
         parse_detail(json.dumps(payload), data().resume_text)
 
 
-def test_timeouts_and_parse_failures_share_one_attempt_budget():
-    client = ScriptedLLM(TemporaryLLMError("timeout"), "bad", valid())
-    assert service(client).diagnose(data()).summary
+def test_opt_in_repair_still_respects_total_attempt_budget():
+    client = ScriptedLLM(TemporaryLLMError("timeout", category="timeout"), "bad", valid())
+    assert service(client, max_attempts=3, output_retries=1).diagnose(data()).summary
     assert len(client.messages) == 3
-    client = ScriptedLLM(*[TemporaryLLMError("timeout")] * 3)
+    client = ScriptedLLM(*[TemporaryLLMError("timeout", category="timeout")] * 3)
     with pytest.raises(TemporaryLLMError):
-        service(client).diagnose(data())
+        service(client, max_attempts=3).diagnose(data())
     assert len(client.messages) == 3
 
 
@@ -224,7 +224,7 @@ def test_transport_payload_and_timeout():
     assert payload["response_format"] == {"type": "json_object"}
     assert payload["stream"] is False
     assert payload["thinking"] == {"type": "disabled"}
-    assert opener.timeout == 30
+    assert opener.timeout == 45
     assert opener.request.full_url == "https://api.deepseek.com/chat/completions"
 
 
@@ -250,7 +250,9 @@ def test_http_statuses_do_not_leak_body(code, expected):
 @pytest.mark.parametrize("failure", [TimeoutError(), URLError("secret")])
 def test_transport_network_failures(failure):
     client, _ = transport(failure)
-    with pytest.raises(TemporaryLLMError):
+    with pytest.raises(
+        TemporaryLLMError if isinstance(failure, TimeoutError) else PermanentLLMError
+    ):
         client.complete([])
 
 

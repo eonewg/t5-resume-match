@@ -68,11 +68,26 @@ class DiagnosisSettings(BaseSettings):
     model: str | None = None
     endpoint_path: str | None = None
     reasoning_effort: ReasoningEffort | None = None
-    timeout_seconds: float = Field(default=30, gt=0, le=120, allow_inf_nan=False)
-    max_attempts: int = Field(default=3, ge=1, le=5)
+    # Legacy TIMEOUT_SECONDS now bounds the entire transport attempt, including DNS.
+    timeout_seconds: float = Field(default=45, gt=0, le=90, allow_inf_nan=False)
+    connect_timeout_seconds: float = Field(default=5, gt=0, le=15, allow_inf_nan=False)
+    read_timeout_seconds: float = Field(default=40, gt=0, le=90, allow_inf_nan=False)
+    total_timeout_seconds: float = Field(default=95, gt=0, le=120, allow_inf_nan=False)
+    max_attempts: int = Field(default=2, ge=1, le=5)
+    output_retries: int = Field(default=0, ge=0, le=1)
+    backoff_seconds: float = Field(default=1, ge=0, le=5, allow_inf_nan=False)
+    retry_after_cap_seconds: float = Field(default=5, ge=0, le=10, allow_inf_nan=False)
     max_tokens: int = Field(default=4096, ge=512, le=8192)
     cache_size: int = Field(default=128, ge=0, le=1024)
     cache_ttl_seconds: float = Field(default=600, ge=0, le=3600, allow_inf_nan=False)
+
+    @property
+    def worst_case_seconds(self):
+        waits = sum(
+            max(min(self.backoff_seconds * 2**i, 5), self.retry_after_cap_seconds)
+            for i in range(self.max_attempts - 1)
+        )
+        return min(self.total_timeout_seconds, self.max_attempts * self.timeout_seconds + waits)
 
     @model_validator(mode="after")
     def resolve(self):

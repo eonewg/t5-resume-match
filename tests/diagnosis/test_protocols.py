@@ -123,7 +123,7 @@ def test_presets_and_wire_request(vendor, style, adapter, endpoint):
     client = create_client(settings, opener=opener)
     assert isinstance(client, adapter) and client.complete(MESSAGES) == TEXT
     request, timeout = opener.requests[0]
-    assert request.full_url == endpoint and timeout == 30
+    assert request.full_url == endpoint and timeout == 45
     body = json.loads(request.data)
     assert body["model"] == settings.model and body["stream"] is False
     if style == "anthropic_messages":
@@ -290,8 +290,8 @@ def test_unsupported_effort_never_contacts_server(options):
         (408, TemporaryLLMError),
         (429, TemporaryLLMError),
         (500, TemporaryLLMError),
-        (501, TemporaryLLMError),
-        (599, TemporaryLLMError),
+        (501, PermanentLLMError),
+        (599, PermanentLLMError),
         (307, PermanentLLMError),
     ],
 )
@@ -305,7 +305,9 @@ def test_uniform_errors_and_no_body_leak(style, status, exception):
 @pytest.mark.parametrize("style", STYLES)
 @pytest.mark.parametrize("failure", [TimeoutError(), URLError("PRIVATE")])
 def test_network_failure(style, failure):
-    with pytest.raises(TemporaryLLMError):
+    with pytest.raises(
+        TemporaryLLMError if isinstance(failure, TimeoutError) else PermanentLLMError
+    ):
         create_client(config(api_style=style), opener=FixtureTransport(failure)).complete(MESSAGES)
 
 

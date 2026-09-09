@@ -1,0 +1,31 @@
+{
+  "kind": "agent_evidence_review_not_human_quality_evaluation",
+  "source": "tests/diagnosis/evidence/reliability-fix-2026-09-09.json",
+  "source_sha256": "fbb968c6cf971a101433fc3a1673b2d944e31ccac2dd2af6d24a128e19e21d43",
+  "no_additional_model_calls": true,
+  "S1": {
+    "outcome": "read-stage timeout on both attempts",
+    "quality_review": null,
+    "reason": "No usable output; cannot evaluate STAR or factual quality"
+  },
+  "S2": {
+    "structured_output": "Valid DiagnosisDetail; original public DiagnosisResult unchanged",
+    "star_structure": "Two rewrites contain 情境/任务/行动/结果; first explicitly references result paragraph and marks team size/personal division as 待补充",
+    "numeric_evidence": [
+      "2nd -> 第2届",
+      "93.1% unchanged",
+      "234KB unchanged",
+      "floatv16 unchanged",
+      "1820.78ms -> 489.18ms unchanged",
+      "3.7x -> 3.7 倍",
+      "National Third Prize -> 全国三等奖"
+    ],
+    "factual_review": "No unsupported new employer, title, skill mastery, numerical accomplishment or award identified in the two STAR rewrites. Cross-paragraph references derive from the same fixed complete project excerpt. This is agent review, not proof of universal semantic faithfulness.",
+    "jd_targeting": "Addresses Linux/Ubuntu, languages, upstream contribution, leadership, education, English and security from the fixed JD; missing experiences are presented as supplements/conditional suggestions, not inserted into STAR as mastered skills.",
+    "limitations": [
+      "Risk text 与 JD 核心要求不符 overstates absent Linux/Ubuntu description: absent evidence does not establish lack of capability. Preserve this wording for A review, do not alter prompt in this round.",
+      "Input is one complete project excerpt, not the entire resume; suggestions about missing education/English apply only to supplied information.",
+      "One successful sample is not a success-rate or STAR quality improvement estimate."
+    ]
+  }
+}

@@ -2,29 +2,24 @@
 
 import json
 import time
-from http.client import HTTPException
 from typing import Protocol
-from urllib.error import HTTPError, URLError
-from urllib.request import HTTPRedirectHandler, Request, build_opener
+from urllib.request import Request
 
 from .capabilities import reasoning
 from .config import DiagnosisSettings
-from .errors import ConfigurationError, InvalidOutputError, PermanentLLMError, TemporaryLLMError
+from .errors import ConfigurationError, DiagnosisError, InvalidOutputError
+from .transport import NoRedirect as NoRedirect
+from .transport import attempt_context, bounded_request, classify, raise_failure, transport_metrics
 
 
 class LLMClient(Protocol):
     def complete(self, messages: list[dict]) -> str: ...
 
 
-class NoRedirect(HTTPRedirectHandler):
-    def redirect_request(self, req, fp, code, msg, headers, newurl):
-        return None
-
-
 class HTTPClient:
     def __init__(self, settings: DiagnosisSettings, *, opener=None, on_attempt=None):
         self.settings = settings
-        self.opener = opener or build_opener(NoRedirect)
+        self.opener = opener
         self.on_attempt = on_attempt
 
     def headers(self, key):
@@ -44,25 +39,36 @@ class HTTPClient:
             self.settings.endpoint, data=encoded, headers=self.headers(key), method="POST"
         )
         start = time.monotonic()
-        metrics = {"input_tokens": None, "output_tokens": None, "status": "error"}
+        metrics = {
+            "input_tokens": None,
+            "output_tokens": None,
+            "status": "error",
+            "error_category": None,
+            "http_status": None,
+            "phase": None,
+        }
         try:
-            try:
-                with self.opener.open(request, timeout=self.settings.timeout_seconds) as response:
-                    raw = response.read(262145)
-            except HTTPError as error:
-                code = error.code
-                error.close()
-                if code in (408, 429) or 500 <= code <= 599:
-                    raise TemporaryLLMError("模型服务暂不可用") from None
-                raise PermanentLLMError(
-                    "模型请求被拒绝，请检查密钥、余额、地址和模型配置"
-                ) from None
-            except (TimeoutError, URLError, OSError, HTTPException):
-                raise TemporaryLLMError("模型请求超时或连接失败") from None
+            if self.opener is None:
+                raw, metrics["http_status"] = bounded_request(request, self.settings)
+            else:
+                # Explicit deterministic fixtures retain the legacy opener seam.
+                try:
+                    with self.opener.open(
+                        request, timeout=self.settings.timeout_seconds
+                    ) as response:
+                        raw = response.read(262145)
+                        metrics["http_status"] = getattr(response, "status", 200)
+                except Exception as error:
+                    raise_failure(classify(error))
             if len(raw) > 262144:
-                raise InvalidOutputError("模型响应过长")
+                raise InvalidOutputError("模型响应过长", phase="response_size")
             try:
-                document = json.loads(raw)
+                try:
+                    document = json.loads(raw)
+                except (ValueError, RecursionError):
+                    raise InvalidOutputError(
+                        "模型响应不是有效 JSON", phase="response_json"
+                    ) from None
                 if not isinstance(document, dict):
                     raise ValueError
                 usage = document.get("usage") or {}
@@ -80,8 +86,25 @@ class HTTPClient:
                 metrics["status"] = "text"
                 return content
             except (ValueError, KeyError, IndexError, TypeError, AttributeError, RecursionError):
-                raise InvalidOutputError("模型响应格式无效、为空或未正常结束") from None
+                raise InvalidOutputError(
+                    "模型响应格式无效、为空或未正常结束", phase="response_envelope"
+                ) from None
+        except DiagnosisError as error:
+            if error.code is None:
+                error.code = metrics["http_status"]
+            metrics.update(error.metadata())
+            raise
         finally:
+            observation = transport_metrics.get()
+            if observation is not None:
+                observation.update(
+                    {k: metrics[k] for k in ("http_status", "input_tokens", "output_tokens")}
+                )
+            metrics.update(
+                vendor=self.settings.llm_vendor,
+                model=self.settings.model,
+                attempt=attempt_context.get()[0],
+            )
             if self.on_attempt is not None:
                 try:
                     self.on_attempt({**metrics, "latency_seconds": time.monotonic() - start})
@@ -111,6 +134,8 @@ class OpenAIChatClient(HTTPClient):
 
     def extract(self, data):
         choice = data["choices"][0]
+        if choice.get("finish_reason") == "length":
+            raise InvalidOutputError("模型输出未完整生成", phase="output_truncated")
         if (
             choice["finish_reason"] != "stop"
             or choice["message"].get("refusal")
@@ -136,6 +161,8 @@ class OpenAIResponsesClient(HTTPClient):
         return body
 
     def extract(self, data):
+        if data.get("status") == "incomplete":
+            raise InvalidOutputError("模型输出未完整生成", phase="output_truncated")
         if data["status"] != "completed" or data.get("error") or data.get("incomplete_details"):
             raise ValueError
         texts = []
@@ -194,6 +221,8 @@ class AnthropicMessagesClient(HTTPClient):
         return body
 
     def extract(self, data):
+        if data.get("stop_reason") == "max_tokens":
+            raise InvalidOutputError("模型输出未完整生成", phase="output_truncated")
         if (
             data["type"] != "message"
             or data["role"] != "assistant"
