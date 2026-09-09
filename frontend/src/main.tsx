@@ -9,7 +9,7 @@ import './shell.css';
 import './desktop.css';
 
 // Keep existing bookmarks (#resume, #jobs, etc.) while Router owns new navigation.
-if (/^#(?:home|resume|jobs|matching|diagnosis|analytics|workspace)$/.test(location.hash)) {
+if (/^#(?:home|resume|jobs|matching|diagnosis|analytics)$/.test(location.hash)) {
   history.replaceState(
     null,
     '',

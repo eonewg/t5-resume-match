@@ -11,8 +11,7 @@ const report = {widths:[],kind:'offline integration; explicit Mock AI output',st
 async function shot(page,name) {
   await page.evaluate(()=>scrollTo(0,0));
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'no document overflow');
-  const quick = new URL(page.url()).hash.replace(/^#\/?/,'') === 'workspace';
-  assert.equal(await page.locator('nav [aria-current=page]').count(),quick ? 0 : 1, page.url());
+  assert.equal(await page.locator('nav [aria-current=page]').count(),1, page.url());
   await page.screenshot({path:path.join(out,name+'.png'),fullPage:true,animations:'disabled'});
 }
 (async()=>{
@@ -48,17 +47,13 @@ async function shot(page,name) {
    await page.route('**/api/v1/diagnoses',route=>{generated++;return route.fulfill({status:201,json:{id:'diagnosis-fixture',resume_id:saved.id,jd_id:job.id,is_mock:true,summary:'合成验收建议，需人工核实。',suggestions:[`【STAR】原文：整理 120 条课程记录。\n优化：${suggested}\n理由：保留事实与数字。`]}});});
    await page.locator('#home-next').click();await page.locator('#diagnosis-run:enabled').waitFor();assert.equal(generated,0,'normal page navigation never calls AI');
    await page.locator('#diagnosis-run').click();await page.locator('.suggestion-compare').waitFor();
-   await page.getByRole('button',{name:'复制建议',exact:true}).click();await page.locator('.copy-status').filter({hasText:'已复制'}).waitFor();
-   assert.equal(await page.evaluate(()=>navigator.clipboard.readText()),suggested);
-   assert.deepEqual(await(await page.request.get(base+'/api/v1/resumes/'+saved.id)).json(),saved,'AI and copying never overwrite originals');
+   assert.deepEqual(await(await page.request.get(base+'/api/v1/resumes/'+saved.id)).json(),saved,'AI never overwrites originals');
    await page.locator('[data-view=home]').click();await page.locator('#home-next').filter({hasText:'查看建议并核实修改'}).waitFor();await shot(page,'home-diagnosed-'+width);
    await page.goBack();await page.locator('.suggestion-compare').waitFor();assert.equal(generated,1,'back/forward keeps current result');
    await page.locator('[data-view=analytics]').click();await page.locator('#analytics-metrics').waitFor();await page.locator('#analytics-filters summary').click();await page.locator('#analytics-source').selectOption('synthetic');await page.getByRole('button',{name:'应用筛选',exact:true}).click();await page.locator('[data-currency=CNY][data-period=month]').waitFor();await page.locator('[data-currency=EUR][data-period=hour]').waitFor();
    assert.ok(await page.locator('.analytics-salary-range').count()>=2);await shot(page,'analytics-groups-'+width);
    await page.locator('.analytics-library summary').click();await page.locator('#analytics-import').click();await page.locator('#analytics-status').filter({hasText:'已有 5 条'}).waitFor();assert.equal(await page.locator('#analytics-source').inputValue(),'real');
-   // The retained quick workflow remains an explicitly secondary, manual entry.
-   await page.goto(base+'/#workspace');await page.locator('#load-demo:enabled').waitFor();await page.locator('#load-demo').click();await page.locator('#run-workflow:enabled').waitFor();await page.locator('#run-workflow').click();await page.locator('#results').waitFor();assert.match(await page.locator('#result-mode').innerText(),/演示数据/);await shot(page,'quick-demo-'+width);
-   assert.deepEqual(errors,[]);report.widths.push({width,home:'all 5 states',navigation:'legacy hash and history',copy:true,mockHeader:true,matchRecovery:true,salaryGroups:true,snapshotDedup:true,quickDemo:true});await context.close();
+   assert.deepEqual(errors,[]);report.widths.push({width,home:'all 5 states',navigation:'legacy hash and history',mockHeader:true,matchRecovery:true,salaryGroups:true,snapshotDedup:true});await context.close();
   }
   report.status='passed';
  }catch(error){report.status='failed';report.error=error.stack;throw error;}

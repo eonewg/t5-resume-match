@@ -11,7 +11,6 @@ const start = (controller: DiagnosisController) => {
 };
 function Suggestion({ text }: { text: string }) {
   const parts = splitSuggestion(text);
-  const [copied, setCopied] = useState('');
   if (!parts) return <li>{text}</li>;
   return (
     <article className="suggestion-entry">
@@ -35,27 +34,10 @@ function Suggestion({ text }: { text: string }) {
           </p>
         </section>
       </div>
-      <div className="suggestion-reason">
-        <h3>为什么这样改</h3>
-        <p>{parts.reason}</p>
-      </div>
-      <div className="inline-actions">
-        <Button
-          onClick={async () => {
-            try {
-              await navigator.clipboard.writeText(parts.suggested);
-              setCopied('已复制，请核实后在简历中修改。');
-            } catch {
-              setCopied('复制未成功，请选择建议文字手动复制。');
-            }
-          }}
-        >
-          复制建议
-        </Button>
-        <span className="copy-status" role="status">
-          {copied}
-        </span>
-      </div>
+      <p className="suggestion-reason">
+        <span>为什么这样改</span>
+        {parts.reason}
+      </p>
     </article>
   );
 }
@@ -63,7 +45,6 @@ export default function DiagnosisPage() {
   const { state: s, controller } = useController(connectDiagnosis, start, 'diagnosis');
   const { state: workspace } = useWorkspace();
   const [selection, setSelection] = useState('');
-  const [mode, setMode] = useState('正在读取服务状态…');
   useEffect(() => {
     const abort = new AbortController();
     const api = createApi({ signal: abort.signal });
@@ -82,19 +63,6 @@ export default function DiagnosisPage() {
         .catch(() => {
           if (!abort.signal.aborted) setSelection('已选择简历与目标岗位，名称暂时无法读取。');
         });
-    api
-      .modules()
-      .then(({ data }) => {
-        if (!abort.signal.aborted)
-          setMode(
-            data.diagnosis.is_mock
-              ? 'Mock · 当前使用演示服务，结果仅用于体验。'
-              : '生成建议时，将把所选简历与岗位内容发送给已配置的智能服务。',
-          );
-      })
-      .catch(() => {
-        if (!abort.signal.aborted) setMode('暂时无法读取服务状态。');
-      });
     return () => abort.abort();
   }, [workspace.resumeId, workspace.jdId]);
   if (!s) return <p role="status">正在准备优化页面…</p>;
@@ -128,7 +96,7 @@ export default function DiagnosisPage() {
       {!s.canRun ? (
         <Empty title="先选择简历和目标岗位" to="/jobs" cta="去选择目标岗位" />
       ) : (
-        <section className="diagnosis-header card">
+        <section className="diagnosis-header">
           <p className="selected-context" data-testid="diagnosis-selection">
             {selection}
           </p>
@@ -185,7 +153,7 @@ export default function DiagnosisPage() {
               Mock · 演示数据，仅用于体验
             </p>
             {priorities.length > 0 && (
-              <section className="priority-panel card" aria-labelledby="priority-title">
+              <section className="priority-panel" aria-labelledby="priority-title">
                 <div className="section-heading">
                   <h2 id="priority-title">优先修改</h2>
                   <span className="helper-text">先从这 {priorities.length} 项开始</span>
@@ -220,7 +188,7 @@ export default function DiagnosisPage() {
               </section>
             )}
             {(targeted.length > 0 || other.length > 0) && (
-              <details className="other-suggestions card">
+              <details className="other-suggestions">
                 <summary>
                   其他建议与完整说明{' '}
                   <span className="count-label">{targeted.length + other.length}</span>
@@ -254,10 +222,6 @@ export default function DiagnosisPage() {
       {s.canRun && (
         <footer className="diagnosis-footnote">
           <p>建议不会自动覆盖简历。采用前请核实事实、数字与待补充内容。</p>
-          <details className="helper-disclosure">
-            <summary>服务说明</summary>
-            <p data-testid="diagnosis-provider-mode">{mode}</p>
-          </details>
         </footer>
       )}
     </div>

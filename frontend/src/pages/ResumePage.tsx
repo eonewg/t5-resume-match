@@ -338,9 +338,6 @@ export default function ResumePage() {
                 >
                   清空当前草稿
                 </Button>
-                <Button id="resume-new" tone="ghost" disabled={Boolean(s.busy)} onClick={reset}>
-                  重新开始
-                </Button>
               </div>
             </details>
             <details id="resume-history" className="resume-history" ref={history}>
@@ -402,7 +399,6 @@ export default function ResumePage() {
               {stage}
             </span>
           </div>
-          <p className="resume-help">修改或确认过的字段会保留；重新识别后，可单独采用新建议。</p>
           {saved && (
             <div className="resume-confirmed-action">
               <NextLink id="resume-next" to="/jobs">

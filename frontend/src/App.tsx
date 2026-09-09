@@ -9,7 +9,6 @@ import JobsPage from './pages/JobsPage';
 import MatchingPage from './pages/MatchingPage';
 import DiagnosisPage from './pages/DiagnosisPage';
 import AnalyticsPage from './pages/AnalyticsPage';
-import QuickPage from './pages/QuickPage';
 
 const navigation = [
   ['home', '首页', '⌂'],
@@ -111,9 +110,7 @@ export function ProductShell() {
   const { state } = useWorkspace();
   const active = nextStep(state);
   const key = location.pathname.slice(1) || 'home';
-  const title =
-    navigation.find(([value]) => value === key)?.[1] ||
-    (key === 'analytics' ? '市场洞察' : '快捷原文分析');
+  const title = navigation.find(([value]) => value === key)?.[1] || '市场洞察';
   useEffect(() => {
     document.title = `${title} · T5 简历与岗位`;
     document.querySelector<HTMLHeadingElement>('h1')?.focus({ preventScroll: true });
@@ -138,7 +135,6 @@ export function ProductShell() {
             简历与岗位<small>让下一步更清晰</small>
           </span>
         </Link>
-        <p className="nav-caption">求职准备</p>
         <nav aria-label="主要导航">
           {navigation.map(([value, label, icon]) => (
             <NavLink key={value} to={value === 'home' ? '/' : `/${value}`} end data-view={value}>
@@ -149,14 +145,6 @@ export function ProductShell() {
             </NavLink>
           ))}
         </nav>
-        <div className="sidebar-footer">
-          <p>
-            从真实经历出发
-            <br />
-            让表达贴近目标
-          </p>
-          <Link to="/workspace">快捷原文分析 ↗</Link>
-        </div>
       </aside>
       <div className="app-frame">
         <header className="topbar">
@@ -198,7 +186,6 @@ export function ProductShell() {
                 <Route path="/matching" element={<MatchingPage />} />
                 <Route path="/diagnosis" element={<DiagnosisPage />} />
                 <Route path="/analytics" element={<AnalyticsPage />} />
-                <Route path="/workspace" element={<QuickPage />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </PageBoundary>

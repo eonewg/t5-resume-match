@@ -1,42 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { runWorkflow } from "../src/core/workflow.ts";
 import { createWorkspace } from "../src/core/state.ts";
-
-const input = { resumeText: " Python ", title: " 分析师 ", company: "", jdText: " SQL " };
-
-test("workflow uses returned IDs and propagates upstream Mock provenance", async () => {
-  const calls = [];
-  const api = {
-    createResume: async (text) => { calls.push(text); return { data: { id: "resume_new" }, isMock: true }; },
-    createJob: async (data) => { calls.push(data); return { data: { id: "jd_new" }, isMock: false }; },
-    workflow: async (pair) => { calls.push(pair); return { data: {
-      match: { is_mock: false }, diagnosis: { is_mock: false },
-    } }; },
-  };
-  const result = await runWorkflow(api, input);
-  assert.deepEqual(calls, ["Python", { title: "分析师", company: null, jd_text: "SQL" },
-    { resume_id: "resume_new", jd_id: "jd_new" }]);
-  assert.equal(result.isMock, true);
-});
-
-test("workflow stops when resume creation fails", async () => {
-  let downstream = false;
-  const api = {
-    createResume: async () => { throw new Error("parse failed"); },
-    createJob: async () => { downstream = true; },
-  };
-  await assert.rejects(runWorkflow(api, input), /parse failed/);
-  assert.equal(downstream, false);
-});
-
-test("whitespace input does not create records", async () => {
-  await assert.rejects(runWorkflow({}, { ...input, title: "  " }), /请填写/);
-});
-
-test("missing IDs stop the workflow before sending a broken pair", async () => {
-  await assert.rejects(runWorkflow({ createResume: async () => ({ data: {} }) }, input), /有效编号/);
-});
 
 test("workspace subscriptions are disposable and snapshots are isolated", () => {
   const workspace = createWorkspace();
@@ -49,4 +13,12 @@ test("workspace subscriptions are disposable and snapshots are isolated", () => 
   unsubscribe();
   workspace.updateSelection({ resumeId: "r2" });
   assert.equal(count, 1);
+});
+
+test("changing the resume or job selection clears a stale result", () => {
+  const workspace = createWorkspace();
+  workspace.updateSelection({ resumeId: "r1", jdId: "j1", result: { match: { score: 50 } } });
+  assert.equal(workspace.getState().result.match.score, 50);
+  workspace.updateSelection({ jdId: "j2" });
+  assert.equal(workspace.getState().result, null);
 });

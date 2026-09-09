@@ -44,7 +44,7 @@
 .resume-grid.is-reviewing { grid-template-columns: minmax(0,.85fr) minmax(0,1.3fr); }
 .resume-import { min-width: 0; }
 .resume-dropzone { width: 100%; min-height: 245px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 14px; border: 1.5px dashed var(--accent); border-radius: 12px; background: var(--accent-soft); color: var(--ink); font: inherit; cursor: pointer; }
-.resume-dropzone:hover, .resume-dropzone.drag-over { border-style: solid; background: #dfede7; }
+.resume-dropzone:hover, .resume-dropzone.drag-over { border-style: solid; border-color: var(--accent); background: var(--accent-soft); }
 .resume-dropzone:disabled { cursor: wait; opacity: .65; }
 .resume-upload-title { display: block; background: var(--accent); color: white; padding: 10px 22px; border-radius: 8px; font-weight: 600; }
 .resume-dropzone small { color: var(--muted); }

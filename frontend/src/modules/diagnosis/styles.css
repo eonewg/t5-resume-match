@@ -1,6 +1,7 @@
-[data-module="diagnosis"] { min-width: 0; padding: 24px; overflow-wrap: anywhere; }
-[data-module="diagnosis"] p, [data-module="diagnosis"] li { white-space: pre-wrap; line-height: 1.8; }
-[data-module="diagnosis"] li { margin-block: 1rem; }
-[data-module="diagnosis"] [data-error="true"] { color: #a32a28; }
-[data-module="diagnosis"] [data-testid="diagnosis-result"] { border-top: 1px solid #dbe4dc; margin-top: 1.5rem; }
-[data-module="diagnosis"] .button { margin-block: 1rem; }
+/* Diagnosis module: keep pre-wrap only where multi-line AI text appears; no blanket spacing. */
+[data-module="diagnosis"] { min-width: 0; overflow-wrap: anywhere; }
+[data-module="diagnosis"] .optimization-summary,
+[data-module="diagnosis"] .suggestion-compare p,
+[data-module="diagnosis"] .suggestion-list li { white-space: pre-wrap; }
+[data-module="diagnosis"] [data-error="true"] { color: var(--danger); }
+[data-module="diagnosis"] [data-testid="diagnosis-result"] { margin-top: 4px; }

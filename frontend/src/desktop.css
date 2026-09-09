@@ -1,28 +1,23 @@
-/* Desktop workspace layer: one spacing scale, restrained surfaces, stable columns. */
+/* Desktop layer (1280–1920): one spacing scale, flat restrained surfaces, content-driven height. */
 @media (min-width: 1101px) {
   :root {
-    --canvas: #f6f7f8;
-    --ink: #27312f;
-    --muted: #6a7371;
-    --border: #dfe3e2;
-    --radius: 10px;
-    --shadow: 0 1px 3px #26332f05;
     --page-gutter: 32px;
-    --panel-padding: 24px;
-    --section-gap: 24px;
+    --panel-padding: 20px;
+    --section-gap: 20px;
   }
+
+  /* Frame */
   main {
-    max-width: 1360px;
-    padding: 18px var(--page-gutter) 48px;
+    max-width: 1200px;
+    padding: 20px var(--page-gutter) 44px;
   }
   .sidebar {
     width: 208px;
-    padding: 28px 18px;
+    padding: 24px 16px;
   }
   .app-frame {
     margin-left: 208px;
   }
-  .sidebar-footer > p,
   .brand small {
     display: none;
   }
@@ -30,8 +25,11 @@
     height: 52px;
     padding-inline: var(--page-gutter);
   }
+
+  /* Progress chrome */
   .auxiliary-row {
-    margin-bottom: 12px;
+    margin-bottom: 10px;
+    font-size: 12.5px;
   }
   .auxiliary-row nav a {
     min-height: 28px;
@@ -39,24 +37,26 @@
   }
   .process-strip {
     padding-bottom: 12px;
-    margin-bottom: 22px;
-    gap: 16px;
+    margin-bottom: 20px;
+    gap: 14px;
   }
   .process-strip a {
     min-height: 30px;
   }
+
+  /* Type scale */
   h1,
   .home-page > h1 {
-    font-size: 28px;
-    line-height: 1.35;
-    letter-spacing: -0.5px;
+    font-size: 26px;
+    line-height: 1.3;
+    letter-spacing: -0.4px;
     margin: 0 0 8px;
   }
   h2,
   .resume-fields h2,
   .context-card h2 {
-    font-size: 18px;
-    line-height: 1.45;
+    font-size: 17px;
+    line-height: 1.4;
   }
   h3 {
     font-size: 14px;
@@ -65,7 +65,9 @@
   .resume-lead,
   .home-lead {
     font-size: 14px;
-    line-height: 1.65;
+    line-height: 1.6;
+    color: var(--muted);
+    max-width: 72ch;
     margin: 0 0 var(--section-gap);
   }
   .product-page > .eyebrow,
@@ -73,78 +75,82 @@
     display: none;
   }
   .section-heading {
-    margin-bottom: 16px;
-    gap: 16px;
+    margin-bottom: 14px;
+    gap: 14px;
   }
+
+  /* Controls */
   .button {
     min-height: 38px;
     padding: 8px 14px;
-    border-radius: 7px;
-    font-size: 13px;
+    border-radius: var(--radius-sm);
+    font-size: 13.5px;
   }
   .button.ghost {
     padding-inline: 8px;
-    font-weight: 500;
   }
   .card {
     border-radius: var(--radius);
-    box-shadow: var(--shadow);
+    box-shadow: none;
   }
   .helper-text,
   .resume-help {
-    font-size: 12px;
-    line-height: 1.65;
+    font-size: 12.5px;
+    line-height: 1.6;
   }
   .chip {
-    background: #f0f2f1;
-    color: #54605b;
-    border: 0;
+    background: var(--surface-sunken);
+    color: var(--ink-soft);
+    border: 1px solid var(--border);
   }
   .status-badge,
   .resume-field-badge {
     font-size: 11px;
-    padding: 2px 7px;
-    font-weight: 400;
-    border-radius: 4px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-weight: 500;
   }
   .resume-field-badge[data-state='success'] {
-    background: #f0f3f1;
-    color: #53645b;
+    background: var(--accent-soft);
+    color: var(--accent);
   }
   .inline-actions {
-    margin: 16px 0 0;
+    margin: 14px 0 0;
+    gap: 8px;
   }
+
+  /* Home */
   .home-next,
   .next-action {
     padding: var(--panel-padding);
     margin: 0 0 var(--section-gap);
-    gap: 24px;
+    gap: 20px;
   }
   .home-next {
-    border-left: 1px solid var(--border);
-    background: #edf3f0;
-    border-color: #d7e2dc;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
   }
   .home-next h2 {
-    font-size: 22px;
+    font-size: 20px;
   }
   .home-next p:not(.eyebrow) {
-    max-width: 580px;
+    max-width: 62ch;
   }
   .home-next .primary {
-    min-height: 44px;
-    padding-inline: 24px;
+    min-height: 42px;
+    padding-inline: 20px;
   }
   .workflow-steps {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 12px;
+    gap: 10px;
     margin: 0 0 var(--section-gap);
   }
   .workflow-steps a {
     display: grid;
-    grid-template-columns: 30px 1fr;
-    gap: 8px 10px;
-    padding: 18px;
+    grid-template-columns: 28px 1fr;
+    gap: 6px 10px;
+    padding: 14px 16px;
     align-items: center;
   }
   .workflow-steps strong {
@@ -160,31 +166,33 @@
     margin: 0;
   }
   .workflow-steps li[data-state='current'] {
-    border-color: #b4c6bc;
+    border-color: var(--accent);
   }
   .home-context-grid {
-    gap: 20px;
+    gap: 16px;
   }
   .context-card {
     padding: var(--panel-padding);
   }
   .context-card p:not(.eyebrow) {
-    margin: 8px 0 12px;
+    margin: 6px 0 10px;
   }
   .home-insight {
-    margin-top: 20px;
-    padding: 14px 0 0;
-    font-size: 12px;
+    margin-top: 16px;
+    padding: 12px 0 0;
+    font-size: 12.5px;
     justify-content: flex-start;
-    gap: 14px;
+    gap: 12px;
   }
   .home-insight a {
     margin: 0;
   }
+
+  /* Resume */
   .resume-grid,
   .resume-grid.is-reviewing {
-    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.25fr);
-    gap: 24px;
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.3fr);
+    gap: 20px;
     align-items: start;
   }
   .resume-import {
@@ -198,62 +206,77 @@
     padding: var(--panel-padding);
   }
   .resume-source-workspace > h2 {
-    margin-bottom: 16px;
-  }
-  .resume-source-workspace > .resume-source {
-    margin-top: 16px;
+    font-size: 15px;
+    margin-bottom: 14px;
   }
   .resume-source {
     padding: 0;
     background: transparent;
     border-radius: 0;
+    margin-top: 14px;
   }
-  .resume-source summary {
+  .resume-source > summary {
     font-size: 13px;
-    margin-bottom: 12px;
+    font-weight: 600;
+    margin-bottom: 10px;
   }
   .resume-source textarea {
-    min-height: 240px;
-    height: clamp(240px, 32vh, 380px);
-    max-height: 480px;
-    font-size: 13px;
-    background: #fafbfb;
+    min-height: 176px;
+    height: auto;
+    max-height: 420px;
+    font-size: 13.5px;
+    background: var(--surface-sunken);
   }
   .resume-source .resume-help {
-    margin: 4px 0 12px;
+    margin: 4px 0 10px;
     text-align: right;
   }
   .resume-dropzone {
-    min-height: 132px;
+    min-height: 112px;
     padding: 14px;
     gap: 6px;
-    background: #fafbfb;
-    border: 1px dashed #bbc5bf;
-    border-radius: 8px;
+    background: var(--surface-sunken);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius);
     font-size: 13px;
   }
   .resume-upload-title {
     padding: 0;
     background: transparent;
     color: var(--ink);
-    font-size: 15px;
+    font-size: 14px;
+    font-weight: 600;
   }
   .resume-dropzone small {
-    font-size: 11px;
+    font-size: 11.5px;
+    color: var(--muted);
   }
   .resume-source-workspace > #resume-demo-fill {
-    margin: 4px 0 8px;
+    margin: 6px 0 4px;
+  }
+  /* Toolbar-style disclosures replace the default <details> look. */
+  .resume-draft-tools,
+  .resume-history {
+    border-top: 1px solid var(--border);
+    margin-top: 6px;
+  }
+  .resume-draft-tools > summary,
+  .resume-history > summary {
+    padding: 12px 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .resume-draft-tools .helper-text {
+    margin: 0 0 8px;
+  }
+  .resume-draft-tools .inline-actions {
+    margin: 0 0 12px;
+    gap: 6px;
   }
   .resume-history {
     max-width: none;
     width: 100%;
-    border-top: 1px solid var(--border);
-    margin-top: 4px;
-  }
-  .resume-history > summary,
-  .resume-draft-tools > summary {
-    padding: 12px 0;
-    font-size: 13px;
   }
   .resume-history[open] {
     border: 0;
@@ -261,29 +284,19 @@
     border-radius: 0;
     padding: 0;
   }
-  .resume-draft-tools {
-    border-top: 1px solid var(--border);
-  }
-  .resume-draft-tools .inline-actions {
-    margin: 0 0 12px;
-    gap: 4px;
-  }
   .resume-fields {
     padding: var(--panel-padding);
   }
   .resume-fields > .section-heading {
     margin-bottom: 6px;
   }
-  .resume-fields > .resume-help {
-    margin: 0 0 20px;
-  }
   .resume-confirmed-action {
     display: flex;
     justify-content: flex-end;
-    margin: 0 0 20px;
+    margin: 0 0 16px;
   }
   #resume-status[data-state='neutral'] {
-    font-size: 12px;
+    font-size: 12.5px;
     margin: 0 0 12px;
     padding: 0;
     border: 0;
@@ -296,14 +309,14 @@
   }
   .resume-basics input,
   .resume-basics textarea {
-    min-height: 42px;
-    height: 42px;
+    min-height: 40px;
+    height: 40px;
   }
   .resume-field {
-    margin-top: 22px;
+    margin-top: 18px;
   }
   .resume-field + .resume-field {
-    padding-top: 20px;
+    padding-top: 16px;
     border-top: 1px solid var(--border);
   }
   .resume-basics .resume-field {
@@ -311,38 +324,38 @@
     border: 0;
   }
   .resume-fields #resume-skills {
-    min-height: 110px;
+    min-height: 96px;
   }
   .resume-experience {
     background: transparent;
     padding: 0;
     border: 0;
     border-radius: 0;
-    margin-bottom: 16px;
+    margin-bottom: 14px;
   }
   .resume-experience textarea {
-    min-height: 132px;
-    line-height: 1.75;
+    min-height: 56px;
+    line-height: 1.7;
   }
   .resume-save-panel {
-    margin-top: 24px;
-    padding-top: 20px;
+    margin-top: 20px;
+    padding-top: 16px;
   }
   .resume-save-panel .resume-actions {
     justify-content: flex-end;
   }
   .resume-save-panel .resume-confirm {
-    font-size: 12px;
+    font-size: 13px;
   }
   .resume-suggestion {
-    background: #f3f5f4;
+    background: var(--accent-soft);
   }
   .resume-suggestion summary {
-    font-size: 12px;
+    font-size: 12.5px;
   }
   .current-resume {
-    padding: 0 0 16px;
-    margin: 0 0 20px;
+    padding: 0 0 14px;
+    margin: 0 0 18px;
     background: transparent;
   }
   .current-resume > div {
@@ -353,141 +366,173 @@
   .current-resume .eyebrow {
     margin: 0;
   }
+
+  /* Jobs */
   .job-option:hover:not([aria-pressed='true']) {
-    border-color: #b1beb7;
+    border-color: var(--border-strong);
   }
   .jobs-page .selected-job {
     padding: var(--panel-padding);
-    border-color: #b7c8bd;
+    border-color: var(--border);
   }
   .job-options {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 16px;
+    gap: 12px;
   }
   .job-option {
-    padding: 20px;
-    min-height: 184px;
+    padding: 14px 16px;
+    min-height: 0;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    align-items: flex-start;
+    gap: 6px;
     border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .job-option .job-choice-marker {
+    display: none;
   }
   .job-option[aria-pressed='true'] {
-    background: #f1f5f2;
     border: 1px solid var(--accent);
-    box-shadow: inset 3px 0 var(--accent);
+    background: var(--accent-soft);
+    box-shadow: inset 2px 0 0 var(--accent);
+  }
+  .job-option[aria-pressed='true'] .job-choice-marker {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
   }
   .job-option strong {
-    font-size: 16px;
+    font-size: 15px;
   }
   .job-option .chips {
-    margin-top: auto;
+    margin-top: 2px;
   }
   .job-form {
-    margin-top: 24px;
+    margin-top: 20px;
     box-shadow: none;
-    background: #fafbfb;
+    background: var(--surface);
   }
   .job-form > summary {
-    padding: 16px 24px;
+    padding: 14px 18px;
     font-size: 14px;
   }
   .job-form form {
-    padding: 4px 24px 24px;
+    padding: 4px 18px 18px;
   }
   .job-original {
-    margin-top: 16px;
+    margin-top: 14px;
   }
+
+  /* Matching */
   .match-result {
     margin: 0;
     padding: var(--panel-padding);
+    box-shadow: none;
   }
   .match-hero {
-    grid-template-columns: 230px minmax(0, 1fr);
-    gap: 28px;
-    padding-bottom: 24px;
-    margin-bottom: 24px;
+    grid-template-columns: 210px minmax(0, 1fr);
+    gap: 24px;
+    padding-bottom: 18px;
+    margin-bottom: 18px;
   }
   .match-score {
-    font-size: 64px;
-    line-height: 1.15;
+    font-family: var(--font-display);
+    font-size: 56px;
+    line-height: 1.1;
   }
   .match-target {
-    padding-left: 28px;
+    padding-left: 24px;
   }
   .match-target h3 {
-    font-size: 22px;
+    font-size: 20px;
   }
   .match-target .match-conclusion {
     color: var(--ink);
-    margin: 12px 0;
-    font-size: 15px;
+    margin: 10px 0;
+    font-size: 14.5px;
   }
   .match-target > a {
-    font-size: 12px;
+    font-size: 12.5px;
   }
   .ability-grid {
-    gap: 20px;
+    gap: 16px;
   }
   .ability-grid section {
-    padding: 20px;
-    border: 0;
-    background: #f0f5f2;
+    padding: 16px 18px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-sunken);
   }
   .ability-grid .missing {
-    background: #f3f4f6;
-    border: 0;
+    background: var(--surface-sunken);
+    border-color: var(--border);
   }
   .match-evidence {
-    margin: 24px 0 16px;
-    padding-top: 24px;
+    margin: 18px 0 12px;
+    padding-top: 18px;
   }
   .match-evidence h3 {
-    font-size: 17px;
+    font-size: 15px;
   }
   .match-evidence li {
-    font-size: 14px;
-    color: #4c5752;
-    line-height: 1.75;
-    margin-bottom: 12px;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    line-height: 1.7;
+    margin-bottom: 10px;
   }
   .more-evidence summary {
     font-size: 13px;
     color: var(--muted);
   }
+  #match-context-note {
+    font-size: 13px;
+    color: var(--ink-soft);
+    border-left: 2px solid var(--border-strong);
+    padding-left: 12px;
+    margin-top: 16px;
+  }
+
+  /* Diagnosis */
   .diagnosis-header {
-    padding: var(--panel-padding);
+    padding: 0 0 16px;
     margin-bottom: var(--section-gap);
+    border-bottom: 1px solid var(--border);
   }
   .diagnosis-header .selected-context {
     padding: 0;
     border: 0;
     border-radius: 0;
     background: none;
-    margin: 0 0 12px;
-    font-size: 14px;
+    margin: 0 0 10px;
+    font-size: 13.5px;
     color: var(--muted);
     font-weight: 400;
   }
   .diagnosis-header .optimization-summary {
-    font-size: 18px;
-    line-height: 1.7;
+    font-family: var(--font-display);
+    font-size: 17px;
+    line-height: 1.6;
     margin: 0;
+    color: var(--ink);
   }
   .summary-full {
     font-size: 13px;
     color: var(--muted);
   }
   .summary-full summary {
-    padding-block: 8px;
+    padding-block: 6px;
   }
   .result-provenance {
     color: var(--muted);
     font-size: 12px;
-    margin-bottom: 16px;
+    margin: 0 0 14px;
   }
   .priority-panel {
-    padding: var(--panel-padding);
+    padding: 0;
     margin-bottom: var(--section-gap);
   }
   .priority-list {
@@ -497,118 +542,106 @@
   }
   .priority-list li {
     display: flex;
-    gap: 14px;
+    gap: 12px;
     align-items: baseline;
-    padding: 10px 0;
-    border-top: 1px solid #edf0ee;
-  }
-  .priority-list li:first-child {
-    border: 0;
-    padding-top: 0;
+    padding: 9px 0;
+    border-top: 1px solid var(--border);
   }
   .priority-list li:last-child {
-    padding-bottom: 0;
+    border-bottom: 1px solid var(--border);
   }
   .priority-list li > span {
-    color: #8b9590;
+    color: var(--faint);
     font-size: 12px;
     font-variant-numeric: tabular-nums;
+    min-width: 16px;
   }
   .priority-list p {
     font-size: 14px;
     margin: 0;
+    color: var(--ink-soft);
   }
   .experience-improvements {
     margin-bottom: var(--section-gap);
   }
   .suggestion-entry {
-    margin: 16px 0;
+    margin: 12px 0;
+    border: 1px solid var(--border);
     border-radius: var(--radius);
+    box-shadow: none;
   }
   .suggestion-compare {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
   }
   .suggestion-compare section {
-    padding: var(--panel-padding);
+    padding: 16px 18px;
   }
   .suggestion-compare section:first-child {
-    background: #f7f8f8;
+    background: var(--surface-sunken);
   }
   .suggestion-compare section:last-child h3 {
-    color: var(--ink);
+    color: var(--accent);
   }
   .suggestion-compare p {
-    font-size: 14px;
-    line-height: 1.8;
-    max-height: 320px;
+    font-size: 13.5px;
+    line-height: 1.75;
+    max-height: 300px;
     overflow-y: auto;
   }
   .suggestion-compare mark {
-    background: #f4f0e7;
-    color: #726349;
+    background: var(--warning-soft);
+    color: var(--warning);
   }
   .suggestion-reason {
-    display: grid;
-    grid-template-columns: 90px minmax(0, 1fr);
-    gap: 16px;
-    padding: 16px 24px 0;
-  }
-  .suggestion-reason h3 {
+    border-top: 1px solid var(--border);
+    padding: 10px 18px;
     margin: 0;
-    font-size: 12px;
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--muted);
   }
-  .suggestion-reason p {
-    line-height: 1.7;
-  }
-  .suggestion-entry .inline-actions {
-    margin: 12px 24px 20px;
-    justify-content: flex-end;
+  .suggestion-reason > span {
+    font-weight: 600;
+    color: var(--ink-soft);
+    margin-right: 8px;
   }
   .additional-experiences > summary {
     font-size: 13px;
-    padding: 14px 0;
+    padding: 12px 0;
   }
   .other-suggestions {
-    padding: 0 24px;
-    margin-bottom: 20px;
+    padding: 0 18px;
+    margin-bottom: 18px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
   }
   .other-suggestions > summary {
-    padding: 18px 0;
-    font-size: 14px;
+    padding: 14px 0;
+    font-size: 13.5px;
     font-weight: 600;
   }
   .other-suggestions .suggestion-list {
     list-style: disc;
     padding-left: 20px;
-    margin: 12px 0 20px;
+    margin: 10px 0 16px;
   }
   .other-suggestions .suggestion-list li {
     border: 0;
     background: none;
     padding: 0;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     font-size: 13px;
-    color: #59655f;
+    color: var(--ink-soft);
   }
   .diagnosis-footnote {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 20px;
     border-top: 1px solid var(--border);
-    padding-top: 16px;
-    font-size: 12px;
+    padding-top: 14px;
+    margin-top: 4px;
+    font-size: 12.5px;
     color: var(--muted);
   }
   .diagnosis-footnote p {
     margin: 0;
-  }
-  .diagnosis-footnote .helper-disclosure {
-    max-width: 320px;
-  }
-  .diagnosis-footnote summary {
-    padding: 0;
-    font-size: 12px;
-    white-space: nowrap;
   }
 }

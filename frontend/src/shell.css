@@ -1,11 +1,4 @@
-/* The workflow is the product spine; insight and raw demo remain secondary. */
-:root {
-  --canvas: #f7f8fa;
-  --surface: #fff;
-  --ink: #243431;
-  --muted: #64736f;
-  --accent: #176b58;
-}
+/* The workflow is the product spine; market insight remains secondary. */
 .sidebar {
   width: 224px;
   padding: 32px 20px;
@@ -16,14 +9,11 @@
 .nav-icon {
   font-variant-numeric: tabular-nums;
   font-size: 12px;
-  opacity: 0.65;
+  opacity: 0.6;
   width: 20px;
 }
 .sidebar nav a {
   gap: 12px;
-}
-.sidebar-footer {
-  line-height: 1.9;
 }
 main {
   max-width: 1240px;
@@ -77,7 +67,7 @@ h1:focus {
 }
 .process-strip [data-current='true'] a {
   color: var(--accent);
-  font-weight: 650;
+  font-weight: 600;
 }
 .process-strip [data-current='true'] span {
   color: white;
@@ -134,7 +124,7 @@ h1:focus {
 }
 .workflow-steps li {
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius);
   background: white;
 }
 .workflow-steps li[data-state='current'] {
@@ -151,7 +141,7 @@ h1:focus {
   height: 100%;
 }
 .step-number {
-  background: #eff3f1;
+  background: #eef0f2;
   padding: 4px 9px;
   border-radius: 6px;
   font-size: 13px;
@@ -216,13 +206,6 @@ h1:focus {
   white-space: nowrap;
   color: var(--accent);
 }
-.gap-explanation {
-  padding: 14px 16px;
-  background: #f0f4f2;
-  border-radius: 7px;
-  font-size: 13px;
-  line-height: 1.8;
-}
 .count-label {
   font-weight: 400;
   margin-left: 8px;
@@ -271,9 +254,6 @@ h1:focus {
 }
 .product-empty .button {
   margin-top: 18px;
-}
-#workspace-view > .button {
-  margin-bottom: 24px;
 }
 @media (max-width: 1100px) {
   main {

@@ -3,16 +3,10 @@ import { createApi } from './api';
 import { createWorkspace, type Workspace, type WorkspaceState } from './state';
 import type { ControllerContext, ResumeDraft } from './controller-types';
 
-export interface QuickDraft {
-  form: { resumeText: string; title: string; company: string; jdText: string };
-  result: WorkspaceState | null;
-  notice: string;
-}
 interface ContextValue {
   store: Workspace;
   state: WorkspaceState;
   draft: React.RefObject<ResumeDraft | null>;
-  quick: React.RefObject<QuickDraft | null>;
 }
 const Context = createContext<ContextValue | null>(null);
 export function WorkspaceProvider({
@@ -25,9 +19,8 @@ export function WorkspaceProvider({
   const [store] = useState(() => workspace || createWorkspace());
   const [state, setState] = useState(store.getState);
   const draft = useRef<ResumeDraft | null>(null);
-  const quick = useRef<QuickDraft | null>(null);
   useEffect(() => store.subscribe(setState), [store]);
-  return <Context.Provider value={{ store, state, draft, quick }}>{children}</Context.Provider>;
+  return <Context.Provider value={{ store, state, draft }}>{children}</Context.Provider>;
 }
 export function useWorkspace() {
   const value = useContext(Context);
