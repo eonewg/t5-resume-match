@@ -222,3 +222,17 @@ test('failed extraction does not replace the source, while navigation ignores la
   reject(Object.assign(Error('late AI error'), {rawText: 'late original'})); await pending;
   assert.equal(f.state().values.raw_text, 'previous');
 });
+
+test('structured AI draft with empty fields and grouped skills enters review and saves after confirmation', async () => {
+  const f = fixture(), raw = '  使用 PostgreSQL 进行执行计划分析。\r\n ';
+  f.override(path => path.endsWith('/preview') ? {data: {raw_text: raw, name: null, education: '', skills: ['Python, SQL / PostgreSQL'], experience: []}, isMock: false} : undefined);
+  f.controller.edit('raw_text', raw); await f.controller.parse();
+  assert.equal(f.state().aiStatus, 'success'); assert.equal(f.state().imported, true);
+  assert.equal(f.state().reviewed, false); assert.equal(f.state().error, '');
+  assert.equal(f.state().values.skills, 'Python, SQL / PostgreSQL');
+  assert.equal(f.state().values.education, ''); assert.deepEqual(f.state().values.experience, []);
+  assert.equal(f.state().values.raw_text, raw); assert.equal(f.saved.size, 0);
+  f.controller.edit('skills', 'PostgreSQL'); f.controller.review(true); await f.controller.save();
+  assert.deepEqual(f.saved.get('resume_1').skills, ['PostgreSQL']);
+  assert.equal(f.saved.get('resume_1').raw_text, raw);
+});
