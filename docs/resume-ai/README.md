@@ -52,7 +52,7 @@ timeout、429、上游 5xx、401/403、配置、JSON、schema 和事实守卫错
 - PostgreSQL 冒烟通过：扩展、迁移、索引、读写、确认简历到真实关键词匹配。
 - [三屏宽主链路报告](browser/offline-flow/browser-report.json)、[边界报告](browser/offline-boundaries/report.json)：1440、1280、390；显式离线 Resume/Diagnosis fixture，覆盖文件、字段保护、保存读取、匹配、优化页、错误重试及原有页面回归，不能作为 AI 质量证据。
 
-测试隔离调整仅针对 Resume 依赖：旧解析用例显式选择 OfflineResumeService；原 Diagnosis 离线协议验收的 Resume 前置步骤由公共测试 fixture 隔离，D 文件未修改。`check_member resume` 默认只检查公开签名，真实调用需 `--live`；数据库冒烟使用确认字段，避免 CI 发起未授权模型调用。没有更改 CI 工作流、分支白名单或 D 业务实现。
+测试隔离调整仅针对 Resume 依赖：旧解析用例显式选择 OfflineResumeService；原 Diagnosis 协议验收和 Jobs PostgreSQL 缓存测试的 Resume 前置步骤由公共测试 fixture 隔离，D 文件未修改。单元/集成测试默认禁止未注入的 Resume 网络调用，避免本地 `.env` 影响离线结果。`check_member resume` 默认只检查公开签名，真实调用需 `--live`；数据库冒烟使用确认字段。没有更改 CI 工作流、分支白名单或 D 业务实现。
 
 真实五样本及复杂原文浏览器验收尚未完成：首轮学生样本调用超时，后续数据发送被自动审批要求补充接收方授权，正在等待确认。逐样本状态和已完成的复杂原文失败恢复检查见 [实际评测记录](evaluation-results.md)。不得据上述离线结果宣称本轮质量验收完成。
 
