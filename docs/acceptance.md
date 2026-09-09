@@ -8,7 +8,7 @@
 | --- | --- | --- | --- |
 | Resume | A | 保守解析、受保护结构化编辑、确认保存/重读、历史版本及原文保留 | 功能 PASS；PR #8 与 fresh install 复验通过，自动解析仍需用户核对，独立 AI 评估有漏项 |
 | Jobs / Matching | D | PR #6 已集成；关键词基线、tools/薪资解析、可选语义增强及事务片段缓存 | 本阶段 PASS；semantic 默认 off，独立 AI 盲评 / LLM-as-a-Judge 已返回并汇总，不作为人工金标准 |
-| Diagnosis | D | PR #7 三协议适配已集成，custom/openai_chat 真实调用通过 | 功能/集成 PASS；固定评估不变，补充两组完整经历均请求失败；效果不可评价，保留真实模型限制 |
+| Diagnosis | D；A 本轮按用户授权修复验收 | 严格 schema 后逐条 STAR 事实过滤，SiliconFlow / DeepSeek-V4-Flash | 本轮最终修复/真实验收 PASS：三组各一次全部可用，原失败组合安全过滤 1 条并保留 1 条；历史固定评估不改写，保留人工事实核对 |
 | Analytics | A | 真实统计、来源/日期筛选、词云/技能分布、分币种/周期薪资图与五份真实快照 | 本阶段 PASS；两批合计 10 条/6 雇主，4 条 USD 年薪可比较、5 无区间、1 周期未知；独立 AI 评价已汇总，PR #8 与 fresh install 技术复核通过 |
 
 当前自动化检查见 [验证记录](validation.md)。功能目标与当前实现分别记录，不能把已接入、Mock 或测试通过等同于完整 T5 验收。
@@ -140,3 +140,19 @@ A 自有模块执行相同门槛；新增提交重新检查，集成失败保留
 - 按用户条件用 GLM-5.3 同真实输入对照一次，85.355 秒 read timeout，未取得状态或有效输出；未切换本地模型。真实 Edge 页面调用 DeepSeek 一次通过，API 201，桌面/390px 检查通过，Resume 模型调用 0。
 - 本轮调用 6 次（定位 1 + DeepSeek 三组 3 + GLM 对照 1 + 浏览器 1）。Diagnosis 237 passed；Python 570 passed/39 skipped；frontend 77 passed；Ruff 通过。详见 [本轮记录](final/diagnosis-siliconflow.md#事实保护定位与最终候选复核)。
 - **模型最终验收仍未通过**：当前配置 `SiliconFlow / deepseek-ai/DeepSeek-V4-Flash`，不将浏览器/部分样本成功替代真实组合验收。Resume/Key 未修改，未放宽 guard，未合 main。
+
+## 2026-09-09：Diagnosis 逐条 STAR 最终修复验收
+
+- 基线 `1d0bd80`。原失败粒度过粗：单条 STAR 数字违规使整份诊断失败。现先严格验证完整
+  schema，再逐条保留合法 STAR、过滤非原文/新增数字条目；可返回空 STAR，其他诊断正常。
+- 两项原有事实规则、Prompt、Resume Ling3-flash、provider 配置与错误分类保持不变。
+  成功日志记录 `fact_guard_original` / `fact_guard_number` 数量，无正文；过滤不失败、不重试。
+- DeepSeek 三组各一次均 200/stop/schema PASS：极简 9.285s、原真实组合 16.775s、正常 8.124s。
+  原组合保留 1 条合法 STAR、过滤 1 条新增数字 STAR，其他字段和风险提示正常；输入 hash 一致。
+  Ling3 content_filter、旧整份 fact_guard 失败、GLM-5.3 的 85.355s 超时作为历史保留，本轮不测 GLM。
+- Diagnosis 243 passed；Python 576 passed/39 skipped/2 warnings；frontend 77 passed；Ruff check/format PASS。
+  实际 Edge 页面一次真实 DeepSeek：上游 200/stop、API 201，桌面/手机展示正常；另用离线 fixture
+  验证页面保留合法 STAR 并提示过滤，无整页失败，不把 fixture 计为真实模型调用。
+- **Diagnosis 最终验收 PASS；最终 `SiliconFlow / deepseek-ai/DeepSeek-V4-Flash`。** 可进入 T5
+  最终收尾和整体验收门槛核对，不把本模块 PASS 等同所有课程质量门槛通过。本轮不合 main。
+  详见 [迁移记录](final/diagnosis-siliconflow.md#逐条-star-严格校验与最终验收)及其脱敏证据。

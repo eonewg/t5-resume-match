@@ -4,16 +4,17 @@
 
 ## 当前结果
 
-接入已验证；DeepSeek-V4-Flash 经最小 Prompt 强化后，原过滤输入仍未通过数字保护。
-授权对照的 GLM-5.3 读取超时，未切换持久配置。当前配置仍为
-`SiliconFlow / deepseek-ai/DeepSeek-V4-Flash`，没有已通过最终验收的模型方案。
+**本轮 Diagnosis 最终验收通过。** 逐条严格校验、过滤违规 STAR 后，三组 DeepSeek
+各一次均返回可用结果，原 content_filter 组合保留合法内容并安全过滤数字违规条目。
+最终 Diagnosis 为 `SiliconFlow / deepseek-ai/DeepSeek-V4-Flash`。
+下文保留历史失败、GLM 超时及对应阶段结论；最新结论见文末逐条 STAR 验收。
 用户要求停止继续针对 Ling3-flash 的 content_filter 调整 Prompt，改为单独迁移 Diagnosis。
 首轮迁移未继续改 Prompt；后续事实保护定位阶段的最小强化见下文。Resume 实现与配置均未修改。
 
 复用 custom + openai_chat，新增可选 `T5_DIAGNOSIS_JSON_MODE`：true 显式请求
 JSON object；false 关闭；未设置保留旧行为。仅允许用于 openai_chat。
 不新增 HTTP 客户端、SDK、依赖、模型默认值或自动 fallback。
-详见 [模块配置](../../backend/modules/diagnosis/README.md#siliconflow-接入真实验收待完成)。
+详见 [模块配置](../../backend/modules/diagnosis/README.md#siliconflow-接入最终候选已验收)。
 
 ## 首轮离线验证
 
@@ -120,3 +121,64 @@ benchmark、不将本地配置切为未验证的 GLM。当前 DeepSeek 配置亦
   正确；例如浏览器输出补充了来源未明确提供的数据问题与处理细节，仍需人工核实。
 - **不能进入宣称 Diagnosis 最终验收通过的收尾。** DeepSeek 三组没有全部通过，
   GLM 对照未取得成功证据；最终模型方案尚未确认，当前配置保留 DeepSeek。不合并 main。
+
+## 逐条 STAR 严格校验与最终验收
+
+2026-09-09，修复基线 `1d0bd80a30e8786ae8a39b7441f321abac09b7bb`，仅 `feat/core-a`。
+
+### 问题与最终行为
+
+Ling3-flash 对特定输入发生 content_filter；SiliconFlow / DeepSeek-V4-Flash 已解决该
+组合的上游过滤。此前整份业务失败来自其中一条 STAR 的本条原文以外数字，失败粒度过粗。
+本轮先严格验证完整 JSON/schema，再逐条验证 STAR：original 仍须是简历精确子串，
+optimized 的阿拉伯数字集合仍须是本条 original 的子集。没有放宽事实保护，没有改 Prompt
+（仍为 `d-v3-exact-star`，hash 与上一轮一致），不使用模糊匹配、embedding 或编辑距离。
+
+原文违规或数字违规条目丢弃，合法 STAR 按原顺序保留；全部违规也返回空数组。
+summary、岗位建议、keywords、risks 均保留。成功请求事件增加 `fact_guard_original` 与
+`fact_guard_number` 两类过滤条数，原文失败优先计数，每条只计一次；无敏感正文/具体数字。
+过滤不作为请求错误，也不触发模型重试。仅确有过滤且风险列表未满 10 条时追加提示，
+已有提示不重复；已满时保留全部原风险，过滤计数仍可观测。公共 schema / 前端无需修改。
+
+非法 JSON、schema/必填字段/类型错误、异常响应、content_filter、truncated、HTTP/timeout
+继续走原有整份失败与错误分类路径，既有可选 JSON 修复配置不变，未对这些错误局部容错。
+
+### 本轮三组真实验证
+
+每组一次，真实 `DiagnosisService`，无缓存、无重试。脱敏原始指标见
+[本轮证据](evidence/diagnosis-star-filter-20260909.json)，未覆盖历史记录。
+
+| 组合 | HTTP / finish_reason | 耗时 | STAR 结果 | 其他内容 |
+|---|---|---|---|---|
+| 极简正常 | 200 / stop | 9.285 s | 保留 1，过滤 0 | summary、5 条岗位建议、7 个关键词、4 条风险 |
+| 原 content_filter / fact_guard 真实组合 | 200 / stop | 16.775 s | 保留 1，数字违规过滤 1，原文违规 0 | summary、8 条岗位建议、10 个关键词、6 条风险（含过滤提示） |
+| 另一正常组合 | 200 / stop | 8.124 s | 保留 1，过滤 0 | summary、5 条岗位建议、6 个关键词、3 条风险 |
+
+三组 schema 均通过，最终返回的 STAR 均通过两项原有事实保护。真实组合两个输入 hash
+与历史记录一致；不因单条违规导致整份 Diagnosis 失败，原 content_filter 组合最终可用。
+本轮 GLM-5.3 调用数为 0；历史单次 85.355 秒读取超时保留，GLM 不是最终模型。
+Resume 保持 Ling3-flash，实现与配置均未修改；未改 `.env`，未增加 fallback。
+
+### 回归与浏览器
+
+- Diagnosis 定向：243 passed。Python 全量：576 passed、39 skipped、2 个依赖弃用 warning。
+  跳过的可选集成测试不计作本轮通过，不以此声称重新完成 PostgreSQL 等全项目验收。
+- frontend：77 passed、0 skipped。Ruff check 与 format --check：通过，109 个 Python 文件。
+- 首次沙箱 pytest 临时目录权限错误，改为正常权限运行后通过；未更改测试断言绕过权限问题。
+- 浏览器插件缺运行组件，使用本机独立 Edge/Playwright，实际产品页面、API、DiagnosisService，
+  隔离内存数据库与明确合成输入。种子格式修正发生在模型调用前。
+- 浏览器一次真实 DeepSeek 请求：上游 200/stop、8.661 s，产品 API 201、is_mock=false，
+  展示 1 条 STAR；桌面 1440px 和手机 390px 无横向溢出，截图已检查，无页面脚本错误。
+  Resume 模型调用 0。另一次离线 fixture 经真实服务过滤后 API 201，页面保留 1 条合法 STAR，
+  隐藏 1 条数字违规条目，展示风险提示，无整页失败；该项不冒充真实模型过滤。
+- 本轮总共 4 次真实模型调用（三组 + 浏览器），均无重试。浏览器截图仅为合成验收证据，
+  guard 不构成对所有非数字语义的完整证明，既有人工事实核对要求继续保留。
+
+### 结论
+
+**Diagnosis 本轮修复和最终真实验收 PASS。** 最终 provider/model 为
+`SiliconFlow / deepseek-ai/DeepSeek-V4-Flash`。可以进入整个 T5 项目的最终收尾与最终
+门槛核对；这不代表本轮重新验收了所有模块或消除了既有独立质量评估限制。不合并 main。
+
+本轮文件：Diagnosis `schema.py` / `public.py` / `README.md`，4 个 Diagnosis 测试文件，
+`verify_diagnosis_migration.py`，本迁移记录、验收台账和本轮脱敏 JSON 证据。

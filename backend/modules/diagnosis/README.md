@@ -101,7 +101,7 @@ uv run --frozen uvicorn backend.modules.diagnosis.web:create_app --factory --hos
 
 ## 校验与恢复
 
-### SiliconFlow 接入（真实验收待完成）
+### SiliconFlow 接入（最终候选已验收）
 
 复用 `custom + openai_chat`，无专用客户端或新增 SDK。配置
 `T5_DIAGNOSIS_LLM_VENDOR=custom`、`T5_DIAGNOSIS_API_STYLE=openai_chat`、
@@ -118,16 +118,13 @@ Pydantic schema、STAR 原文与数字校验；错误分类和真实失败不转
 
 迁移原因是 Ling3-flash 对部分真实 Resume/JD 组合返回 `content_filter`。
 此识别逻辑继续保留；Resume 的 Ling3-flash 配置和实现不变。
-用户已提供模型与凭据并授权保存到未跟踪 `.env`。当前配置的
-`deepseek-ai/DeepSeek-V4-Flash` 最小 smoke 与极简业务通过，但原过滤输入触发
-本地 fact_guard；已停止后续调用，尚未验收为最终方案。
-后续最小 Prompt 强化明确连续原文/空白与本条数字来源：DeepSeek 三组通过两组，真实
-组合仍为 `unsupported_number`；GLM-5.3 单次对照读取超时，当前配置继续保留 DeepSeek，
-不宣称最终验收成功。
-见 [实际调用记录](../../../docs/final/diagnosis-siliconflow.md)。
-真实验收先执行最小 API smoke，再通过 DiagnosisService 验证极简、原过滤输入和
-另一正常组合；每组一次，`MAX_ATTEMPTS=1`、`OUTPUT_RETRIES=0`、禁用缓存。
-仅记录脱敏指标，少量调用不代表稳定成功率。
+用户已提供模型与凭据并授权保存到未跟踪 `.env`。最终 Diagnosis 为
+`SiliconFlow / deepseek-ai/DeepSeek-V4-Flash`。2026-09-09 逐条事实保护修复后，
+极简、原过滤真实组合、另一正常组合各一次，三组均 HTTP 200/stop、schema 通过。
+原真实组合保留 1 条合法 STAR、过滤 1 条数字违规 STAR，其他诊断字段正常返回。
+GLM-5.3 历史单次 85.355 秒读取超时保留，本轮未测试或切换；无 fallback。
+见 [实际调用记录](../../../docs/final/diagnosis-siliconflow.md#逐条-star-严格校验与最终验收)。
+本轮每组一次，`MAX_ATTEMPTS=1`、`OUTPUT_RETRIES=0`、禁用缓存；仅记录脱敏指标。
 
 接口依据：[SiliconFlow 官方文档](https://docs.siliconflow.cn/docs/api/chat-completions-post)。
 
@@ -136,9 +133,12 @@ Pydantic schema、STAR 原文与数字校验；错误分类和真实失败不转
 - 只接受完整 JSON 对象，或单个完整的 JSON Markdown 围栏。拒绝夹杂解释文本的结果。
 - 严格校验类型、必填字段、未知字段、条数及长度。响应体和生成文本都有大小限制。
 - `original` 必须是简历原文片段，改写不得新增原文没有的阿拉伯数字。
-- 数字以当前 STAR `original` 为来源，不借用简历其他片段。失败元数据细分
-  `original_not_in_resume` 与 `unsupported_number`；内部空白归一化只用于定位原因，
-  不改变精确引用的接受条件。首尾空白继续按 schema 既有规则去除。
+- 数字以当前 STAR `original` 为来源，不借用简历其他片段。先严格校验整份 schema，
+  再逐条过滤非原文或新增数字的 STAR；全部过滤时返回空数组，其他字段保留。
+  成功请求日志记录 `fact_guard_original` / `fact_guard_number` 过滤数量，不记录正文，
+  不标记为请求失败、不自动重试；原文失败优先计数，每条只计一次。
+  仅过滤发生且 risks 未满 10 条时追加简短提示；保留原有风险，不重复提示或突破 schema。
+  不使用模糊匹配或内部空白归一化；首尾空白继续按 schema 既有规则去除。
 - STAR 缺失内容使用“待补充”，不补造技能、公司、职责、效果数字；没有经历可返回空改写数组。
 - 空输出、截断、解析或结构错误、超时、连接失败、408/429/常见 5xx 共享一个有限重试预算。
 - 默认最多 3 次，间隔 1 秒、2 秒；格式失败追加修复提示。401、402 等配置/鉴权问题不重试。

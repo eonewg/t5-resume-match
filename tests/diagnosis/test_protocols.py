@@ -561,9 +561,13 @@ def test_siliconflow_json_mode_keeps_business_schema_and_fact_guards():
     ]:
         opener = FixtureTransport(response("openai_chat", output))
         service = DiagnosisService(create_client(settings, opener=opener), settings=settings)
-        with pytest.raises(InvalidOutputError) as error:
-            service.diagnose(inputs)
-        assert error.value.phase == phase
+        if phase == "fact_guard":
+            result = service.diagnose_detail(inputs)
+            assert result.summary and result.star_rewrites == []
+        else:
+            with pytest.raises(InvalidOutputError) as error:
+                service.diagnose(inputs)
+            assert error.value.phase == phase
         assert len(opener.requests) == 1
 
 

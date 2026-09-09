@@ -1,0 +1,240 @@
+{
+  "baseline": "1d0bd80a30e8786ae8a39b7441f321abac09b7bb",
+  "scope": "Per-STAR strict filtering; three service calls plus one real browser call; no retries; browser fixture is offline.",
+  "records": {
+    "simple": {
+      "provider": "SiliconFlow",
+      "vendor": "custom",
+      "model": "deepseek-ai/DeepSeek-V4-Flash",
+      "case": "simple",
+      "prompt_version": "d-v3-exact-star",
+      "prompt_sha256": "ba50494d9c4435c61039c0114aba7e3bfed7f08cda7a17280e7eb69d256fa6ba",
+      "status": "validated",
+      "schema_passed": true,
+      "facts_number_guard_passed": true,
+      "star_original_guard_passed": true,
+      "input_sha256": [
+        "84131dbf2b129a876d8ce6c333f74cf4a8c411e47fcc3a7915908f8e40d21f34",
+        "40c0c21b2ae61f6ac74c9c408411efb230cafb2e1371df2743f08c0a50033d3a"
+      ],
+      "input_lengths": [
+        50,
+        34
+      ],
+      "source": "synthetic_acceptance",
+      "star_count": 1,
+      "summary_present": true,
+      "targeted_count": 5,
+      "keyword_count": 7,
+      "risk_count": 4,
+      "filter_notice": false,
+      "fact_review": "Automatic original/Arabic-number guards only; not proof of semantic fidelity.",
+      "elapsed_seconds": 9.285,
+      "client_events": [
+        {
+          "input_tokens": 903,
+          "output_tokens": 792,
+          "status": "text",
+          "error_category": null,
+          "http_status": 200,
+          "phase": null,
+          "finish_reason": "stop",
+          "vendor": "custom",
+          "model": "deepseek-ai/DeepSeek-V4-Flash",
+          "attempt": 1,
+          "latency_seconds": 9.282194300089031
+        }
+      ],
+      "attempts": [
+        {
+          "vendor": "custom",
+          "model": "deepseek-ai/DeepSeek-V4-Flash",
+          "attempt": 1,
+          "error_category": null,
+          "http_status": 200,
+          "phase": null,
+          "status": "validated",
+          "retry": false,
+          "backoff_seconds": 0,
+          "input_tokens": 903,
+          "output_tokens": 792,
+          "elapsed_seconds": 9.284261
+        }
+      ]
+    },
+    "filtered": {
+      "provider": "SiliconFlow",
+      "vendor": "custom",
+      "model": "deepseek-ai/DeepSeek-V4-Flash",
+      "case": "filtered",
+      "prompt_version": "d-v3-exact-star",
+      "prompt_sha256": "ba50494d9c4435c61039c0114aba7e3bfed7f08cda7a17280e7eb69d256fa6ba",
+      "status": "validated",
+      "schema_passed": true,
+      "facts_number_guard_passed": true,
+      "star_original_guard_passed": true,
+      "input_sha256": [
+        "7511f4ba64d11d4e779da92091d558a4dd87d625dbce3b5f854d4748e5452112",
+        "d5193f9ecb996f25ff618f00ce1c632f15724f4304a11be1c47ae94ef578e94d"
+      ],
+      "input_lengths": [
+        1024,
+        6939
+      ],
+      "source": "saved_real_input",
+      "star_count": 1,
+      "summary_present": true,
+      "targeted_count": 8,
+      "keyword_count": 10,
+      "risk_count": 6,
+      "filter_notice": true,
+      "fact_review": "Automatic original/Arabic-number guards only; not proof of semantic fidelity.",
+      "elapsed_seconds": 16.775,
+      "client_events": [
+        {
+          "input_tokens": 2515,
+          "output_tokens": 1292,
+          "status": "text",
+          "error_category": null,
+          "http_status": 200,
+          "phase": null,
+          "finish_reason": "stop",
+          "vendor": "custom",
+          "model": "deepseek-ai/DeepSeek-V4-Flash",
+          "attempt": 1,
+          "latency_seconds": 16.77259169984609
+        }
+      ],
+      "attempts": [
+        {
+          "vendor": "custom",
+          "model": "deepseek-ai/DeepSeek-V4-Flash",
+          "attempt": 1,
+          "error_category": null,
+          "http_status": 200,
+          "phase": null,
+          "status": "validated",
+          "retry": false,
+          "backoff_seconds": 0,
+          "input_tokens": 2515,
+          "output_tokens": 1292,
+          "fact_guard_original": 0,
+          "fact_guard_number": 1,
+          "elapsed_seconds": 16.77443
+        }
+      ]
+    },
+    "normal": {
+      "provider": "SiliconFlow",
+      "vendor": "custom",
+      "model": "deepseek-ai/DeepSeek-V4-Flash",
+      "case": "normal",
+      "prompt_version": "d-v3-exact-star",
+      "prompt_sha256": "ba50494d9c4435c61039c0114aba7e3bfed7f08cda7a17280e7eb69d256fa6ba",
+      "status": "validated",
+      "schema_passed": true,
+      "facts_number_guard_passed": true,
+      "star_original_guard_passed": true,
+      "input_sha256": [
+        "61832c8e30adf36dbc6130447ab9f785219a7bf91a0a7957f1f0bba1586187ce",
+        "9257c59b159e4b0727eef35395e0c27e8f592e9f41f96d23a239a64fcebc6970"
+      ],
+      "input_lengths": [
+        71,
+        66
+      ],
+      "source": "synthetic_acceptance",
+      "star_count": 1,
+      "summary_present": true,
+      "targeted_count": 5,
+      "keyword_count": 6,
+      "risk_count": 3,
+      "filter_notice": false,
+      "fact_review": "Automatic original/Arabic-number guards only; not proof of semantic fidelity.",
+      "elapsed_seconds": 8.124,
+      "client_events": [
+        {
+          "input_tokens": 935,
+          "output_tokens": 721,
+          "status": "text",
+          "error_category": null,
+          "http_status": 200,
+          "phase": null,
+          "finish_reason": "stop",
+          "vendor": "custom",
+          "model": "deepseek-ai/DeepSeek-V4-Flash",
+          "attempt": 1,
+          "latency_seconds": 8.12218949990347
+        }
+      ],
+      "attempts": [
+        {
+          "vendor": "custom",
+          "model": "deepseek-ai/DeepSeek-V4-Flash",
+          "attempt": 1,
+          "error_category": null,
+          "http_status": 200,
+          "phase": null,
+          "status": "validated",
+          "retry": false,
+          "backoff_seconds": 0,
+          "input_tokens": 935,
+          "output_tokens": 721,
+          "elapsed_seconds": 8.123694
+        }
+      ]
+    },
+    "browser": {
+      "real": {
+        "http_status": 201,
+        "is_mock": false,
+        "posts": 1,
+        "star_count": 1,
+        "resume_model_calls": 0,
+        "desktop_mobile_no_overflow": true
+      },
+      "offline_filter_fixture": {
+        "http_status": 201,
+        "retained": 1,
+        "filtered": 1,
+        "notice": true,
+        "invalid_hidden": true,
+        "whole_page_failure": false
+      },
+      "page_errors": []
+    },
+    "browser-model": {
+      "client_events": [
+        {
+          "input_tokens": 915,
+          "output_tokens": 623,
+          "status": "text",
+          "error_category": null,
+          "http_status": 200,
+          "phase": null,
+          "finish_reason": "stop",
+          "vendor": "custom",
+          "model": "deepseek-ai/DeepSeek-V4-Flash",
+          "attempt": 1,
+          "latency_seconds": 8.659807700198144
+        }
+      ],
+      "attempts": [
+        {
+          "vendor": "custom",
+          "model": "deepseek-ai/DeepSeek-V4-Flash",
+          "attempt": 1,
+          "error_category": null,
+          "http_status": 200,
+          "phase": null,
+          "status": "validated",
+          "retry": false,
+          "backoff_seconds": 0,
+          "input_tokens": 915,
+          "output_tokens": 623,
+          "elapsed_seconds": 8.661266
+        }
+      ]
+    }
+  }
+}

@@ -17,6 +17,7 @@ from backend.modules.diagnosis.config import DiagnosisSettings
 from backend.modules.diagnosis.errors import DiagnosisError
 from backend.modules.diagnosis.prompts import PROMPT_VERSION, SYSTEM_PROMPT
 from backend.modules.diagnosis.public import DiagnosisService
+from backend.modules.diagnosis.schema import FILTER_WARNING
 from backend.schemas.contracts import DiagnosisInput
 
 
@@ -121,6 +122,11 @@ def main():
                 facts_number_guard_passed=True,
                 star_original_guard_passed=True,
                 star_count=len(result.star_rewrites),
+                summary_present=bool(result.summary),
+                targeted_count=len(result.jd_targeted_suggestions),
+                keyword_count=len(result.keywords_to_strengthen),
+                risk_count=len(result.risks),
+                filter_notice=FILTER_WARNING in result.risks,
             )
             # Review at the source without retaining sensitive input/output bodies on disk.
             report["fact_review"] = (

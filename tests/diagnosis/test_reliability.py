@@ -364,8 +364,9 @@ def test_fact_guard_failure_never_uses_opt_in_json_repair():
     document["star_rewrites"][0]["optimized"] = "提升效率 999%"
     client = ScriptedLLM(json.dumps(document), valid())
     events = []
-    with pytest.raises(InvalidOutputError):
-        DiagnosisService(
-            client, settings=config(output_retries=1), on_attempt=events.append
-        ).diagnose(data())
-    assert len(client.messages) == 1 and events[0]["phase"] == "fact_guard"
+    result = DiagnosisService(
+        client, settings=config(output_retries=1), on_attempt=events.append
+    ).diagnose(data())
+    assert result.summary and not any(s.startswith("【STAR】") for s in result.suggestions)
+    assert len(client.messages) == 1 and events[0]["status"] == "validated"
+    assert events[0]["fact_guard_number"] == 1 and events[0]["retry"] is False

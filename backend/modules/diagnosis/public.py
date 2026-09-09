@@ -128,7 +128,7 @@ class DiagnosisService:
                     build_messages(data.resume_text, data.jd_text, repair=repairs > 0)
                 )
                 try:
-                    detail = parse_detail(raw, data.resume_text)
+                    detail = parse_detail(raw, data.resume_text, on_filtered=event.update)
                 except InvalidOutputError as error:
                     error.phase = "output_validation"
                     if isinstance(error, FactGuardError):

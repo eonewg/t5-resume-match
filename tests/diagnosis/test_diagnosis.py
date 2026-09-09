@@ -147,8 +147,7 @@ def test_fenced_json_is_accepted_but_prose_is_not():
 def test_unsupported_star_facts_rejected(field, value):
     payload = json.loads(valid())
     payload["star_rewrites"][0][field] = value
-    with pytest.raises(InvalidOutputError):
-        parse_detail(json.dumps(payload), data().resume_text)
+    assert parse_detail(json.dumps(payload), data().resume_text).star_rewrites == []
 
 
 def test_opt_in_repair_still_respects_total_attempt_budget():

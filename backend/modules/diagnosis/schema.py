@@ -1,10 +1,11 @@
 import json
 import re
+from collections.abc import Callable
 from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, ValidationError
 
-from .errors import FactGuardError, InvalidOutputError
+from .errors import InvalidOutputError
 
 Content = Annotated[
     str, StringConstraints(strict=True, strip_whitespace=True, min_length=1, max_length=3000)
@@ -32,7 +33,12 @@ class DiagnosisDetail(StrictModel):
     risks: list[Content] = Field(min_length=1, max_length=10)
 
 
-def parse_detail(raw: str, resume_text: str) -> DiagnosisDetail:
+FILTER_WARNING = "部分 STAR 改写因事实保护未展示，请以原简历事实为准。"
+
+
+def parse_detail(
+    raw: str, resume_text: str, *, on_filtered: Callable[[dict[str, int]], None] | None = None
+) -> DiagnosisDetail:
     if not isinstance(raw, str) or not raw.strip() or len(raw) > 64000:
         raise InvalidOutputError("模型输出为空或过长")
     raw = raw.strip()
@@ -44,35 +50,26 @@ def parse_detail(raw: str, resume_text: str) -> DiagnosisDetail:
         detail = DiagnosisDetail.model_validate(json.loads(raw))
     except (ValueError, ValidationError, RecursionError):
         raise InvalidOutputError("模型输出不符合诊断 JSON 结构") from None
-    for index, rewrite in enumerate(detail.star_rewrites):
+    kept = []
+    counts = {"fact_guard_original": 0, "fact_guard_number": 0}
+    for rewrite in detail.star_rewrites:
         if rewrite.original not in resume_text:
-            raise FactGuardError(
-                "STAR 原文必须来自输入简历",
-                reason="original_not_in_resume",
-                diagnostics={
-                    "rewrite_index": index,
-                    # Diagnostic only: neither normalization changes acceptance.
-                    "line_endings_only": rewrite.original.replace("\r\n", "\n")
-                    in resume_text.replace("\r\n", "\n"),
-                    "whitespace_only": " ".join(rewrite.original.split())
-                    in " ".join(resume_text.split()),
-                },
-            )
+            counts["fact_guard_original"] += 1
+            continue
 
-        # Guard unsupported Arabic numbers, including percentages and durations.
-        # This is a guardrail, not proof of factual accuracy; human review remains necessary.
+        # Keep the existing per-original Arabic-number rule unchanged.
         def numbers(text):
             return set(re.findall(r"\d+(?:\.\d+)?%?", text))
 
         if not numbers(rewrite.optimized).issubset(numbers(rewrite.original)):
-            added = numbers(rewrite.optimized) - numbers(rewrite.original)
-            raise FactGuardError(
-                "STAR 改写包含原文未提供的数字",
-                reason="unsupported_number",
-                diagnostics={
-                    "rewrite_index": index,
-                    "unsupported_number_count": len(added),
-                    "numbers_elsewhere_in_resume": added.issubset(numbers(resume_text)),
-                },
-            )
+            counts["fact_guard_number"] += 1
+            continue
+        kept.append(rewrite)
+    detail.star_rewrites = kept
+    if any(counts.values()):
+        # Preserve all model risks. The optional notice must not exceed schema limits.
+        if len(detail.risks) < 10 and FILTER_WARNING not in detail.risks:
+            detail.risks.append(FILTER_WARNING)
+        if on_filtered is not None:
+            on_filtered(counts)
     return detail
