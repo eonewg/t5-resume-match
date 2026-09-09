@@ -41,9 +41,9 @@ timeout、429、上游 5xx、401/403、配置、JSON、schema 和事实守卫错
 
 用户原文按收到的换行和空格保存为 [stefano-user.txt](../../tests/resume/fixtures/stefano-user.txt)，2906 字符。其教育和成果是用户提供的表述，不代表本项目独立核实其真实性。
 
-真实评测命令：`python -m tests.resume.evaluate_ai`。输出默认写入忽略目录 `.verification/resume-ai-evaluation`，仅记录样本标识、输入哈希、模型/协议、耗时、校验后的字段或安全错误码；成功状态仍为 `extracted_pending_semantic_review`。必须逐项核对姓名、教育、技能 precision/recall、经历、数字归属和幻觉后才能验收。
+本次隐私受限验收使用 `tests/resume/accept_once.py`：先内存脱敏，默认仅预检；执行需明确授权，并以排他台账限制五份各一次。结果仅保留统计与必要短片段，不保存完整输入/模型输出。旧 `evaluate_ai.py` 的完整字段输出不用于本次授权。必须把候选内容质量与生产 Parser 是否成功分别记录。
 
-当前已完成的验证：
+实现基线 `0545b26` 已完成的验证（本次评测不改生产代码）：
 
 - 全量 Python：489 passed，含本地真实 PostgreSQL/pgvector，无跳过；现有两条依赖弃用警告。
 - Resume：原有 45 项 + AI 协议/守卫 46 项 + API 集成 21 项。文件安全用例全部保留。
@@ -54,6 +54,6 @@ timeout、429、上游 5xx、401/403、配置、JSON、schema 和事实守卫错
 
 测试隔离调整仅针对 Resume 依赖：旧解析用例显式选择 OfflineResumeService；原 Diagnosis 协议验收和 Jobs PostgreSQL 缓存测试的 Resume 前置步骤由公共测试 fixture 隔离，D 文件未修改。单元/集成测试默认禁止未注入的 Resume 网络调用，避免本地 `.env` 影响离线结果。`check_member resume` 默认只检查公开签名，真实调用需 `--live`；数据库冒烟使用确认字段。没有更改 CI 工作流、分支白名单或 D 业务实现。
 
-真实五样本及复杂原文浏览器验收尚未完成：首轮学生样本调用超时，后续数据发送被自动审批要求补充接收方授权，正在等待确认。逐样本状态和已完成的复杂原文失败恢复检查见 [实际评测记录](evaluation-results.md)。不得据上述离线结果宣称本轮质量验收完成。
+用户已明确授权指定接收方/模型上的五份脱敏纯文本各一次，本次五次已执行完：**0/5 被 Parser 接受，全部被事实守卫拒绝，真实质量验收未通过**。发现技能分组/复合表达误拒、“执行计划”误判为学习计划，以及项目技术遗漏。见 [实际评测记录](evaluation-results.md) 和 [统计](one-shot-results.json)。本轮新增脱敏预检回归 1 项通过，Ruff 通过；没有追加模型请求，未执行会增加调用次数的浏览器实时链路。本次授权已用完。
 
 继续更新 PR #10（feat/ui-polish-a → feat/core-a），不自动合并，不修改 main 或 D 的 reliability 分支。
