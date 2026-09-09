@@ -52,18 +52,18 @@ node scripts/check_frontend.mjs
 
 smoke 会新建一份演示简历、一个岗位及匹配/诊断记录，然后读回验证。自动化测试使用独立临时数据库，不改演示数据库。
 
-手动操作顺序：`POST /api/v1/resumes/parse` → `POST /api/v1/jobs` → 将返回的两个 ID 传给 `POST /api/v1/workflow` → `GET /api/v1/analytics`。具体输入见 [接口契约](docs/api-contract.md)。`/health` 检查应用和数据库；默认 `/ready` 返回 503，表示真实业务模块尚未全部配置，不代表 Mock 演示无法启动。
+手动操作顺序：`POST /api/v1/resumes/parse` → `POST /api/v1/jobs` → 将返回的两个 ID 传给 `POST /api/v1/workflow` → `GET /api/v1/analytics`。具体输入见 [接口契约](docs/api-contract.md)。`/health` 检查应用和数据库；`/ready` 检查是否仍接入 Mock；正式运行请配置真实模型凭据，演示 provider 必须显式选择。
 
 ## 配置与模块接入
 
-需要修改配置时复制 `.env.example` 为 `.env`；不复制也能启动。环境变量优先于 `.env`。Resume/Jobs/Analytics 默认使用真实 provider，Diagnosis 仍为 Mock。旧 `.env` 若显式将 Jobs 或 Analytics 设置为 mock，需改为下表正式入口；不会静默覆盖用户配置。类实现 [ports.py](backend/core/ports.py) 中同步接口，构造函数无参数。
+需要修改配置时复制 `.env.example` 为 `.env`；不复制也能启动。环境变量优先于 `.env`。Resume/Jobs/Diagnosis/Analytics 默认使用真实 provider。旧 `.env` 若显式将任一模块设置为 mock，需改为下表正式入口；不会静默覆盖用户配置。类实现 [ports.py](backend/core/ports.py) 中同步接口，构造函数无参数。
 
 | 环境变量 | 默认值 | 用途 |
 | --- | --- | --- |
 | `T5_DATABASE_URL` | `sqlite:///data/t5.db` | 公共数据库；相对路径按项目根目录解析 |
-| `T5_RESUME_PROVIDER` | `backend.modules.resume.public:ResumeService` | A，保守规则解析，缺失信息留空 |
+| `T5_RESUME_PROVIDER` | `backend.modules.resume.public:ResumeService` | A，AI 结构化抽取，核对后保存 |
 | `T5_JOBS_PROVIDER` | `backend.modules.jobs.public:JobsService` | D，JD 关键词解析与匹配，正式入口 `/#jobs` |
-| `T5_DIAGNOSIS_PROVIDER` | `mock` | D，诊断；真实实现 `backend.modules.diagnosis.public:DiagnosisService` |
+| `T5_DIAGNOSIS_PROVIDER` | `backend.modules.diagnosis.public:DiagnosisService` | D，真实诊断；仅显式设置 `mock` 时使用演示 |
 | `T5_DIAGNOSIS_API_KEY` | 空 | 真实诊断密钥，仅服务端；不提交 Git |
 | `T5_DIAGNOSIS_LLM_VENDOR` | `deepseek` | openai / anthropic / deepseek / qwen / custom |
 | `DEEPSEEK_API_KEY` | 空 | 仅 deepseek 的旧配置兼容入口 |

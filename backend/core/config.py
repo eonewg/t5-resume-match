@@ -10,5 +10,5 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///data/t5.db"
     resume_provider: str = "backend.modules.resume.public:ResumeService"
     jobs_provider: str = "backend.modules.jobs.public:JobsService"
-    diagnosis_provider: str = "mock"
+    diagnosis_provider: str = "backend.modules.diagnosis.public:DiagnosisService"
     analytics_provider: str = "backend.modules.analytics.public:AnalyticsService"
