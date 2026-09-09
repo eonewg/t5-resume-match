@@ -1,6 +1,6 @@
 # A：平台、Resume、Analytics、数据库与最终交付
 
-固定分支：`feat/core-a`。遵守 [协作规则](../team-rules.md) 和 [T5 需求](../../T5_REQUIREMENTS_MATRIX.md)。
+当前从最新 main 创建维护分支，PR 指向 main；不要求 owner 后缀。遵守 [协作规则](../team-rules.md) 和 [T5 需求](../../T5_REQUIREMENTS_MATRIX.md)。
 
 ## 责任范围
 
@@ -37,4 +37,4 @@ D 业务错误写明文件、复现与预期并交 D 修复；公共兼容问题
 
 执行 uv sync --locked、完整 pytest、Ruff check/format 和 node scripts/check_frontend.mjs；另外真实验证 PostgreSQL/pgvector、模型输出、浏览器 E2E、README 和 clean clone / fresh install，检查 .env.example 不含密钥。
 
-只有满足 [系统门槛](../acceptance.md#最终系统门槛) 后，才通过 feat/core-a → main PR 最终交付。收尾给出分支、commit、文件、验收/集成状态、验证结果及真实限制。
+最终集成已经完成，历史 [系统门槛](../acceptance.md#最终系统门槛) 与验收记录保留。维护 PR 按变更范围验证后指向 main，不自动合并。收尾给出分支、commit、文件、验收/集成状态、验证结果及真实限制。

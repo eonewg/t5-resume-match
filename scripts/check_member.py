@@ -6,7 +6,6 @@ Diagnosis is offline by default; --live explicitly permits a real diagnosis requ
 """
 
 import argparse
-import os
 import subprocess
 import sys
 import tempfile
@@ -30,7 +29,7 @@ from backend.schemas.contracts import (
     TextInput,
 )
 from examples.fixtures import load_cases
-from scripts.member_specs import D_UI_BRANCH, MODULES, OWNER_MODULES, branch_owner
+from scripts.member_specs import MODULES
 
 
 class CheckFailure(Exception):
@@ -178,17 +177,9 @@ def run_module_tests(module, *, timeout):
     run([sys.executable, "-m", "pytest", "tests/core", "-q"], timeout=timeout)
 
 
-def ci_modules(ref: str, root=ROOT):
-    if ref == D_UI_BRANCH:
-        # UI uses all four existing contracts; this grants no backend edit permission.
-        return list(MODULES)
-    owner = branch_owner(ref)
-    if owner == "D":
-        # Require both deliveries even if one module has not been created yet.
-        return list(OWNER_MODULES["D"])
-    if ref == "main" or owner == "A":
-        return [key for key, spec in MODULES.items() if (root / f"backend/modules/{key}").exists()]
-    raise CheckFailure(f"未知 owner 分支 {ref}，请使用团队约定的分支名 feat/*-a 或 feat/*-d")
+def ci_modules():
+    """All delivered modules are required; branch policy belongs to check_scope."""
+    return list(MODULES)
 
 
 def main(argv=None):
@@ -203,7 +194,7 @@ def main(argv=None):
     )
     parser.add_argument("--timeout", type=int, default=45, help="公开调用总时限，默认 45 秒")
     parser.add_argument(
-        "--ci", action="store_true", help="CI 已运行完整 pytest 后，检查分支对应入口"
+        "--ci", action="store_true", help="CI 已运行完整 pytest 后，检查全部四模块入口"
     )
     parser.add_argument("--_probe", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
@@ -213,11 +204,7 @@ def main(argv=None):
             not args.examples and not args.live and not args.provider and not args.module,
             "--ci 不与模块/示例/真实 AI 参数混用",
         )
-        ref = os.environ.get("GITHUB_HEAD_REF") or os.environ.get("GITHUB_REF_NAME", "")
-        modules = ci_modules(ref)
-        if not modules:
-            print("CI: 尚无业务模块，公共骨架检查不代表模块交付。")
-        for module in modules:
+        for module in ci_modules():
             module_tests_exist(module)
             run_probe(module, args)
         return 0

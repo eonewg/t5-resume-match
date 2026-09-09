@@ -1,6 +1,6 @@
 # 模块开发与交付
 
-先阅读 [团队约定](team-rules.md)。A/D 分支及基线见 [上手说明](team-onboarding.md)，个人 AGENTS.md 仍只留本地。验收和公开自检按 Resume、Jobs/Matching、Diagnosis、Analytics 四模块命名。
+先阅读 [团队约定](team-rules.md)。main 维护基线见 [上手说明](team-onboarding.md)，个人 AGENTS.md 仍只留本地。验收和公开自检按 Resume、Jobs/Matching、Diagnosis、Analytics 四模块命名。
 
 ## 公开入口
 
@@ -33,14 +33,14 @@ MODULE_CHECK_PASS 仅表示自动自检通过，不替代 T5 功能、效果与�
 
 ## 范围与 CI
 
-D 在自己的分支运行：
+可选的本地 D-owner 自检（保留开发期模块路径约束）：
 
 ```powershell
 git fetch origin
-uv run --locked python -m scripts.check_scope D
+uv run --locked python -m scripts.check_scope D --base origin/main
 ```
 
-检查 `origin/feat/core-a...HEAD` 已提交变化；允许 jobs/diagnosis 后端、前端、测试及 D 集成请求，不允许公共文件。A 的公共/resume/analytics 变更由审查验收，不套用 D 的目录限制。范围检查不是敏感信息扫描，也不包含未提交文件。
+默认检查 `origin/main...HEAD` 已提交变化，`--base` 可指定已有历史 ref；允许 jobs/diagnosis 后端、前端、测试及 D 集成请求，不允许公共文件。现代维护 PR 不套用 D 的目录限制；该命令仅用于主动选择的本地自检。范围检查不是敏感信息扫描，也不包含未提交文件。
 
 共同检查：
 
@@ -51,7 +51,11 @@ uv run --locked ruff format --check backend tests scripts examples
 node scripts/check_frontend.mjs
 ```
 
-CI 监听 main、feat/core-a、feat/intelligence-d 的 push 和所有 PR，运行 Windows/Ubuntu × Python 3.11/3.13。D 分支必须同时有 jobs/diagnosis 入口和测试；缺一个就失败。A/main 检查已存在模块，缺失模块仍需台账记录，不能视为最终完成。不符合 A/D 分支约定的 PR 被拒绝；D PR base 必须是 feat/core-a，最终 PR 只能由 A 指向 main。
+CI 监听 main 与 `feat/*`、`fix/*`、`chore/*`、`docs/*`、`test/*`、`refactor/*` 的 push 和所有 PR。
+PR 目标必须为 main；不要求 A/D owner 或后缀。`check_scope --ci` 扫描全部 Git 跟踪文件，
+拒绝 `.env`、`__pycache__`、`.pyc`、`.db` 及超过 5 MiB 的文件，Git 读取失败也明确失败。
+Windows/Ubuntu × Python 3.11/3.13 执行完整测试；`check_member --ci` 始终要求四模块入口和测试存在，
+Resume/Diagnosis 不构造付费模型实例、不调用 AI。PostgreSQL job 保留迁移、完整回归和 smoke。
 
 Node 22+ 仅用于前端检查，自动发现公共与模块的 `*.test.mjs`；运行系统无需 Node。UI 见 [前端接入](frontend-integration.md)。
 

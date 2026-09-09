@@ -4,12 +4,12 @@
 
 ## 一键运行
 
-下列命令获取当前 A 集成基线；D 从最新 origin/feat/core-a 创建 feat/intelligence-d，具体见 [上手说明](docs/team-onboarding.md)。最终稳定交付仅通过 feat/core-a → main PR 完成。
+下列命令获取默认 main 分支。项目已进入交付后维护：从 main 创建 `feat/*`、`fix/*`、`chore/*`、`docs/*`、`test/*` 或 `refactor/*` 分支，PR 指向 main，无需 A/D 后缀。CI 保留交付禁项与四模块检查，详见 [当前协作流程](docs/team-rules.md)。
 
-需要 Git、Python 3.11–3.13（已验证 3.13.5）和 [uv](https://docs.astral.sh/uv/getting-started/installation/)。首次安装需要联网；当前 SQLite/Mock 演示不需要数据库服务或 AI 密钥，最终 PostgreSQL/pgvector 与真实诊断验证需要相应服务和配置。
+需要 Git、Python 3.11–3.13（已验证 3.13.5）和 [uv](https://docs.astral.sh/uv/getting-started/installation/)。首次安装需要联网；默认 SQLite 启动不需要数据库服务或 AI 密钥；AI 功能需要配置下述官方 DeepSeek 密钥。
 
 ```powershell
-git clone --branch feat/core-a https://github.com/eonewg/t5-resume-match.git
+git clone https://github.com/eonewg/t5-resume-match.git
 cd t5-resume-match
 powershell -ExecutionPolicy Bypass -File .\start.ps1
 ```
@@ -56,6 +56,10 @@ smoke 会新建一份演示简历、一个岗位及匹配/诊断记录，然后�
 
 ## 配置与模块接入
 
+正式 AI 配置统一为 **DeepSeek 官方 `deepseek-v4-flash`**，Base URL 为 `https://api.deepseek.com`，使用 OpenAI Chat Completions 与 `response_format={"type":"json_object"}`。普通用户仅需在本地 `.env` 配置一次 `DEEPSEEK_API_KEY`，即可驱动 Resume + Diagnosis。
+
+密钥仅保存在本地，`.env` 不提交 Git。`T5_RESUME_LLM_API_KEY`、`T5_DIAGNOSIS_API_KEY` 可分别覆盖共享密钥。没有 Key 仍能启动，需要 AI 的功能返回明确配置错误；不会静默回退到 Mock、Ling 或 SiliconFlow。Resume 显式关闭 thinking；Diagnosis 沿用非思考默认，尊重显式配置的受支持 reasoning effort。配置与本轮验证见 [Provider 迁移说明](docs/current-provider.md)。
+
 需要修改配置时复制 `.env.example` 为 `.env`；不复制也能启动。环境变量优先于 `.env`。Resume/Jobs/Diagnosis/Analytics 默认使用真实 provider。旧 `.env` 若显式将任一模块设置为 mock，需改为下表正式入口；不会静默覆盖用户配置。类实现 [ports.py](backend/core/ports.py) 中同步接口，构造函数无参数。
 
 | 环境变量 | 默认值 | 用途 |
@@ -66,7 +70,7 @@ smoke 会新建一份演示简历、一个岗位及匹配/诊断记录，然后�
 | `T5_DIAGNOSIS_PROVIDER` | `backend.modules.diagnosis.public:DiagnosisService` | D，真实诊断；仅显式设置 `mock` 时使用演示 |
 | `T5_DIAGNOSIS_API_KEY` | 空 | 真实诊断密钥，仅服务端；不提交 Git |
 | `T5_DIAGNOSIS_LLM_VENDOR` | `deepseek` | openai / anthropic / deepseek / qwen / custom |
-| `DEEPSEEK_API_KEY` | 空 | 仅 deepseek 的旧配置兼容入口 |
+| `DEEPSEEK_API_KEY` | 空 | Resume + Diagnosis 共用的官方 DeepSeek 密钥 |
 | `T5_DIAGNOSIS_MODEL` | `deepseek-v4-flash` | D 专用，模型名 |
 | `T5_ANALYTICS_PROVIDER` | `backend.modules.analytics.public:AnalyticsService` | A，来源/日期筛选下的技能与薪资样本统计 |
 
@@ -90,8 +94,8 @@ PostgreSQL/pgvector 依赖已进入默认锁定依赖。启动、迁移、原生
 
 `doc/` 为本地原始教学资料，保留但未上传；`.env`、本地数据库和虚拟环境也不进入 Git。
 
-## 最终交付准备
+## 最终交付记录
 
-PR #8 已合入 feat/core-a，merge 为 `a41a31d22dac3b31cb7cac8303f63cdd799ecab4`。安装、完整回归与真实调用结果见 [最终安装记录](docs/final/fresh-install.md)，五页演示见 [演示脚本](docs/final/demo-script.md)。另见 [补充 STAR 验证](docs/final/star-supplement.md)与[竞品人工体验及调研](docs/competitor-analysis.md)：补充两次请求失败、无可评改写；2026-09-09 用户提供的两款人工体验已归档。最终 [PR #9](https://github.com/eonewg/t5-resume-match/pull/9) 已 Ready for review，最终两项复验 PASS，判定 **READY FOR FINAL MERGE**，不自动合 main。见 [交付状态与已知限制](docs/final/delivery-status.md)、[独立 AI 盲评](docs/final/ai-evaluation.md)、[新增真实 JD / 薪资说明](data/market/2026-09-08/README.md)。新增五份摘要通过 `uv run --locked python -m scripts.import_final_samples --apply` 导入，和默认五份 Canonical 快照合计十条、六家雇主。
+PR #8 已合入 feat/core-a，merge 为 `a41a31d22dac3b31cb7cac8303f63cdd799ecab4`。安装、完整回归与真实调用结果见 [最终安装记录](docs/final/fresh-install.md)，五页演示见 [演示脚本](docs/final/demo-script.md)。另见 [补充 STAR 验证](docs/final/star-supplement.md)与[竞品人工体验及调研](docs/competitor-analysis.md)：补充两次请求失败、无可评改写；2026-09-09 用户提供的两款人工体验已归档。最终 [PR #9](https://github.com/eonewg/t5-resume-match/pull/9) 已于 2026-09-09 合入 main。合并前最终两项复验 PASS，历史判定 **READY FOR FINAL MERGE** 保留在对应记录中。见 [交付状态与已知限制](docs/final/delivery-status.md)、[独立 AI 盲评](docs/final/ai-evaluation.md)、[新增真实 JD / 薪资说明](data/market/2026-09-08/README.md)。新增五份摘要通过 `uv run --locked python -m scripts.import_final_samples --apply` 导入，和默认五份 Canonical 快照合计十条、六家雇主。
 
 最终应用重启一致性与十条市场统计复验、615 项 Python / 77 项 frontend 及 PostgreSQL 回归见 [最终两项复验](docs/final/final-recheck.md)。本轮只收口文档与证据，已知产品限制保留。

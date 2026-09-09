@@ -1,3 +1,4 @@
+import subprocess
 import sys
 import types
 
@@ -116,14 +117,11 @@ def test_resume_offline_probe_never_constructs_or_calls_service(monkeypatch):
     assert probe("resume", module_with(monkeypatch, PaidService)).startswith("OFFLINE")
 
 
-def test_ci_requires_target_member_even_when_missing(tmp_path):
-    assert ci_modules("feat/intelligence-d", tmp_path) == ["jobs", "diagnosis"]
-    assert ci_modules("feat/diagnosis-llm-d", tmp_path) == ["jobs", "diagnosis"]
-    assert ci_modules("feat/core-a", tmp_path) == []
-    with pytest.raises(CheckFailure, match="缺少"):
-        module_tests_exist("resume", tmp_path)
-    with pytest.raises(CheckFailure, match="未知 owner 分支"):
-        ci_modules("feat/typo", tmp_path)
+def test_ci_requires_all_modules_even_when_missing(tmp_path):
+    assert ci_modules() == list(MODULES)
+    for module in MODULES:
+        with pytest.raises(CheckFailure, match="缺少"):
+            module_tests_exist(module, tmp_path)
 
 
 def test_scope_rejects_cross_module_and_root_changes():
@@ -138,9 +136,11 @@ def test_scope_rejects_cross_module_and_root_changes():
     assert violations("D", ["backend/modules/jobs/.env"])
 
 
-def test_unassigned_branch_cannot_pass_ci(tmp_path):
-    with pytest.raises(CheckFailure, match="未知 owner 分支"):
-        ci_modules("feat/unassigned", tmp_path)
+def test_branch_policy_is_separate_from_contract_checks():
+    from scripts.check_scope import ci_gate
+
+    assert ci_gate("random", "main")
+    assert ci_modules() == list(MODULES)
 
 
 @pytest.mark.parametrize(
@@ -168,38 +168,49 @@ def test_branch_owner_follows_naming_convention(branch, expected):
 
 
 @pytest.mark.parametrize(
-    ("source", "target", "expected"),
+    "source,target",
     [
-        ("feat/ui-polish-a", "main", 1),
-        ("feat/resume-ai-a", "main", 1),
-        ("feat/final-qa-a", "main", 1),
-        ("feat/diagnosis-reliability-d", "main", 1),
-        ("feat/jobs-ranking-d", "main", 1),
-        ("feature/ui-a", "feat/core-a", 1),
-        ("fix/test-d", "feat/core-a", 1),
-        ("feat/foo", "main", 1),
-        ("random", "feat/core-a", 1),
-        ("", "feat/core-a", 1),
+        ("chore/foo", "feat/core-a"),
+        ("feat/foo", "develop"),
+        ("main", "main"),
+        ("feature/foo", "main"),
+        ("random", "main"),
+        ("", "main"),
+        ("refs/tags/v1", ""),
+        ("--help", "main"),
+        ("feat/", "main"),
+        ("fix/../main", "main"),
+        ("docs/foo.lock", "main"),
+        ("test/foo bar", "main"),
+        ("chore/foo\nbar", "main"),
+        ("refactor/foo@{bar}", "main"),
     ],
 )
-def test_ci_rejects_wrong_pr_target_and_unknown_names(monkeypatch, source, target, expected):
-    from scripts.check_scope import main
+def test_ci_rejects_wrong_target_and_unsupported_refs(source, target):
+    from scripts.check_scope import ci_gate
 
-    monkeypatch.setenv("GITHUB_HEAD_REF", source)
-    monkeypatch.setenv("GITHUB_REF_NAME", source)
-    monkeypatch.setenv("GITHUB_BASE_REF", target)
-    monkeypatch.setattr(sys, "argv", ["check_scope", "--ci"])
-    assert main() == expected
+    assert ci_gate(source, target)
 
 
-@pytest.mark.parametrize("source", ["feat/ui-polish-a", "feat/resume-ai-a", "feat/final-qa-a"])
-def test_a_feature_pr_targets_core_a(monkeypatch, source):
-    from scripts.check_scope import main
+@pytest.mark.parametrize(
+    "source",
+    [
+        "chore/foo",
+        "fix/foo",
+        "feat/foo",
+        "docs/foo",
+        "test/foo",
+        "refactor/foo",
+        "feat/ui-polish-a",
+        "feat/jobs-ranking-d",
+        "fix/nested/topic",
+    ],
+)
+@pytest.mark.parametrize("target", ["main", ""])
+def test_maintenance_branches_pass_without_owner_suffix(source, target):
+    from scripts.check_scope import ci_gate
 
-    monkeypatch.setenv("GITHUB_HEAD_REF", source)
-    monkeypatch.setenv("GITHUB_BASE_REF", "feat/core-a")
-    monkeypatch.setattr(sys, "argv", ["check_scope", "--ci"])
-    assert main() == 0
+    assert ci_gate(source, target) == ""
 
 
 @pytest.mark.parametrize("source", ["feat/intelligence-d", "feat/diagnosis-reliability-d"])
@@ -215,9 +226,8 @@ def test_a_feature_pr_targets_core_a(monkeypatch, source):
 def test_new_d_branches_keep_same_scope(monkeypatch, source, path, expected):
     from scripts import check_scope
 
-    monkeypatch.setenv("GITHUB_HEAD_REF", source)
-    monkeypatch.setenv("GITHUB_BASE_REF", "feat/core-a")
-    monkeypatch.setattr(sys, "argv", ["check_scope", "--ci"])
+    monkeypatch.setattr(check_scope.subprocess, "check_output", lambda *a, **k: source + "\n")
+    monkeypatch.setattr(sys, "argv", ["check_scope", "D", "--base", "origin/main"])
     monkeypatch.setattr(
         check_scope.subprocess,
         "run",
@@ -226,40 +236,39 @@ def test_new_d_branches_keep_same_scope(monkeypatch, source, path, expected):
     assert check_scope.main() == expected
 
 
-def test_ci_modules_follows_branch_naming(tmp_path):
-    assert ci_modules("feat/ui-polish-a", tmp_path) == []
-    assert ci_modules("feat/jobs-ranking-d", tmp_path) == ["jobs", "diagnosis"]
-    assert ci_modules("feat/diagnosis-reliability-d", tmp_path) == ["jobs", "diagnosis"]
-    with pytest.raises(CheckFailure, match="未知 owner 分支"):
-        ci_modules("feat/typo", tmp_path)
+@pytest.mark.parametrize("source", ["main", "chore/foo", "feat/jobs-ranking-d"])
+def test_ci_contract_cli_checks_all_modules(monkeypatch, source):
+    from scripts import check_member
+
+    monkeypatch.setenv("GITHUB_REF_NAME", source)
+    calls = []
+    monkeypatch.setattr(
+        check_member, "module_tests_exist", lambda key: calls.append(("tests", key))
+    )
+    monkeypatch.setattr(check_member, "run_probe", lambda key, args: calls.append(("probe", key)))
+    assert check_member.main(["--ci"]) == 0
+    assert calls == [(kind, key) for key in MODULES for kind in ("tests", "probe")]
 
 
-@pytest.mark.parametrize(
-    ("source", "target", "expected"),
-    [
-        ("feat/intelligence-d", "main", 1),
-        ("feat/diagnosis-llm-d", "main", 1),
-        ("feat/diagnosis-llm-d", "feat/intelligence-d", 1),
-        ("feat/diagnosis-llm-d-typo", "feat/core-a", 1),
-        ("feat/typo", "feat/core-a", 1),
-        ("feat/core-a", "main", 0),
-        ("main", "feat/core-a", 1),
-    ],
-)
-def test_ci_pr_direction(monkeypatch, source, target, expected):
-    from scripts.check_scope import main
+def test_main_push_does_not_require_owner():
+    from scripts.check_scope import ci_gate
 
-    monkeypatch.setenv("GITHUB_HEAD_REF", source)
-    monkeypatch.setenv("GITHUB_BASE_REF", target)
-    monkeypatch.setattr(sys, "argv", ["check_scope", "--ci"])
-    assert main() == expected
+    assert ci_gate("main", "") == ""
 
 
-def test_d_ci_checks_both_modules_even_if_only_diagnosis_exists(tmp_path):
-    (tmp_path / "backend/modules/diagnosis").mkdir(parents=True)
-    assert ci_modules("feat/intelligence-d", tmp_path) == ["jobs", "diagnosis"]
-    assert ci_modules("feat/diagnosis-llm-d", tmp_path) == ["jobs", "diagnosis"]
-    assert ci_modules("feat/core-a", tmp_path) == ["diagnosis"]
+def test_contract_cli_does_not_skip_missing_modules(monkeypatch):
+    from scripts import check_member
+
+    calls = []
+
+    def missing(key):
+        calls.append(key)
+        raise CheckFailure("缺少模块测试")
+
+    monkeypatch.setattr(check_member, "module_tests_exist", missing)
+    with pytest.raises(CheckFailure, match="缺少"):
+        check_member.main(["--ci"])
+    assert calls == ["resume"]
 
 
 def test_owner_mapping_covers_current_modules():
@@ -294,9 +303,10 @@ def test_owner_mapping_covers_current_modules():
 def test_ui_branch_has_separate_scope(monkeypatch, path, expected):
     from scripts import check_scope
 
-    monkeypatch.setenv("GITHUB_HEAD_REF", "feat/ui-refresh-d")
-    monkeypatch.setenv("GITHUB_BASE_REF", "feat/core-a")
-    monkeypatch.setattr(sys, "argv", ["check_scope", "--ci"])
+    monkeypatch.setattr(
+        check_scope.subprocess, "check_output", lambda *a, **k: "feat/ui-refresh-d\n"
+    )
+    monkeypatch.setattr(sys, "argv", ["check_scope", "D", "--base", "origin/main"])
     monkeypatch.setattr(
         check_scope.subprocess,
         "run",
@@ -305,20 +315,15 @@ def test_ui_branch_has_separate_scope(monkeypatch, path, expected):
     assert check_scope.main() == expected
 
 
-def test_ui_branch_preserves_all_contract_gates(tmp_path):
-    assert ci_modules("feat/ui-refresh-d", tmp_path) == list(MODULES)
+def test_ui_branch_preserves_all_contract_gates():
+    assert ci_modules() == list(MODULES)
     assert not allowed_path("D", "frontend/src/app.js", "feat/intelligence-d")
-    with pytest.raises(CheckFailure):
-        ci_modules("feat/ui-refresh-d-typo", tmp_path)
 
 
-def test_ui_branch_cannot_target_main(monkeypatch):
-    from scripts import check_scope
+def test_legacy_ui_branch_can_target_main():
+    from scripts.check_scope import ci_gate
 
-    monkeypatch.setenv("GITHUB_HEAD_REF", "feat/ui-refresh-d")
-    monkeypatch.setenv("GITHUB_BASE_REF", "main")
-    monkeypatch.setattr(sys, "argv", ["check_scope", "--ci"])
-    assert check_scope.main() == 1
+    assert ci_gate("feat/ui-refresh-d", "main") == ""
 
 
 @pytest.mark.parametrize("source", ["feat/intelligence-d", "feat/diagnosis-llm-d"])
@@ -328,9 +333,8 @@ def test_ui_branch_cannot_target_main(monkeypatch):
 def test_d_branches_keep_same_scope(monkeypatch, source, path, expected):
     from scripts import check_scope
 
-    monkeypatch.setenv("GITHUB_HEAD_REF", source)
-    monkeypatch.setenv("GITHUB_BASE_REF", "feat/core-a")
-    monkeypatch.setattr(sys, "argv", ["check_scope", "--ci"])
+    monkeypatch.setattr(check_scope.subprocess, "check_output", lambda *a, **k: source + "\n")
+    monkeypatch.setattr(sys, "argv", ["check_scope", "D", "--base", "origin/main"])
     monkeypatch.setattr(
         check_scope.subprocess,
         "run",
@@ -359,3 +363,63 @@ def test_invalid_transactional_jobs_hook_rejected(monkeypatch, invalid):
     ]
     with pytest.raises(TypeError):
         provider_class("jobs", module_with(monkeypatch, Jobs))
+
+
+@pytest.mark.parametrize(
+    "source,target", [("main", ""), ("chore/foo", "main"), ("feat/foo", "main")]
+)
+def test_ci_checks_all_tracked_files_without_old_base(monkeypatch, tmp_path, source, target):
+    from scripts import check_scope
+
+    def git(*args):
+        subprocess.run(["git", *args], cwd=tmp_path, check=True, capture_output=True)
+
+    git("init")
+    # No commits, origin or legacy base exist. CI still checks the entire index.
+    (tmp_path / "README.md").write_text("maintenance")
+    (tmp_path / ".env").write_text("fixture-only")
+    git("add", "README.md")
+    monkeypatch.setattr(check_scope, "ROOT", tmp_path)
+    monkeypatch.setenv("GITHUB_HEAD_REF", source if target else "")
+    monkeypatch.setenv("GITHUB_REF_NAME", source if not target else "14/merge")
+    monkeypatch.setenv("GITHUB_BASE_REF", target)
+    monkeypatch.setattr(sys, "argv", ["check_scope", "--ci"])
+    assert check_scope.main() == 0  # Untracked local .env is not a delivery.
+    git("add", "-f", ".env")
+    assert check_scope.main() == 1
+    git("rm", "--cached", ".env")
+    assert check_scope.main() == 0
+
+
+@pytest.mark.parametrize(
+    "path", [".env", "nested/.env", "nested/__pycache__/cache", "nested/a.pyc", "data/local.db"]
+)
+@pytest.mark.parametrize("owner", [None, "D"])
+def test_delivery_prohibitions_apply_without_owner(path, owner):
+    assert any("不应交付" in error for error in violations(owner, [path]))
+
+
+def test_delivery_size_limit_applies_without_owner(monkeypatch, tmp_path):
+    from scripts import check_scope
+
+    monkeypatch.setattr(check_scope, "ROOT", tmp_path)
+    path = tmp_path / "large.txt"
+    with path.open("wb") as stream:
+        stream.truncate(5 * 1024 * 1024)
+    assert violations(None, [path.name]) == []
+    with path.open("ab") as stream:
+        stream.write(b"x")
+    assert any("5 MiB" in error for error in violations(None, [path.name]))
+
+
+def test_ci_git_failure_is_not_success(monkeypatch):
+    from scripts import check_scope
+
+    monkeypatch.setenv("GITHUB_HEAD_REF", "")
+    monkeypatch.setenv("GITHUB_REF_NAME", "main")
+    monkeypatch.setenv("GITHUB_BASE_REF", "")
+    monkeypatch.setattr(sys, "argv", ["check_scope", "--ci"])
+    monkeypatch.setattr(
+        check_scope.subprocess, "run", lambda *a, **k: types.SimpleNamespace(returncode=1)
+    )
+    assert check_scope.main() == 1

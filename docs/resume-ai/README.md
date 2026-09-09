@@ -14,23 +14,25 @@ PDF 文本层、DOCX 正文/表格、UTF-8 TXT 先由原有安全适配器确定
 
 Prompt 明确只提取原文已有信息，不润色、不补充、不猜测；缺失信息留空。保留姓名、教育、技能、各段经历及日期数字，不将未完成或计划事项改成已完成事实，不添加建议。
 
-默认发送 JSON Schema structured output；显式配置 `json_object` 时仍只接受严格 JSON。拒绝 Markdown 包装、重复 JSON 键、NaN、不完整响应、额外字段与错误类型，前端不消费原始模型字符串。
+默认使用 DeepSeek 官方 JSON Output（`json_object`）；本地仍只接受严格 JSON。拒绝 Markdown 包装、重复 JSON 键、NaN、不完整响应、额外字段与错误类型，前端不消费原始模型字符串。
 
 生产流程已删除事实守卫及其字符串匹配、技能拆分、计划关键词和数字/文本相似度规则。合法 JSON 经字段类型及 ResumeData 校验后直接返回核对草稿；技能漏抽、合并表达或语义质量问题由用户核对，不使整份解析失败，也不阻断手动保存。不新增替代规则或 warning 判定器。
 
-流程：文件/文本 → 提取 raw_text → glm-5.2 结构化抽取（使用独立模型配置）→ Pydantic ResumeData 校验 → 用户核对 → 保存。strict JSON Schema 仍请求全部四字段；本地校验对省略字段提供空值，模型不得返回 raw_text。原始输入始终由服务端注入。
+流程：文件/文本 → 提取 raw_text → DeepSeek 官方 deepseek-v4-flash 结构化抽取→ Pydantic ResumeData 校验 → 用户核对 → 保存。Prompt 请求全部四字段；本地校验对省略字段提供空值，模型不得返回 raw_text。原始输入始终由服务端注入。
+
+官方 DeepSeek Chat 请求显式发送 `thinking={"type":"disabled"}`、`max_tokens=4096`。旧 custom Ling 配置仅保留显式兼容，不是正式默认或自动回退。
 
 ## 独立配置与错误处理
 
-所有配置均为 `T5_RESUME_` 前缀，在 `.env.example` 有示例。Resume 不导入 Diagnosis 的 service、prompt、config、transport 或 retry。
+模块配置为 `T5_RESUME_` 前缀，共享密钥为 `DEEPSEEK_API_KEY`，在 `.env.example` 有示例。Resume 不导入 Diagnosis 的 service、prompt、config、transport 或 retry。
 
 | 配置 | 含义 |
 | --- | --- |
 | AI_ENABLED | 默认 true；关闭时明确报错，不进入规则解析 |
-| LLM_VENDOR | 模型供应方标签 |
-| LLM_MODEL / LLM_API_KEY / LLM_BASE_URL | 独立模型、凭据、HTTPS 服务地址；不可留示例值用于真实演示 |
+| LLM_VENDOR | 默认 deepseek（官方） |
+| LLM_MODEL / LLM_API_KEY / LLM_BASE_URL | 默认 deepseek-v4-flash / 回退 DEEPSEEK_API_KEY / https://api.deepseek.com；模块密钥优先 |
 | API_STYLE | chat_completions 或 responses |
-| STRUCTURED_OUTPUT | 默认 json_schema，可显式改为 json_object；不自动降级 |
+| STRUCTURED_OUTPUT | 默认 json_object；legacy/custom 可显式使用 json_schema，不自动降级 |
 | LLM_TIMEOUT | 默认 30 秒，可配置至 120 秒；单次请求，无自动重试 |
 
 客户端 Resume 请求独立等待最多 150 秒，覆盖服务端允许的 120 秒及上传/响应开销；其他模块的超时设置保持原样。普通网络中断仍可能无法收到服务端已提取的文字，这种情况下需重新上传或粘贴，不能承诺断网时跨端原文交付。

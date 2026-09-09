@@ -1,7 +1,7 @@
-name: A-D module integration
+name: Maintenance CI
 on:
   push:
-    branches: [main, 'feat/**']
+    branches: [main, 'feat/**', 'fix/**', 'chore/**', 'docs/**', 'test/**', 'refactor/**']
   pull_request:
 permissions:
   contents: read
@@ -26,7 +26,7 @@ jobs:
         with:
           node-version: '22'
       - run: uv sync --locked
-      - name: Check owner branch and scope
+      - name: Check maintenance branch and delivery files
         run: uv run --locked python -m scripts.check_scope --ci
       - run: uv run --locked ruff check backend tests scripts examples
       - run: uv run --locked ruff format --check backend tests scripts examples

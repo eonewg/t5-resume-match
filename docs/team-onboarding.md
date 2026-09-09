@@ -1,35 +1,30 @@
-# 团队开发上手
+# 团队维护上手
 
-课程小组组织不变，主要代码 owner 为 A/D。先读 [T5 需求](../T5_REQUIREMENTS_MATRIX.md)、[两人分工](../T5_TWO_PERSON_ALLOCATION_STRICT.md)、[团队约定](team-rules.md) 和 [接口契约](api-contract.md)。
+PR #9 已合入 main。当前统一从最新 main 开始维护；旧 A/D 集成分支不再使用或恢复。
+功能与模块职责见 [T5 需求](../T5_REQUIREMENTS_MATRIX.md)、[A](roles/A.md)、[D](roles/D.md)，
+当前流程以 [团队约定](team-rules.md) 为准。
 
-## 统一基线
-
-A/D 使用最新 A 集成基线：
+## 获取与创建维护分支
 
 ```powershell
-git clone --branch feat/core-a https://github.com/eonewg/t5-resume-match.git
+git clone https://github.com/eonewg/t5-resume-match.git
 cd t5-resume-match
-git fetch origin
+git switch main
+git pull --ff-only origin main
+git status
+# 确认工作区干净后，按实际任务选择名称：
+git switch -c fix/your-topic
 ```
 
-A 留在 `feat/core-a`。D 首次建分支时执行：
+已有 checkout 先保护本地修改；已有维护分支继续在原分支工作，不重复创建或重写历史。
+允许 `feat/*`、`fix/*`、`chore/*`、`docs/*`、`test/*`、`refactor/*`，无需 A/D 后缀，PR 指向 main。
+个人 AGENTS.md 保持本地、不提交；其中若仍有开发期分支指令，应按当前明确任务与团队维护流程更新本地入口。
 
-```powershell
-git switch -c feat/intelligence-d origin/feat/core-a
-git push -u origin feat/intelligence-d
-```
+## 开发、验证与交付
 
-本地或远端已有 D 分支时切换/跟踪已有分支，不重复创建或重写历史；同步 A 用 merge 并保护本地修改。普通 Git 工作交由 Agent 自动完成。不同 owner 使用独立 clone/worktree。
+A 继续协作维护公共平台、Resume、Analytics、数据库与质量；D 继续协作维护 Jobs/Matching、Embedding、Diagnosis。
+这些职责用于审查，不再通过现代 PR 的分支后缀强制限定路径。
+按 [模块自检指南](member-development.md) 验证公开契约、相关业务与边界，再运行完整检查。
 
-个人 AGENTS.md 留本地、不纳入版本控制。A 可依据根目录 [严格版说明](../AGENTS_A_T5_STRICT.md) 设置入口；D 的本地入口引用 [D 角色说明](roles/D.md)。不要把 A 的个人入口复制给 D。切换分支前保护个人本地文件。
-
-## 开始开发
-
-| Owner | 任务 |
-| --- | --- |
-| A | 读取本地 AGENTS.md 与 docs/roles/A.md，在 feat/core-a 完成公共平台、resume、analytics、数据库和系统验收 |
-| D | 读取本地 AGENTS.md 与 docs/roles/D.md，在 feat/intelligence-d 完成 jobs/matching、embedding 和 diagnosis |
-
-按 [开发自检指南](member-development.md) 先运行合成接入示例；示例通过不代表业务完成。按 Level 1 → Level 2 → Level 3 推进：A 做简历编辑闭环，D 做关键词匹配基线；缺少对方模块时使用公开 Schema/Mock。D 提交薪资/向量公共需求，A 实施数据库与契约，再完成市场图表和全链路演示。
-
-D 的 PR 仅指向 feat/core-a，准确提交通过模块验收后集成。最终 A 仅通过 feat/core-a → main PR 交付，门槛见 [验收台账](acceptance.md)。每个模块都须按 T5 完整要求提供验收证据。
+只暂存本次文件，commit/push 到维护分支并创建 PR → main。PR 说明变更行为、准确 SHA、验证及未验证项；
+不提交密钥或本地数据库，不自动合并，不改写历史验收事实。
