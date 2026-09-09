@@ -10,7 +10,7 @@ from backend.main import create_app
 from examples.fixtures import load_cases
 from scripts.check_member import CheckFailure, ci_modules, module_tests_exist, probe
 from scripts.check_scope import allowed_path, violations
-from scripts.member_specs import MODULES
+from scripts.member_specs import MODULES, branch_owner
 
 
 @pytest.mark.parametrize("module", MODULES)
@@ -141,6 +141,97 @@ def test_scope_rejects_cross_module_and_root_changes():
 def test_unassigned_branch_cannot_pass_ci(tmp_path):
     with pytest.raises(CheckFailure, match="未知 owner 分支"):
         ci_modules("feat/unassigned", tmp_path)
+
+
+@pytest.mark.parametrize(
+    ("branch", "expected"),
+    [
+        ("feat/core-a", "A"),
+        ("feat/ui-polish-a", "A"),
+        ("feat/resume-ai-a", "A"),
+        ("feat/final-qa-a", "A"),
+        ("feat/intelligence-d", "D"),
+        ("feat/diagnosis-reliability-d", "D"),
+        ("feat/jobs-ranking-d", "D"),
+        ("feat/diagnosis-llm-d", "D"),
+        ("feat/ui-refresh-d", "D"),
+        ("main", None),
+        ("feat/foo", None),
+        ("feature/ui-a", None),
+        ("fix/test-d", None),
+        ("random", None),
+        ("", None),
+    ],
+)
+def test_branch_owner_follows_naming_convention(branch, expected):
+    assert branch_owner(branch) == expected
+
+
+@pytest.mark.parametrize(
+    ("source", "target", "expected"),
+    [
+        ("feat/ui-polish-a", "main", 1),
+        ("feat/resume-ai-a", "main", 1),
+        ("feat/final-qa-a", "main", 1),
+        ("feat/diagnosis-reliability-d", "main", 1),
+        ("feat/jobs-ranking-d", "main", 1),
+        ("feature/ui-a", "feat/core-a", 1),
+        ("fix/test-d", "feat/core-a", 1),
+        ("feat/foo", "main", 1),
+        ("random", "feat/core-a", 1),
+        ("", "feat/core-a", 1),
+    ],
+)
+def test_ci_rejects_wrong_pr_target_and_unknown_names(monkeypatch, source, target, expected):
+    from scripts.check_scope import main
+
+    monkeypatch.setenv("GITHUB_HEAD_REF", source)
+    monkeypatch.setenv("GITHUB_REF_NAME", source)
+    monkeypatch.setenv("GITHUB_BASE_REF", target)
+    monkeypatch.setattr(sys, "argv", ["check_scope", "--ci"])
+    assert main() == expected
+
+
+@pytest.mark.parametrize("source", ["feat/ui-polish-a", "feat/resume-ai-a", "feat/final-qa-a"])
+def test_a_feature_pr_targets_core_a(monkeypatch, source):
+    from scripts.check_scope import main
+
+    monkeypatch.setenv("GITHUB_HEAD_REF", source)
+    monkeypatch.setenv("GITHUB_BASE_REF", "feat/core-a")
+    monkeypatch.setattr(sys, "argv", ["check_scope", "--ci"])
+    assert main() == 0
+
+
+@pytest.mark.parametrize("source", ["feat/intelligence-d", "feat/diagnosis-reliability-d"])
+@pytest.mark.parametrize(
+    "path, expected",
+    [
+        ("backend/modules/diagnosis/client.py", 0),
+        ("backend/modules/jobs/public.py", 0),
+        ("backend/modules/resume/public.py", 1),
+        (".github/workflows/core.yml", 1),
+    ],
+)
+def test_new_d_branches_keep_same_scope(monkeypatch, source, path, expected):
+    from scripts import check_scope
+
+    monkeypatch.setenv("GITHUB_HEAD_REF", source)
+    monkeypatch.setenv("GITHUB_BASE_REF", "feat/core-a")
+    monkeypatch.setattr(sys, "argv", ["check_scope", "--ci"])
+    monkeypatch.setattr(
+        check_scope.subprocess,
+        "run",
+        lambda *args, **kwargs: types.SimpleNamespace(returncode=0, stdout=(path + "\0").encode()),
+    )
+    assert check_scope.main() == expected
+
+
+def test_ci_modules_follows_branch_naming(tmp_path):
+    assert ci_modules("feat/ui-polish-a", tmp_path) == []
+    assert ci_modules("feat/jobs-ranking-d", tmp_path) == ["jobs", "diagnosis"]
+    assert ci_modules("feat/diagnosis-reliability-d", tmp_path) == ["jobs", "diagnosis"]
+    with pytest.raises(CheckFailure, match="未知 owner 分支"):
+        ci_modules("feat/typo", tmp_path)
 
 
 @pytest.mark.parametrize(

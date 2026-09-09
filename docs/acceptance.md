@@ -2,7 +2,7 @@
 
 ## 当前状态
 
-验收单位固定为 Resume、Jobs/Matching、Diagnosis、Analytics；A 负责统一验收。当前代码存在于 feat/core-a，D 业务分支使用 feat/intelligence-d / feat/diagnosis-llm-d；UI 专项使用 feat/ui-refresh-d，均只向 A 提 PR。
+验收单位固定为 Resume、Jobs/Matching、Diagnosis、Analytics；A 负责统一验收。当前代码存在于 feat/core-a，D 业务分支按 feat/*-d 命名（feat/intelligence-d、feat/ui-refresh-d 等），A 专项分支按 feat/*-a 命名，均只向 A 提 PR。
 
 | 模块 | Owner | 当前实现 | 验收状态与待办 |
 | --- | --- | --- | --- |

@@ -18,7 +18,6 @@ class Module:
 
 BRANCHES = {"A": "feat/core-a", "D": "feat/intelligence-d"}
 D_UI_BRANCH = "feat/ui-refresh-d"
-D_BRANCHES = (BRANCHES["D"], "feat/diagnosis-llm-d", D_UI_BRANCH)
 MODULES = {
     key: Module(
         key,
@@ -38,3 +37,12 @@ MODULES = {
 OWNER_MODULES = {
     owner: tuple(key for key, spec in MODULES.items() if spec.owner == owner) for owner in BRANCHES
 }
+
+
+def branch_owner(branch: str) -> str | None:
+    """A/D owner by team naming convention: feat/*-a → A, feat/*-d → D."""
+    if branch.startswith("feat/") and branch.endswith("-a"):
+        return "A"
+    if branch.startswith("feat/") and branch.endswith("-d"):
+        return "D"
+    return None
