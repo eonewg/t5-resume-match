@@ -27,6 +27,16 @@
 
 ## 快速启动
 
+### Windows 便携版
+
+解压整个 `T5-Resume-Match` 文件夹 → 复制 `.env.example` 为 `.env` → 填入 `DEEPSEEK_API_KEY=自己的Key` → 双击 `T5-Resume-Match.exe`。最终用户无需安装 Python、uv、Git 或 Node。保留整个目录（包括 `_internal`），不能只复制 EXE。
+
+启动后仅监听 `127.0.0.1:8000`，成功后自动打开浏览器；关闭控制台或按 Ctrl+C 停止。端口已占用时启动失败，不自动换端口，请先停止占用 8000 的程序后重试。`.env` 从 EXE 同目录读取，SQLite 默认保存在 EXE 同目录的 `data/t5.db`；请解压到可写目录。移动整个文件夹即可保留配置与数据，不使用 LocalAppData。AI 功能需要有效密钥和联网；未配置密钥仍可启动，但 AI 请求会明确失败。`/ready` 表示数据库和四个正式 provider 已加载，不检测密钥有效性。
+
+开发机在 Windows 上运行 `powershell -ExecutionPolicy Bypass -File scripts/build_windows.ps1`，使用已有 uv 安装锁定的构建依赖，以 PyInstaller **onedir** 生成 `dist/T5-Resume-Match/`。构建资源采用白名单，不复制开发机 `.env` 或数据库；构建产物不提交 Git。资源与 EXE 目录分离遵循 [PyInstaller 运行时路径规则](https://pyinstaller.org/en/stable/runtime-information.html)。开发验证可对全新构建运行 `uv run python -m scripts.verify_windows dist/T5-Resume-Match`（需空闲 8000，会创建测试数据库并打开浏览器）；EXE 的 `--check-config` 仅输出配置路径和两模块密钥是否已配置，不输出密钥。实测结果见 [便携版验证记录](docs/windows-portable.md)。
+
+### 源码运行
+
 需要 Git、Python 3.11–3.13 和 [uv](https://docs.astral.sh/uv/getting-started/installation/)。
 
 ```powershell
@@ -66,7 +76,7 @@ backend/
   modules/            resume / jobs / diagnosis / analytics 业务模块
   api/  schemas/  models/
 frontend/             原生 JS 前端页面
-scripts/              启动、smoke、数据导入与校验脚本
+scripts/              启动、构建便携版、smoke、数据导入与校验脚本
 docs/                 详细文档
 tests/  examples/     自动化测试与合成样例
 data/                 SQLite 数据库与已归档的 JD / 简历样本（运行时生成）
@@ -97,5 +107,6 @@ node scripts/check_frontend.mjs            # 前端静态检查
 - [API 契约](docs/api-contract.md) — REST 接口定义
 - [数据库与 pgvector](docs/postgres.md) — PostgreSQL 启动、迁移与向量查询
 - [AI Provider 配置](docs/current-provider.md) — 模型与密钥配置细节
+- [Windows 便携版](docs/windows-portable.md) — 构建与实测验证记录
 - [验证记录](docs/validation.md)、[验收台账](docs/acceptance.md)
 - [团队协作约定](docs/team-rules.md)、[前端接入说明](docs/frontend-integration.md)
