@@ -2,82 +2,79 @@ import { useState, type ReactNode } from 'react';
 import type { MarketAnalysis, SalaryGroup } from '../core/contracts';
 import { Button } from './ui';
 
-export function JobSkillMatrix({ data }: { data: MarketAnalysis }) {
+export function JobSkillRequirements({ data }: { data: MarketAnalysis }) {
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(0);
+  const normalize = (value: string) => value.normalize('NFKC').trim().toLocaleLowerCase();
   const jobs = data.jobs.filter((job) =>
-    `${job.title} ${job.company || ''}`
-      .toLocaleLowerCase()
-      .includes(query.trim().toLocaleLowerCase()),
+    normalize(`${job.title} ${job.company || ''} ${job.skills.join(' ')}`).includes(
+      normalize(query),
+    ),
   );
   const pages = Math.max(1, Math.ceil(jobs.length / 8));
   const current = Math.min(page, pages - 1);
-  const skills = data.skill_frequency.slice(0, 10);
-  const normalize = (value: string) => value.normalize('NFKC').trim().toLocaleLowerCase();
   return (
-    <div className="job-skill-matrix">
-      <label className="matrix-query">
+    <div className="job-skill-requirements">
+      <label className="job-skill-query">
         查找岗位
         <input
           type="search"
           value={query}
-          placeholder="岗位或公司名称"
+          placeholder="岗位、公司或技能"
           onChange={(e) => {
             setQuery(e.target.value);
             setPage(0);
           }}
         />
       </label>
-      <p className="analytics-help">
-        列为当前样本前 {skills.length}{' '}
-        项技能，深色表示该岗位已确认或识别到此要求；空格表示未识别，不等于不要求。
-      </p>
-      {skills.length ? (
-        <div className="matrix-scroll" role="region" aria-label="各岗位技能要求分布图" tabIndex={0}>
+      <p className="analytics-help">展示各岗位已录入的技能；未列出的技能不代表岗位不要求。</p>
+      <div className="job-skill-list" role="region" aria-label="各岗位技能要求" tabIndex={0}>
+        {jobs.length ? (
           <table>
             <thead>
               <tr>
-                <th scope="col">岗位 / 雇主</th>
-                {skills.map((row) => (
-                  <th scope="col" key={row.skill}>
-                    {row.skill}
-                  </th>
-                ))}
+                <th scope="col">岗位 / 公司</th>
+                <th scope="col">技能要求</th>
               </tr>
             </thead>
             <tbody>
-              {jobs.slice(current * 8, current * 8 + 8).map((job) => (
-                <tr key={job.jd_id}>
-                  <th scope="row">
-                    {job.title}
-                    <small>{job.company || '雇主未知'}</small>
-                  </th>
-                  {skills.map((row) => {
-                    const required = job.skills.some(
-                      (value) => normalize(value) === normalize(row.skill),
-                    );
-                    return (
-                      <td key={row.skill}>
-                        <span
-                          className={`matrix-cell ${required ? 'required' : ''}`}
-                          aria-label={`${row.skill}：${required ? '已识别要求' : '未识别'}`}
-                          title={`${job.title} · ${row.skill} · ${required ? '已识别要求' : '未识别'}`}
-                        >
-                          {required ? '●' : '—'}
-                        </span>
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
+              {jobs.slice(current * 8, current * 8 + 8).map((job) => {
+                const skills = [
+                  ...new Map(
+                    job.skills
+                      .filter((skill) => skill.trim())
+                      .map((skill) => [normalize(skill), skill.trim()]),
+                  ).values(),
+                ];
+                return (
+                  <tr key={job.jd_id}>
+                    <th scope="row">
+                      <span>{job.title}</span>
+                      <small>{job.company || '公司未填写'}</small>
+                    </th>
+                    <td>
+                      {skills.length ? (
+                        <ul className="job-skill-tags" aria-label={`${job.title}的技能要求`}>
+                          {skills.map((skill) => (
+                            <li key={normalize(skill)}>{skill}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <span className="job-skills-missing">暂未提供技能</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
-        </div>
-      ) : (
-        <p>暂无技能数据，录入或确认岗位技能后即可比较。</p>
-      )}
-      {!jobs.length && <p>没有匹配的岗位。</p>}
-      <div className="matrix-pagination">
+        ) : (
+          <p className="compact-empty">
+            {data.jobs.length ? '没有匹配的岗位。' : '暂无岗位数据。'}
+          </p>
+        )}
+      </div>
+      <div className="job-skill-pagination">
         <span>
           {jobs.length} 个岗位 · 第 {current + 1} / {pages} 页
         </span>
@@ -170,7 +167,7 @@ export default function MarketOverview({
       </section>
       <section className="market-overview-card overview-full">
         <h2>各岗位技能要求分布</h2>
-        <JobSkillMatrix data={data} />
+        <JobSkillRequirements data={data} />
       </section>
       <section className="market-overview-card overview-full">
         <h2>职业规划参考</h2>
@@ -181,7 +178,7 @@ export default function MarketOverview({
         </p>
         <p>
           词频代表这批 JD
-          的要求频率，不代表个人已掌握，也不能直接代表整个就业市场。不同岗位的组合要求可在上方分布图中对照。
+          的要求频率，不代表个人已掌握，也不能直接代表整个就业市场。不同岗位的组合要求可在上方列表中对照。
         </p>
       </section>
     </div>

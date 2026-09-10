@@ -17,8 +17,8 @@ it('opens an overview with all Level 3 outputs based on the same recorded sample
   expect(screen.getByRole('tabpanel').id).toBe('market-panel-overview');
   expect(screen.getByRole('heading', { name: '热门技能词云' })).toBeTruthy();
   expect(screen.getByRole('heading', { name: '岗位薪资分布' })).toBeTruthy();
-  const matrix = screen.getByRole('region', { name: '各岗位技能要求分布图' });
-  expect(within(matrix).getByLabelText('SQL：已识别要求')).toBeTruthy();
+  const matrix = screen.getByRole('region', { name: '各岗位技能要求' });
+  expect(within(matrix).getByText('SQL')).toBeTruthy();
   expect(screen.getByRole('heading', { name: '职业规划参考' })).toBeTruthy();
   expect(screen.getByRole('img', { name: /人民币月薪分布/ })).toBeTruthy();
   fireEvent.change(screen.getByLabelText('薪资口径'), { target: { value: 'USD/hour' } });
@@ -26,7 +26,7 @@ it('opens an overview with all Level 3 outputs based on the same recorded sample
   expect(screen.queryByRole('img', { name: /人民币月薪分布/ })).toBeNull();
 });
 
-it('paginates every recorded job in the skill matrix and keeps unrecognized skills explicit', () => {
+it('paginates all jobs, shows full skill tags and searches beyond the most frequent skills', () => {
   const value = result();
   value.market!.skill_frequency = [{ skill: 'SQL', job_count: 1, share_percent: 10 }];
   const original = value.market!.jobs[0];
@@ -34,20 +34,20 @@ it('paginates every recorded job in the skill matrix and keeps unrecognized skil
     ...original,
     jd_id: `matrix-${i}`,
     title: `岗位 ${i}`,
-    skills: i === 9 ? ['sql'] : [],
+    skills: i === 9 ? ['sql', 'Rust'] : [],
   }));
   render(
     <MemoryRouter>
       <AnalyticsResult result={value} />
     </MemoryRouter>,
   );
-  const matrix = screen.getByRole('region', { name: '各岗位技能要求分布图' });
-  expect(within(matrix).getAllByLabelText('SQL：未识别')).toHaveLength(8);
+  const matrix = screen.getByRole('region', { name: '各岗位技能要求' });
+  expect(within(matrix).getAllByText('暂未提供技能')).toHaveLength(8);
   fireEvent.click(screen.getByRole('button', { name: '下一组' }));
   expect(within(matrix).getByText('岗位 9')).toBeTruthy();
-  expect(within(matrix).getByLabelText('SQL：已识别要求')).toBeTruthy();
+  expect(within(matrix).getByText('sql')).toBeTruthy();
   fireEvent.change(screen.getByRole('searchbox', { name: '查找岗位' }), {
-    target: { value: '岗位 9' },
+    target: { value: 'RUST' },
   });
   expect(within(matrix).getAllByRole('row')).toHaveLength(2);
   expect(screen.getByText('1 个岗位 · 第 1 / 1 页')).toBeTruthy();

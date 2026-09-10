@@ -2839,58 +2839,78 @@
 .overview-wordcloud li:nth-child(3n + 1) {
   color: #718eb5;
 }
-.matrix-query {
+.job-skill-query {
   display: flex;
   align-items: center;
   gap: 12px;
   font-size: 13px;
 }
-.matrix-query input {
-  max-width: 300px;
+.job-skill-query input {
+  max-width: 340px;
 }
-.matrix-scroll {
-  overflow-x: auto;
+.job-skill-list {
   border: 1px solid var(--line);
   border-radius: 8px;
+  overflow: hidden;
 }
-.matrix-scroll table {
+.job-skill-list table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
-  font-size: 12px;
+  font-size: 13px;
 }
-.matrix-scroll th,
-.matrix-scroll td {
-  padding: 10px 8px;
-  text-align: center;
+.job-skill-list th,
+.job-skill-list td {
+  padding: 14px 18px;
+  text-align: left;
+  vertical-align: middle;
   border-bottom: 1px solid #eef2f8;
 }
-.matrix-scroll th {
-  font-weight: 500;
+.job-skill-list thead th {
   background: #f8fafc;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
 }
-.matrix-scroll th:first-child {
-  min-width: 180px;
-  max-width: 260px;
-  text-align: left;
+.job-skill-list th:first-child {
+  width: 34%;
 }
-.matrix-scroll small {
+.job-skill-list tbody th {
+  font-weight: 600;
+}
+.job-skill-list tbody tr:last-child > * {
+  border-bottom: 0;
+}
+.job-skill-list small {
   display: block;
   color: var(--muted);
+  font-size: 12px;
+  font-weight: 400;
   margin-top: 4px;
 }
-.matrix-cell {
-  display: block;
-  min-width: 35px;
-  padding: 6px;
-  border-radius: 4px;
-  background: #f3f6fa;
-  color: #a2b3ca;
+.job-skill-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
-.matrix-cell.required {
-  background: #386cc9;
-  color: #fff;
+.job-skill-tags li {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  padding: 3px 9px;
+  border-radius: 5px;
+  background: #f0f5fc;
+  color: #385b8d;
+  font-size: 12px;
+  line-height: 1.6;
 }
-.matrix-pagination {
+.job-skills-missing {
+  color: var(--muted);
+  font-size: 12px;
+}
+.job-skill-pagination {
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -2900,8 +2920,17 @@
   font-size: 12px;
   color: var(--muted);
 }
-.matrix-pagination span {
+.job-skill-pagination span {
   margin-right: auto;
+}
+@media (max-width: 800px) {
+  .job-skill-list th,
+  .job-skill-list td {
+    padding: 10px;
+  }
+  .job-skill-list th:first-child {
+    width: 40%;
+  }
 }
 .market-import-options {
   margin: 12px 0;
