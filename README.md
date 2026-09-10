@@ -48,7 +48,7 @@ powershell -ExecutionPolicy Bypass -File .\start.ps1
 
 复制 `.env.example` 为 `.env` 并填入 `DEEPSEEK_API_KEY=你的密钥`；未配置密钥也能启动，但 AI 功能会返回配置错误。
 
-启动后打开 <http://127.0.0.1:8000/>，默认进入首页工作台，按「我的简历 → 目标岗位 → 匹配分析 → AI 优化」推进；市场洞察在辅助入口。交互式接口文档在 `/docs`。`Ctrl+C` 停止，`start.ps1 -Port 8001` 可更换端口。首次启动自动构建缺失的前端产物；更新前端源码后运行 `start.ps1 -RebuildFrontend`。热更新开发见 [前端接入说明](docs/frontend-integration.md)。
+启动后打开 <http://127.0.0.1:8000/>，默认进入首页工作台，按「我的简历 → 目标岗位 → 匹配分析 → AI 优化」推进；市场洞察在辅助入口。交互式接口文档在 `/docs`。`Ctrl+C` 停止，`start.ps1 -Port 8001` 可更换端口。首次启动自动构建缺失的前端产物；更新前端源码后运行 `start.ps1 -RebuildFrontend`。脚本记录依赖清单和锁文件指纹；两者未变且依赖检查通过时，重建复用现有依赖。首次安装、清单变更或依赖不完整时执行 `npm ci`；Windows 原生模块被占用时提前停止，请先关闭本项目的 Vite/测试进程再重试，避免依赖被部分删除。热更新开发见 [前端接入说明](docs/frontend-integration.md)。
 
 其他系统或手动启动：
 
