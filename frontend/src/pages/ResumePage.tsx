@@ -42,6 +42,8 @@ export default function ResumePage() {
   }, [s?.dirty]);
   if (!s) return <p role="status">正在准备简历编辑器…</p>;
   const c = controller.current!;
+  const demoFilled =
+    s.values.raw_text.replace(/\r\n?/g, '\n') === demoResume.replace(/\r\n?/g, '\n');
   const locked = Boolean(s.busy && s.busy !== 'parse');
   const saved = Boolean(s.savedId && s.reviewed && !s.dirty && !s.pendingSave);
   const status =
@@ -298,7 +300,9 @@ export default function ResumePage() {
               <div className="resume-secondary-content">
                 <Button
                   id="resume-demo-fill"
-                  tone="ghost"
+                  tone="secondary"
+                  data-filled={demoFilled}
+                  aria-live="polite"
                   disabled={Boolean(s.busy)}
                   onClick={() => {
                     if (
@@ -310,7 +314,7 @@ export default function ResumePage() {
                     c.edit('raw_text', demoResume);
                   }}
                 >
-                  填入示例简历
+                  {demoFilled ? '✓ 已填入示例' : '填入示例简历'}
                 </Button>
                 <details className="resume-draft-tools">
                   <summary>草稿操作</summary>

@@ -162,6 +162,7 @@ describe('migrated demo interactions', () => {
     expect(input('resume-raw').value).toBe('用户原文');
     fireEvent.click(input('resume-demo-fill'));
     expect(input('resume-raw').value).toBe(demoResume.replace(/\r\n?/g, '\n'));
+    expect(input('resume-demo-fill').textContent).toBe('✓ 已填入示例');
     expect(input('resume-name').value).toBe('');
     expect(input('resume-reviewed').checked).toBe(false);
     fireEvent.click(input('resume-demo-fill'));
