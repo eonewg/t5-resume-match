@@ -41,7 +41,7 @@ const multiline = new Set<JobField>([
 ]);
 
 export default function JobCreatePage() {
-  const { store, jobDraft } = useWorkspace();
+  const { store, jobDraft, jobLibrary } = useWorkspace();
   const navigate = useNavigate();
   const [draft, setDraft] = useState(() => structuredClone(jobDraft.current || emptyJobDraft()));
   const [tab, setTab] = useState(0);
@@ -171,6 +171,12 @@ export default function JobCreatePage() {
       const saved = await api.current!.request<JD>('/api/v1/jobs/' + encodeURIComponent(id!));
       if (saved.data.id !== id) throw Error('保存后的岗位校验失败，请重试读取。');
       if (!alive.current) return;
+      if (jobLibrary.current) {
+        jobLibrary.current = {
+          ...jobLibrary.current,
+          jobs: [...jobLibrary.current.jobs.filter((row) => row.id !== id), saved.data],
+        };
+      }
       store.updateSelection({ jdId: id, isMock: true });
       navigate('/jobs');
     });

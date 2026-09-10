@@ -13,7 +13,7 @@ const start = (controller: JobsController) => {
 export default function JobsPage() {
   const { state: s, controller } = useController(connectJobs, start, 'jobs');
   const navigate = useNavigate();
-  const { store } = useWorkspace();
+  const { store, jobLibrary } = useWorkspace();
   const readingPane = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (readingPane.current) readingPane.current.scrollTop = 0;
@@ -24,6 +24,7 @@ export default function JobsPage() {
   const [operation, setOperation] = useState('load');
   if (!s) return <p role="status">正在读取目标岗位…</p>;
   const c = controller.current!;
+  const refreshing = operation === 'load' && s.busy && Boolean(jobLibrary.current);
   const job = s.jobs.find((row) => row.id === s.jdId);
   const resume = s.resumes.find((row) => row.id === s.resumeId);
   const visibleJobs = s.jobs.filter((row) =>
@@ -39,23 +40,25 @@ export default function JobsPage() {
         <Button
           id="jobs-add"
           tone="primary"
-          disabled={s.busy}
+          disabled={s.busy && !refreshing}
           onClick={() => navigate('/jobs/new')}
         >
           添加岗位
         </Button>
       </div>
       <Feedback id="jobs-status" error={s.error} busy={s.busy}>
-        {s.busy
-          ? {
-              load: '正在读取简历与岗位…',
-              create: '正在整理岗位要求并保存…',
-              match: '正在对照简历与岗位技能…',
-            }[operation]
-          : s.notice}
+        {refreshing
+          ? ''
+          : s.busy
+            ? {
+                load: '正在读取简历与岗位…',
+                create: '正在整理岗位要求并保存…',
+                match: '正在对照简历与岗位技能…',
+              }[operation]
+            : s.notice}
       </Feedback>
       {s.error && operation === 'load' && (
-        <Button onClick={() => void c.load()} disabled={s.busy}>
+        <Button onClick={() => void c.load()} disabled={s.busy && !refreshing}>
           重试加载
         </Button>
       )}
@@ -103,7 +106,7 @@ export default function JobsPage() {
                   key={row.id}
                   data-job-id={row.id}
                   aria-pressed={row.id === s.jdId}
-                  disabled={s.busy}
+                  disabled={s.busy && !refreshing}
                   onClick={() => {
                     c.choose('jdId', row.id);
                   }}
@@ -129,7 +132,7 @@ export default function JobsPage() {
             {s.jobs.length > 0 && !visibleJobs.length && (
               <p className="compact-empty">没有相符岗位，试试其他关键词。</p>
             )}
-            {!s.jobs.length && !s.busy && (
+            {!s.jobs.length && (!s.busy || refreshing) && (
               <p className="compact-empty">还没有岗位。添加一份准备申请的岗位要求。</p>
             )}
           </section>

@@ -3,7 +3,7 @@ import type { JD, JDCreate, MatchRecord, Modules, Resume } from '../../core/cont
 import { failureMessage } from '../../core/errors';
 
 export function connectJobs(
-  { api, getState, updateSelection, subscribe, signal, view }: ControllerContext,
+  { api, getState, updateSelection, subscribe, signal, view, jobLibrary }: ControllerContext,
   render: (state: JobsState) => void,
 ) {
   let state: JobsState = {
@@ -18,6 +18,7 @@ export function connectJobs(
     error: '',
     notice: '',
     jobMock: null,
+    ...(view === 'jobs' ? jobLibrary?.current : null),
   };
   let disposed = false,
     version = 0;
@@ -72,6 +73,9 @@ export function connectJobs(
       const update = await work();
       if (!active() || ticket !== version) return;
       state = { ...state, ...update };
+      if (view === 'jobs' && jobLibrary && update.jobs) {
+        jobLibrary.current = { jobs: state.jobs, resumes: state.resumes, jobMock: state.jobMock };
+      }
       if (update.result) {
         const shared = getState();
         updateSelection({

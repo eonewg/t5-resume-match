@@ -876,3 +876,31 @@ it('searches selectors by skills, supports no results and only changes selection
   expect(store.getState().jdId).toBe('j2');
   expect(requests.some((r) => r.options.method === 'POST')).toBe(false);
 });
+
+it('retains the job library while refreshing on return and preserves it on refresh failure', async () => {
+  page('/jobs', true);
+  await screen.findByText('测试同学');
+  await waitFor(() => expect(input('jobs-add').disabled).toBe(false));
+  fireEvent.click(input('jobs-add'));
+  let finish: (response: Response) => void = () => {};
+  handler = (path) =>
+    path.startsWith('/api/v1/jobs?')
+      ? new Promise<Response>((resolve) => {
+          finish = resolve;
+        })
+      : undefined;
+  fireEvent.click(screen.getByRole('link', { name: '岗位库', exact: true }));
+  expect(document.querySelector('[data-job-id="j"]')).not.toBeNull();
+  expect(screen.getByTestId('selected-job').textContent).toContain(job.title);
+  expect(document.getElementById('jobs-status')?.hidden).toBe(true);
+  expect(input('jobs-add').disabled).toBe(false);
+  await act(async () => finish(json({ error: { message: '刷新失败' } }, 503)));
+  await screen.findByText('刷新失败');
+  expect(document.querySelector('[data-job-id="j"]')).not.toBeNull();
+  handler = (path) =>
+    path.startsWith('/api/v1/jobs?')
+      ? json([job, { ...job, id: 'fresh', title: '新增岗位' }])
+      : undefined;
+  fireEvent.click(screen.getByRole('button', { name: '重试加载' }));
+  await waitFor(() => expect(document.querySelector('[data-job-id="fresh"]')).not.toBeNull());
+});
