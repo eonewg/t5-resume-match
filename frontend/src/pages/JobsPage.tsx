@@ -8,6 +8,41 @@ import cpp from '../demo/fixtures/job-cpp.ts';
 import go from '../demo/fixtures/job-go.ts';
 import ml from '../demo/fixtures/job-ml.ts';
 
+const emptyForm = {
+  title: '',
+  company: '',
+  jd_text: '',
+  location: '',
+  salary: '',
+  skills: '',
+  tools: '',
+  education_requirement: '',
+  experience_requirement: '',
+  responsibilities: '',
+  requirements: '',
+  preferred_qualifications: '',
+};
+const fieldLabels = {
+  title: '岗位名称',
+  company: '公司（选填）',
+  location: '工作地点',
+  salary: '薪资待遇',
+  skills: '技能标签（用顿号或逗号分隔）',
+  tools: '工具与框架（用顿号或逗号分隔）',
+  education_requirement: '学历要求',
+  experience_requirement: '经验要求',
+  responsibilities: '岗位职责与目标',
+  requirements: '任职要求',
+  preferred_qualifications: '加分项',
+  jd_text: '岗位原文（保留备查）',
+};
+const longFields = new Set([
+  'responsibilities',
+  'requirements',
+  'preferred_qualifications',
+  'jd_text',
+]);
+
 const start = (controller: JobsController) => {
   void controller.load();
 };
@@ -26,7 +61,7 @@ export default function JobsPage() {
   const [params] = useSearchParams();
   const [query, setQuery] = useState(params.get('q') || '');
   useEffect(() => setQuery(params.get('q') || ''), [params]);
-  const [form, setForm] = useState({ title: '', company: '', jd_text: '' });
+  const [form, setForm] = useState({ ...emptyForm });
   const [demo, setDemo] = useState(false);
   const [operation, setOperation] = useState('load');
   if (!s) return <p role="status">正在读取目标岗位…</p>;
@@ -175,9 +210,27 @@ export default function JobsPage() {
                     <Chips values={job.tools} />
                   </section>
                 )}
+                {(
+                  [
+                    'location',
+                    'education_requirement',
+                    'experience_requirement',
+                    'responsibilities',
+                    'requirements',
+                    'preferred_qualifications',
+                  ] as const
+                ).map(
+                  (key) =>
+                    job[key] && (
+                      <section className="job-original" key={key}>
+                        <h3>{fieldLabels[key]}</h3>
+                        <p>{job[key]}</p>
+                      </section>
+                    ),
+                )}
                 <section className="job-original">
                   <h3>岗位原文</h3>
-                  <p id="jobs-original">{job.jd_text}</p>
+                  <p id="jobs-original">{job.original_text || job.jd_text}</p>
                 </section>
                 <p className="job-source">
                   来源：
@@ -225,6 +278,37 @@ export default function JobsPage() {
                   返回浏览
                 </Button>
               </div>
+              <label className="full-field">
+                从岗位截图识别（PNG / JPEG / WEBP，最大 10 MB）
+                <input
+                  type="file"
+                  accept=".png,.jpg,.jpeg,.webp"
+                  disabled={s.busy}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = '';
+                    if (!file) return;
+                    if (
+                      Object.values(form).some((v) => v.trim()) &&
+                      !window.confirm('识别结果将替换当前未保存表单，是否继续？')
+                    )
+                      return;
+                    const draft = await c.upload(file);
+                    if (controller.current !== c || !draft) return;
+                    draft.jd_text = draft.original_text || draft.jd_text;
+                    setForm(
+                      Object.fromEntries(
+                        Object.keys(emptyForm).map((key) => {
+                          const value = draft[key as keyof typeof draft];
+                          return [key, Array.isArray(value) ? value.join('、') : value || ''];
+                        }),
+                      ) as typeof emptyForm,
+                    );
+                    setDemo(false);
+                  }}
+                />
+              </label>
+              <p>截图会发送至模型设置中的“截图识别”服务。识别后可编辑，确认保存才会加入岗位库。</p>
               <form
                 onSubmit={async (e) => {
                   e.preventDefault();
@@ -232,32 +316,46 @@ export default function JobsPage() {
                   const previousId = store.getState().jdId;
                   await c.create({
                     ...form,
+                    skills: form.skills
+                      ? form.skills
+                          .split(/[、,，\n]/)
+                          .map((v) => v.trim())
+                          .filter(Boolean)
+                      : undefined,
+                    tools: form.tools
+                      ? form.tools
+                          .split(/[、,，\n]/)
+                          .map((v) => v.trim())
+                          .filter(Boolean)
+                      : undefined,
+                    original_text: form.jd_text,
+                    salary: form.salary || null,
                     company: form.company || null,
                     ...(demo ? { source_type: 'synthetic' as const } : {}),
                   });
                   if (controller.current === c && store.getState().jdId !== previousId) {
                     setFormOpen(false);
-                    setForm({ title: '', company: '', jd_text: '' });
+                    setForm({ ...emptyForm });
                     setDemo(false);
                     setQuery('');
                   }
                 }}
               >
-                {(['title', 'company', 'jd_text'] as const).map((key) => (
-                  <div key={key} className={key === 'jd_text' ? 'full-field' : ''}>
+                {(Object.keys(fieldLabels) as (keyof typeof emptyForm)[]).map((key) => (
+                  <div key={key} className={longFields.has(key) ? 'full-field' : ''}>
                     <label htmlFor={key === 'jd_text' ? 'jobs-text' : `jobs-${key}`}>
-                      {key === 'title'
-                        ? '岗位名称'
-                        : key === 'company'
-                          ? '公司（选填）'
-                          : '岗位要求原文'}
+                      {fieldLabels[key]}
                     </label>
-                    {key === 'jd_text' ? (
+                    {longFields.has(key) ? (
                       <textarea
-                        id="jobs-text"
+                        id={key === 'jd_text' ? 'jobs-text' : `jobs-${key}`}
                         rows={6}
-                        required
-                        maxLength={50000}
+                        required={
+                          key === 'jd_text' &&
+                          !form.responsibilities.trim() &&
+                          !form.requirements.trim()
+                        }
+                        maxLength={key === 'jd_text' ? 50000 : 12000}
                         value={form[key]}
                         readOnly={s.busy}
                         onChange={(e) => setForm({ ...form, [key]: e.target.value })}
@@ -293,7 +391,7 @@ export default function JobsPage() {
                             !window.confirm('填入示例岗位会替换当前未保存表单，是否继续？')
                           )
                             return;
-                          setForm({ title: sample.title, company: '', jd_text: sample.text });
+                          setForm({ ...emptyForm, title: sample.title, jd_text: sample.text });
                           setDemo(true);
                         }}
                       >

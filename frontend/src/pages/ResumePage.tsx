@@ -240,7 +240,7 @@ export default function ResumePage() {
                 tone="secondary"
                 disabled={Boolean(s.busy)}
                 className={`resume-upload-button ${dragging ? 'drag-over' : ''}`}
-                title="支持 PDF、DOCX、TXT，最大 10 MB；也可拖拽文件到此按钮"
+                title="支持 PDF、DOCX、TXT、PNG/JPEG/WEBP，最大 10 MB；截图将发送至配置的图片模型识别"
                 onClick={() => file.current?.click()}
                 onDragOver={(e) => {
                   e.preventDefault();
@@ -255,7 +255,7 @@ export default function ResumePage() {
                 }}
               >
                 <Icon name="upload" />
-                上传文件
+                上传文件或截图
               </Button>
             </div>
             <input
@@ -263,7 +263,7 @@ export default function ResumePage() {
               type="file"
               ref={file}
               hidden
-              accept=".pdf,.docx,.txt"
+              accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp"
               disabled={Boolean(s.busy)}
               onChange={(e) => {
                 const selected = e.target.files?.[0];

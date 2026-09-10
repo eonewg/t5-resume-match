@@ -38,6 +38,50 @@ const job: JD = {
 const modules = Object.fromEntries(
   ['resume', 'jobs', 'diagnosis', 'analytics'].map((key) => [key, { is_mock: false }]),
 );
+
+it('previews a job screenshot, allows corrections and saves only after confirmation', async () => {
+  handler = (path, options) => {
+    if (path === '/api/v1/jobs/upload-preview')
+      return json({
+        ...job,
+        original_text: '截图原文',
+        requirements: 'Python',
+        responsibilities: '开发接口',
+      });
+    if (path === '/api/v1/jobs' && options.method === 'POST')
+      return json({ ...job, ...JSON.parse(String(options.body)), id: 'new-job' });
+  };
+  page('/jobs');
+  fireEvent.click(await screen.findByRole('button', { name: '添加岗位', exact: true }));
+  const picker = screen.getByLabelText(/从岗位截图识别/);
+  fireEvent.change(picker, {
+    target: { files: [new File(['synthetic-image'], 'job.png', { type: 'image/png' })] },
+  });
+  await waitFor(() =>
+    expect((screen.getByLabelText('任职要求') as HTMLTextAreaElement).value).toBe('Python'),
+  );
+  expect(
+    requests.filter((x) => x.path === '/api/v1/jobs' && x.options.method === 'POST'),
+  ).toHaveLength(0);
+  expect((screen.getByLabelText('岗位原文（保留备查）') as HTMLTextAreaElement).value).toBe(
+    '截图原文',
+  );
+  fireEvent.change(screen.getByLabelText('任职要求'), { target: { value: 'SQL' } });
+  fireEvent.click(screen.getByRole('button', { name: '保存并选中' }));
+  await waitFor(() =>
+    expect(
+      requests.find((x) => x.path === '/api/v1/jobs' && x.options.method === 'POST'),
+    ).toBeDefined(),
+  );
+  expect(
+    JSON.parse(
+      String(
+        requests.find((x) => x.path === '/api/v1/jobs' && x.options.method === 'POST')!.options
+          .body,
+      ),
+    ),
+  ).toMatchObject({ requirements: 'SQL', original_text: '截图原文' });
+});
 const json = (value: unknown, status = 200, headers = {}) =>
   new Response(JSON.stringify(value), { status, headers });
 let requests: { path: string; options: RequestInit }[];
@@ -85,15 +129,19 @@ const settleResume = () => waitFor(() => expect(input('resume-dropzone').disable
 describe('React routes and task workspace', () => {
   it('carries global search into the job list and permits browsing before resume confirmation', async () => {
     const store = page('/');
-    expect(Array.from(document.querySelectorAll('.insight-links a')).map((link) => [
-      link.querySelector('strong')?.textContent,
-      link.getAttribute('href'),
-    ])).toEqual([
+    expect(
+      Array.from(document.querySelectorAll('.insight-links a')).map((link) => [
+        link.querySelector('strong')?.textContent,
+        link.getAttribute('href'),
+      ]),
+    ).toEqual([
       ['技能需求', '/analytics?tab=skills'],
       ['薪资分析', '/analytics?tab=salary'],
       ['岗位与来源', '/analytics?tab=jobs'],
     ]);
-    expect(screen.getByRole('link', { name: '浏览岗位样本' }).getAttribute('href')).toBe('/analytics?tab=jobs');
+    expect(screen.getByRole('link', { name: '浏览岗位样本' }).getAttribute('href')).toBe(
+      '/analytics?tab=jobs',
+    );
     const search = screen.getByRole('searchbox', { name: '搜索已录入岗位' });
     fireEvent.change(search, { target: { value: 'Python' } });
     fireEvent.submit(search.closest('form')!);
@@ -146,7 +194,7 @@ describe('migrated demo interactions', () => {
     page('/resume');
     await settleResume();
     const picker = vi.spyOn(input('resume-file'), 'click');
-    fireEvent.click(screen.getByRole('button', { name: '上传文件', exact: true }));
+    fireEvent.click(screen.getByRole('button', { name: '上传文件或截图', exact: true }));
     expect(picker).toHaveBeenCalledOnce();
     fireEvent.change(input('resume-raw'), { target: { value: '待识别的简历原文' } });
     expect(input('resume-raw').value).toBe('待识别的简历原文');

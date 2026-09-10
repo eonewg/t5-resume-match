@@ -21,6 +21,7 @@
 | `DELETE /api/v1/resumes/{id}` | 无 | 200，`{"deleted_count":1}`；不存在返回 404 |
 | `DELETE /api/v1/resumes` | 无 | 200，`{"deleted_count":N}`；清空全部历史简历，空库为 0 |
 | `POST /api/v1/jobs` | JDCreate（兼容原 JDInput 请求） | 201，JD |
+| `POST /api/v1/jobs/upload-preview` | multipart/form-data，`file` 图片 | 200，JDCreate 可编辑草稿；不写库 |
 | `GET /api/v1/jobs` | `limit=20&offset=0` | JD 数组 |
 | `GET /api/v1/jobs/{id}` | 无 | JD |
 | `POST /api/v1/matches` | PairInput | 201，MatchRecord |

@@ -143,7 +143,11 @@ export function connectJobs(
     });
   const create = (form: JDCreate) =>
     task(async () => {
-      if (!form.title.trim() || !form.jd_text.trim()) throw Error('请填写岗位名称和 JD 原文。');
+      if (
+        !form.title.trim() ||
+        !(form.jd_text.trim() || form.responsibilities?.trim() || form.requirements?.trim())
+      )
+        throw Error('请填写岗位名称，并补充职责、任职要求或岗位原文。');
       const { data, isMock } = await api.request<JD>('/api/v1/jobs', {
         method: 'POST',
         body: form,
@@ -257,6 +261,23 @@ export function connectJobs(
   signal.addEventListener('abort', dispose, { once: true });
   show();
   if (signal.aborted) dispose();
-  return { load, create, match, assess, choose, dispose };
+  async function upload(file: File): Promise<JDCreate | undefined> {
+    let draft: JDCreate | undefined;
+    await task(async () => {
+      const ticket = version;
+      if (!/\.(png|jpe?g|webp)$/i.test(file.name)) throw Error('请选择 PNG、JPEG 或 WEBP 截图。');
+      if (!file.size || file.size > 10 * 1024 * 1024) throw Error('图片须为非空文件，最大 10 MB。');
+      const body = new FormData();
+      body.append('file', file);
+      const response = await api.request<JDCreate>('/api/v1/jobs/upload-preview', {
+        method: 'POST',
+        body,
+      });
+      if (active() && ticket === version) draft = response.data;
+      return { notice: '截图已识别，请核对各字段后保存；未展示或看不清的内容请自行补充。' };
+    });
+    return active() ? draft : undefined;
+  }
+  return { load, create, upload, match, assess, choose, dispose };
 }
 export type JobsController = ReturnType<typeof connectJobs>;

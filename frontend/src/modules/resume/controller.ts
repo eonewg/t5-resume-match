@@ -251,7 +251,8 @@ export function connectResume(
   const upload = (file?: File) =>
     task('upload', async (valid) => {
       if (!file) throw Error('请选择一份简历文件。');
-      if (!/\.(pdf|docx|txt)$/i.test(file.name)) throw Error('请上传 PDF、DOCX 或 TXT 简历。');
+      if (!/\.(pdf|docx|txt|png|jpe?g|webp)$/i.test(file.name))
+        throw Error('请上传 PDF、DOCX、TXT 或 PNG/JPEG/WEBP 截图。');
       if (!file.size) throw Error('文件为空，请选择包含简历内容的文件。');
       if (file.size > 10 * 1024 * 1024) throw Error('文件超过 10 MB，请选择更小的文件。');
       const body = new FormData();

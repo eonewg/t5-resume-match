@@ -21,6 +21,13 @@ export interface JD extends JDSource {
   title: string;
   company: string | null;
   jd_text: string;
+  location?: string;
+  education_requirement?: string;
+  experience_requirement?: string;
+  responsibilities?: string;
+  requirements?: string;
+  preferred_qualifications?: string;
+  original_text?: string;
   skills: string[];
   tools: string[];
   salary: string | null;

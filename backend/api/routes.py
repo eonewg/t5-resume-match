@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from backend.core.external_jobs import import_external_jobs
 from backend.core.market_samples import import_sample_jobs
+from backend.core.screenshot import recognize
 from backend.core.services import (
     assessing,
     diagnosing,
@@ -104,6 +105,13 @@ def preview_resume(data: TextInput, request: Request, response: Response):
 @router.post("/resumes/upload-preview", response_model=ResumeData, tags=["resume"])
 def preview_resume_upload(file: UploadFile, request: Request, response: Response):
     """Extract text into the same editable preview; never write a resume or original file."""
+    if (file.content_type or "").startswith("image/") or (file.filename or "").lower().endswith(
+        (".png", ".jpg", ".jpeg", ".webp")
+    ):
+        config = request.app.state.ai_settings.vision_config()
+        result = recognize(file, config, "resume")
+        mark_mock(response, False)
+        return result
     try:
         suffix = validate_file_type(file.filename, file.content_type)
         limit = upload_limit()
@@ -123,6 +131,14 @@ def preview_resume_upload(file: UploadFile, request: Request, response: Response
         # Return the extracted source only to the uploading client, never to logs or storage.
         detail = exc.detail if isinstance(exc.detail, dict) else {"message": exc.detail}
         raise HTTPException(exc.status_code, {**detail, "raw_text": text}) from None
+
+
+@router.post("/jobs/upload-preview", response_model=JDCreate, tags=["jobs"])
+def preview_job_upload(file: UploadFile, request: Request, response: Response):
+    config = request.app.state.ai_settings.vision_config()
+    result = recognize(file, config, "job")
+    mark_mock(response, False)
+    return result
 
 
 @router.post("/resumes", response_model=Resume, status_code=201, tags=["resume"])
