@@ -152,6 +152,10 @@ describe('migrated demo interactions', () => {
     page('/resume');
     await settleResume();
     const count = requests.length;
+    fireEvent.click(screen.getByText('更多选项', { exact: true }));
+    expect((document.querySelector('.resume-secondary-tools') as HTMLDetailsElement).open).toBe(
+      true,
+    );
     fireEvent.change(input('resume-raw'), { target: { value: '用户原文' } });
     vi.mocked(window.confirm).mockReturnValueOnce(false);
     fireEvent.click(input('resume-demo-fill'));

@@ -280,6 +280,28 @@
   padding: 8px 0;
   min-height: 32px;
 }
+.resume-secondary-tools {
+  margin-top: 22px;
+}
+.resume-secondary-tools > summary {
+  width: fit-content;
+  color: var(--muted);
+  font-size: 13px;
+}
+.resume-secondary-content {
+  display: grid;
+  gap: 16px;
+  padding-top: 14px;
+}
+.resume-secondary-content > #resume-demo-fill {
+  justify-self: start;
+  padding-block: 0;
+}
+.resume-secondary-content > details {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
 .resume-draft-tools,
 .resume-history {
   margin-top: 12px;
