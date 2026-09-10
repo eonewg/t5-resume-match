@@ -1,16 +1,7 @@
 import vitaeLogo from './assets/vitae.svg';
 import { createPortal } from 'react-dom';
 import { Component, useEffect, useState, useRef, type ReactNode } from 'react';
-import {
-  HashRouter,
-  Link,
-  NavLink,
-  Navigate,
-  Route,
-  Routes,
-  useLocation,
-  useNavigate,
-} from 'react-router-dom';
+import { HashRouter, Link, NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { WorkspaceProvider } from './core/WorkspaceContext';
 import { createApi } from './core/api';
 import HomePage from './pages/HomePage';
@@ -186,8 +177,6 @@ function ServiceStatus() {
 }
 export function ProductShell() {
   const location = useLocation();
-  const navigate = useNavigate();
-  const [search, setSearch] = useState('');
   const [collapsed, setCollapsed] = useState(() => {
     try {
       return localStorage.getItem('t5-sidebar-collapsed') === 'true';
@@ -376,28 +365,6 @@ export function ProductShell() {
       <div
         className={`app-frame ${collapsed ? 'sidebar-collapsed' : ''} ${['resume/history', 'jobs'].includes(key) ? 'split-workspace-frame' : ''}`}
       >
-        <header className="topbar">
-          <form
-            className="global-search"
-            role="search"
-            onSubmit={(event) => {
-              event.preventDefault();
-              navigate('/jobs?q=' + encodeURIComponent(search.trim()));
-            }}
-          >
-            <Icon name="search" />
-            <label htmlFor="global-search" className="sr-only">
-              搜索已录入岗位
-            </label>
-            <input
-              id="global-search"
-              type="search"
-              placeholder="搜索岗位、技能或行业…"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-            />
-          </form>
-        </header>
         <main id="main-content" tabIndex={-1}>
           {exitError && (
             <p role="alert" className="feedback" data-error="true">

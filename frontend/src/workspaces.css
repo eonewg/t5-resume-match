@@ -2121,9 +2121,6 @@
   flex-direction: column;
   overflow: hidden;
 }
-.split-workspace-frame > .topbar {
-  flex-shrink: 0;
-}
 .split-workspace-frame > main {
   flex: 1;
   min-height: 0;

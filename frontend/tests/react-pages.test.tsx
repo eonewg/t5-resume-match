@@ -156,7 +156,7 @@ function page(path: string, selected = false) {
 const input = (id: string) => document.getElementById(id) as HTMLInputElement;
 const settleResume = () => waitFor(() => expect(input('resume-dropzone').disabled).toBe(false));
 describe('React routes and task workspace', () => {
-  it('carries global search into the job list and permits browsing before resume confirmation', async () => {
+  it('searches within the job list and permits browsing before resume confirmation', async () => {
     const store = page('/');
     expect(
       Array.from(document.querySelectorAll('.insight-links a')).map((link) => [
@@ -171,17 +171,17 @@ describe('React routes and task workspace', () => {
     expect(screen.getByRole('link', { name: '浏览岗位样本' }).getAttribute('href')).toBe(
       '/analytics?tab=jobs',
     );
-    const search = screen.getByRole('searchbox', { name: '搜索已录入岗位' });
-    fireEvent.change(search, { target: { value: 'Python' } });
-    fireEvent.submit(search.closest('form')!);
+    expect(screen.queryByRole('searchbox', { name: '搜索已录入岗位' })).toBeNull();
+    fireEvent.click(screen.getByRole('link', { name: '目标岗位', exact: true }));
     await screen.findByRole('heading', { name: '目标岗位', level: 1 });
+    const search = input('job-search');
+    fireEvent.change(search, { target: { value: 'Python' } });
     await waitFor(() => expect(document.querySelector('[data-job-id="j"]')).not.toBeNull());
     expect(input('job-search').value).toBe('Python');
     fireEvent.click(document.querySelector('[data-job-id="j"]')!);
     expect((input('jobs-run') as unknown as HTMLButtonElement).disabled).toBe(true);
     expect(store.getState()).toMatchObject({ resumeId: null, jdId: 'j', result: null });
     fireEvent.change(search, { target: { value: '不存在的技能' } });
-    fireEvent.submit(search.closest('form')!);
     await waitFor(() => expect(document.querySelector('[data-job-id="j"]')).toBeNull());
     expect(document.getElementById('jobs-original')?.textContent).toBe(job.jd_text);
     expect(requests.some((request) => request.options.method === 'POST')).toBe(false);
