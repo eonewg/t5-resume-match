@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from '../components/Icon';
 import { Button, Feedback, NextLink, PageHeading } from '../components/ui';
+import LibraryNav from '../components/LibraryNav';
 import { createApi } from '../core/api';
 import type { Resume } from '../core/contracts';
 import type { ResumeState } from '../core/controller-types';
@@ -160,6 +161,7 @@ export default function ResumeHistoryPage() {
           </Button>
         </div>
       </div>
+      <LibraryNav kind="resume" />
       <Feedback error={error} busy={Boolean(busy)}>
         {busy === 'loading'
           ? '正在读取简历档案…'

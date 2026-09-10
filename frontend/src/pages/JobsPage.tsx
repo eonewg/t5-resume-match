@@ -4,45 +4,8 @@ import { connectJobs, type JobsController } from '../modules/jobs/controller.ts'
 import { useController, useWorkspace } from '../core/WorkspaceContext';
 import { Button, Chips, Feedback, PageHeading, SafeSource } from '../components/ui';
 import Icon from '../components/Icon';
-import cpp from '../demo/fixtures/job-cpp.ts';
-import go from '../demo/fixtures/job-go.ts';
-import ml from '../demo/fixtures/job-ml.ts';
-import ScreenshotImport from '../components/ScreenshotImport';
-
-const emptyForm = {
-  title: '',
-  company: '',
-  jd_text: '',
-  location: '',
-  salary: '',
-  skills: '',
-  tools: '',
-  education_requirement: '',
-  experience_requirement: '',
-  responsibilities: '',
-  requirements: '',
-  preferred_qualifications: '',
-};
-const fieldLabels = {
-  title: '岗位名称',
-  company: '公司（选填）',
-  location: '工作地点',
-  salary: '薪资待遇',
-  skills: '技能标签（用顿号或逗号分隔）',
-  tools: '工具与框架（用顿号或逗号分隔）',
-  education_requirement: '学历要求',
-  experience_requirement: '经验要求',
-  responsibilities: '岗位职责与目标',
-  requirements: '任职要求',
-  preferred_qualifications: '加分项',
-  jd_text: '岗位原文（保留备查）',
-};
-const longFields = new Set([
-  'responsibilities',
-  'requirements',
-  'preferred_qualifications',
-  'jd_text',
-]);
+import LibraryNav from '../components/LibraryNav';
+import { jobLabels as fieldLabels } from '../modules/jobs/draft';
 
 const start = (controller: JobsController) => {
   void controller.load();
@@ -51,19 +14,13 @@ export default function JobsPage() {
   const { state: s, controller } = useController(connectJobs, start, 'jobs');
   const navigate = useNavigate();
   const { store } = useWorkspace();
-  const [formOpen, setFormOpen] = useState(false);
   const readingPane = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (readingPane.current) readingPane.current.scrollTop = 0;
-  }, [s?.jdId, formOpen]);
-  useEffect(() => {
-    if (formOpen) document.getElementById('jobs-title')?.focus();
-  }, [formOpen]);
+  }, [s?.jdId]);
   const [params] = useSearchParams();
   const [query, setQuery] = useState(params.get('q') || '');
   useEffect(() => setQuery(params.get('q') || ''), [params]);
-  const [form, setForm] = useState({ ...emptyForm });
-  const [demo, setDemo] = useState(false);
   const [operation, setOperation] = useState('load');
   if (!s) return <p role="status">正在读取目标岗位…</p>;
   const c = controller.current!;
@@ -84,12 +41,13 @@ export default function JobsPage() {
         <Button
           id="jobs-add"
           tone="primary"
-          disabled={s.busy || formOpen}
-          onClick={() => setFormOpen(true)}
+          disabled={s.busy}
+          onClick={() => navigate('/jobs/new')}
         >
           添加岗位
         </Button>
       </div>
+      <LibraryNav kind="jobs" />
       <Feedback id="jobs-status" error={s.error} busy={s.busy}>
         {s.busy
           ? {
@@ -147,16 +105,15 @@ export default function JobsPage() {
                   className="job-option"
                   key={row.id}
                   data-job-id={row.id}
-                  aria-pressed={!formOpen && row.id === s.jdId}
+                  aria-pressed={row.id === s.jdId}
                   disabled={s.busy}
                   onClick={() => {
                     c.choose('jdId', row.id);
-                    setFormOpen(false);
                   }}
                 >
                   <span className="job-option-title">
                     <strong>{row.title}</strong>
-                    <span aria-hidden="true">{!formOpen && row.id === s.jdId ? '→' : ''}</span>
+                    <span aria-hidden="true">{row.id === s.jdId ? '→' : ''}</span>
                   </span>
                   <span>{row.company || '公司暂未提供'}</span>
                   <span className="job-option-skills">
@@ -184,10 +141,10 @@ export default function JobsPage() {
             ref={readingPane}
             role="region"
             tabIndex={0}
-            aria-label={formOpen ? '添加岗位表单' : '岗位详情'}
+            aria-label="岗位详情"
           >
             {job && (
-              <article className="job-detail" data-testid="selected-job" hidden={formOpen}>
+              <article className="job-detail" data-testid="selected-job">
                 <header>
                   <span className="employer-mark" aria-hidden="true">
                     {job.company?.slice(0, 2) || <Icon name="jobs" />}
@@ -266,135 +223,12 @@ export default function JobsPage() {
                 </footer>
               </article>
             )}
-            {!job && !formOpen && (
+            {!job && (
               <div className="job-reading-prompt">
                 <h2>选择一个目标岗位</h2>
                 <p>从左侧打开岗位，阅读完整要求后开始匹配。</p>
               </div>
             )}
-            <section className="job-form" hidden={!formOpen} aria-labelledby="jobs-form-heading">
-              <div className="section-heading">
-                <h2 id="jobs-form-heading">添加新岗位</h2>
-                <Button id="jobs-cancel-add" disabled={s.busy} onClick={() => setFormOpen(false)}>
-                  返回浏览
-                </Button>
-              </div>
-              <ScreenshotImport
-                subject="岗位"
-                busy={s.busy}
-                onRecognize={async (file) => {
-                  if (
-                    Object.values(form).some((v) => v.trim()) &&
-                    !window.confirm('识别结果将替换当前未保存表单，是否继续？')
-                  )
-                    return;
-                  const draft = await c.upload(file);
-                  if (controller.current !== c || !draft) return;
-                  draft.jd_text = draft.original_text || draft.jd_text;
-                  setForm(
-                    Object.fromEntries(
-                      Object.keys(emptyForm).map((key) => {
-                        const value = draft[key as keyof typeof draft];
-                        return [key, Array.isArray(value) ? value.join('、') : value || ''];
-                      }),
-                    ) as typeof emptyForm,
-                  );
-                  setDemo(false);
-                }}
-              />
-              <form
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  setOperation('create');
-                  const previousId = store.getState().jdId;
-                  await c.create({
-                    ...form,
-                    skills: form.skills
-                      ? form.skills
-                          .split(/[、,，\n]/)
-                          .map((v) => v.trim())
-                          .filter(Boolean)
-                      : undefined,
-                    tools: form.tools
-                      ? form.tools
-                          .split(/[、,，\n]/)
-                          .map((v) => v.trim())
-                          .filter(Boolean)
-                      : undefined,
-                    original_text: form.jd_text,
-                    salary: form.salary || null,
-                    company: form.company || null,
-                    ...(demo ? { source_type: 'synthetic' as const } : {}),
-                  });
-                  if (controller.current === c && store.getState().jdId !== previousId) {
-                    setFormOpen(false);
-                    setForm({ ...emptyForm });
-                    setDemo(false);
-                    setQuery('');
-                  }
-                }}
-              >
-                {(Object.keys(fieldLabels) as (keyof typeof emptyForm)[]).map((key) => (
-                  <div key={key} className={longFields.has(key) ? 'full-field' : ''}>
-                    <label htmlFor={key === 'jd_text' ? 'jobs-text' : `jobs-${key}`}>
-                      {fieldLabels[key]}
-                    </label>
-                    {longFields.has(key) ? (
-                      <textarea
-                        id={key === 'jd_text' ? 'jobs-text' : `jobs-${key}`}
-                        rows={6}
-                        required={
-                          key === 'jd_text' &&
-                          !form.responsibilities.trim() &&
-                          !form.requirements.trim()
-                        }
-                        maxLength={key === 'jd_text' ? 50000 : 12000}
-                        value={form[key]}
-                        readOnly={s.busy}
-                        onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                      />
-                    ) : (
-                      <input
-                        id={`jobs-${key}`}
-                        maxLength={200}
-                        required={key === 'title'}
-                        value={form[key]}
-                        readOnly={s.busy}
-                        onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                      />
-                    )}
-                  </div>
-                ))}
-                <Button type="submit" tone="primary" disabled={s.busy}>
-                  {s.busy && operation === 'create' ? '正在整理并保存…' : '保存并选中'}
-                </Button>
-                <details className="job-demo-options full-field">
-                  <summary>使用合成示例</summary>
-                  <p>仅填入表单；保存、匹配与优化均需主动发起。</p>
-                  <div className="inline-actions">
-                    {[cpp, go, ml].map((sample) => (
-                      <Button
-                        tone="ghost"
-                        key={sample.id}
-                        id={`jobs-demo-${sample.id}`}
-                        disabled={s.busy}
-                        onClick={() => {
-                          if (
-                            Object.values(form).some((v) => v.trim()) &&
-                            !window.confirm('填入示例岗位会替换当前未保存表单，是否继续？')
-                          )
-                            return;
-                          setForm({ ...emptyForm, title: sample.title, jd_text: sample.text });
-                          setDemo(true);
-                        }}
-                      >
-                        {sample.title}
-                      </Button>
-                    ))}
-                  </div>
-                </details>
-              </form>
-            </section>
           </div>
         </div>
       </>

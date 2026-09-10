@@ -195,3 +195,75 @@ def test_upload_routes_are_preview_only(tmp_path, monkeypatch, kind):
             saved = client.post("/api/v1/jobs", json=draft)
             assert saved.status_code == 201, saved.text
             assert "SQL" in saved.json()["jd_text"] and "Python" not in saved.json()["jd_text"]
+
+
+@pytest.mark.parametrize("style", ["chat_completions", "responses"])
+def test_job_text_preview_preserves_exact_source_and_does_not_save(tmp_path, monkeypatch, style):
+    app = create_app(Settings(_env_file=None, database_url=f"sqlite:///{tmp_path / 'text.db'}"))
+    raw = "  合成岗位原文\n3、Python\n4、SQL  "
+    with TestClient(app) as client:
+        monkeypatch.setattr(app.state.ai_settings, "vision_config", lambda: config(style))
+        original = httpx.Client
+        calls = []
+
+        def respond(request):
+            payload = json.loads(request.content)
+            calls.append(payload)
+            content = payload["input" if style == "responses" else "messages"][0]["content"]
+            assert content[1]["text"].endswith(raw)
+            assert "image_url" not in content[1]
+            text = json.dumps(
+                {
+                    "title": "合成岗位",
+                    "jd_text": "模型改写原文",
+                    "requirements": "3、Python\n4、SQL",
+                }
+            )
+            body = (
+                {
+                    "status": "completed",
+                    "output": [{"content": [{"type": "output_text", "text": text}]}],
+                }
+                if style == "responses"
+                else {"choices": [{"finish_reason": "stop", "message": {"content": text}}]}
+            )
+            return httpx.Response(200, json=body)
+
+        monkeypatch.setattr(
+            screenshot.httpx,
+            "Client",
+            lambda **kw: original(transport=httpx.MockTransport(respond), **kw),
+        )
+        result = client.post("/api/v1/jobs/preview", json={"raw_text": raw})
+        assert result.status_code == 200, result.text
+        assert result.json()["original_text"] == raw
+        assert result.json()["requirements"] == "1、Python\n2、SQL"
+        assert result.headers["x-t5-mock"] == "false"
+        assert len(calls) == 1
+        assert client.get("/api/v1/jobs").json() == []
+
+
+def test_job_document_extraction_is_local_and_allows_manual_save_without_ai(tmp_path, monkeypatch):
+    app = create_app(Settings(_env_file=None, database_url=f"sqlite:///{tmp_path / 'extract.db'}"))
+    with TestClient(app) as client:
+        monkeypatch.setattr(
+            app.state.ai_settings,
+            "vision_config",
+            lambda: pytest.fail("unexpected AI configuration lookup"),
+        )
+        result = client.post(
+            "/api/v1/jobs/extract-text",
+            files={"file": ("synthetic.txt", "合成岗位 Python".encode(), "text/plain")},
+        )
+        assert result.status_code == 200, result.text
+        assert result.json()["raw_text"] == "合成岗位 Python"
+        assert client.get("/api/v1/jobs").json() == []
+        invalid = client.post(
+            "/api/v1/jobs/extract-text",
+            files={"file": ("bad.exe", b"invalid", "application/octet-stream")},
+        )
+        assert invalid.status_code == 415
+        saved = client.post(
+            "/api/v1/jobs", json={"title": "手动填写", "jd_text": "", "requirements": "Python"}
+        )
+        assert saved.status_code == 201, saved.text

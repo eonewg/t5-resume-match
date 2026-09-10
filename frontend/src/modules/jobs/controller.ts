@@ -123,6 +123,11 @@ export function connectJobs(
       ]);
       const jobRows = [...jobs.data],
         resumeRows = [...resumes.data];
+      for (let offset = 100, count = jobs.data.length; count === 100; offset += 100) {
+        const batch = (await api.request<JD[]>(`/api/v1/jobs?limit=100&offset=${offset}`)).data;
+        jobRows.push(...batch);
+        count = batch.length;
+      }
       if (state.jdId && !jobRows.some((x) => x.id === state.jdId))
         jobRows.push(
           (await api.request<JD>('/api/v1/jobs/' + encodeURIComponent(state.jdId))).data,

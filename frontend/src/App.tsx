@@ -7,6 +7,7 @@ import { createApi } from './core/api';
 import HomePage from './pages/HomePage';
 import ResumePage from './pages/ResumePage';
 import JobsPage from './pages/JobsPage';
+import JobCreatePage from './pages/JobCreatePage';
 import MatchingPage from './pages/MatchingPage';
 import DiagnosisPage from './pages/DiagnosisPage';
 import AnalyticsPage from './pages/AnalyticsPage';
@@ -17,7 +18,6 @@ import AISettingsPanel from './components/AISettingsPanel';
 const navigation: [string, string, IconName][] = [
   ['home', '首页', 'home'],
   ['resume', '我的简历', 'resume'],
-  ['resume/history', '历史简历', 'history'],
   ['jobs', '目标岗位', 'jobs'],
   ['matching', '匹配分析', 'matching'],
   ['diagnosis', 'AI 优化', 'diagnosis'],
@@ -222,7 +222,7 @@ export function ProductShell() {
   }
 
   const key = location.pathname.slice(1) || 'home';
-  const title = navigation.find(([value]) => value === key)?.[1] || '市场洞察';
+  const title = navigation.find(([value]) => value === key.split('/')[0])?.[1] || '市场洞察';
   useEffect(() => {
     document.title = `${title} · Vitae`;
     document.querySelector<HTMLHeadingElement>('h1')?.focus({ preventScroll: true });
@@ -274,17 +274,11 @@ export function ProductShell() {
             <NavLink
               key={value}
               to={value === 'home' ? '/' : `/${value}`}
-              end
+              end={value !== 'resume' && value !== 'jobs'}
               data-view={value}
               aria-label={label}
               title={collapsed ? label : undefined}
-              className={
-                value === 'resume/history'
-                  ? 'nav-subpage'
-                  : value === 'analytics'
-                    ? 'nav-secondary'
-                    : ''
-              }
+              className={value === 'analytics' ? 'nav-secondary' : ''}
             >
               <Icon name={icon} />
               <span>{label}</span>
@@ -379,6 +373,7 @@ export function ProductShell() {
                 <Route path="/resume" element={<ResumePage />} />
                 <Route path="/resume/history" element={<ResumeHistoryPage />} />
                 <Route path="/jobs" element={<JobsPage />} />
+                <Route path="/jobs/new" element={<JobCreatePage />} />
                 <Route path="/matching" element={<MatchingPage />} />
                 <Route path="/diagnosis" element={<DiagnosisPage />} />
                 <Route path="/analytics" element={<AnalyticsPage />} />

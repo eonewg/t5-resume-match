@@ -306,7 +306,9 @@ class AISettings:
                 else self.base_values["vision"]
             )
             if not values.get("api_key") or not values["api_key"].get_secret_value():
-                raise HTTPException(409, "请先在模型设置中为截图识别分配支持图片输入的模型。")
+                raise HTTPException(
+                    409, "请先在模型设置中为岗位与截图识别分配模型；识别截图时需支持图片输入。"
+                )
             return ModelConfig.model_validate(values).model_copy(deep=True)
 
     def providers(self, configs):

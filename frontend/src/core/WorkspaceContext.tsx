@@ -2,11 +2,13 @@ import { createContext, useContext, useEffect, useRef, useState, type ReactNode 
 import { createApi } from './api';
 import { createWorkspace, type Workspace, type WorkspaceState } from './state';
 import type { ControllerContext, ResumeDraft } from './controller-types';
+import type { JobEditorDraft } from '../modules/jobs/draft';
 
 interface ContextValue {
   store: Workspace;
   state: WorkspaceState;
   draft: React.RefObject<ResumeDraft | null>;
+  jobDraft: React.RefObject<JobEditorDraft | null>;
 }
 const Context = createContext<ContextValue | null>(null);
 export function WorkspaceProvider({
@@ -19,8 +21,9 @@ export function WorkspaceProvider({
   const [store] = useState(() => workspace || createWorkspace());
   const [state, setState] = useState(store.getState);
   const draft = useRef<ResumeDraft | null>(null);
+  const jobDraft = useRef<JobEditorDraft | null>(null);
   useEffect(() => store.subscribe(setState), [store]);
-  return <Context.Provider value={{ store, state, draft }}>{children}</Context.Provider>;
+  return <Context.Provider value={{ store, state, draft, jobDraft }}>{children}</Context.Provider>;
 }
 export function useWorkspace() {
   const value = useContext(Context);

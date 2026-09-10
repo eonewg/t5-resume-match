@@ -4,6 +4,7 @@ import { createApi } from '../core/api';
 import type { JD, Resume } from '../core/contracts';
 import { useWorkspace } from '../core/WorkspaceContext';
 import Icon from './Icon';
+import SearchSelect from './SearchSelect';
 
 export default function PairSelector({
   onChange,
@@ -70,24 +71,20 @@ export default function PairSelector({
           </span>
           <div>
             <label htmlFor="quick-resume">当前简历</label>
-            <select
+            <SearchSelect
               id="quick-resume"
               value={state.resumeId || ''}
               disabled={loading || !!error}
-              onChange={(event) => choose('resumeId', event.target.value)}
-            >
-              <option value="" disabled>
-                {loading ? '正在读取…' : '选择已保存的简历'}
-              </option>
-              {state.resumeId && !resume && <option value={state.resumeId}>已选择简历</option>}
-              {resumes.map((row, index) => (
-                <option key={row.id} value={row.id}>
-                  {row.name || '未命名简历'} ·{' '}
-                  {row.education?.split('\n')[0].slice(0, 45) || '教育信息未填写'} · 版本{' '}
-                  {index + 1}
-                </option>
-              ))}
-            </select>
+              placeholder={loading ? '正在读取…' : '搜索姓名、学校或版本'}
+              fallback="已选择简历"
+              choices={resumes.map((row, index) => ({
+                value: row.id,
+                label: (row.name || '未命名简历') + ' · 版本 ' + (index + 1),
+                detail: row.education || '教育信息未填写',
+                search: row.skills.join(' '),
+              }))}
+              onChange={(value) => choose('resumeId', value)}
+            />
             <p title={resume?.education}>
               {resume?.education ||
                 (loading ? '正在读取简历信息…' : '选择用于本次分析的已保存版本')}
@@ -101,22 +98,20 @@ export default function PairSelector({
           </span>
           <div>
             <label htmlFor="quick-job">目标岗位</label>
-            <select
+            <SearchSelect
               id="quick-job"
               value={state.jdId || ''}
               disabled={loading || !!error}
-              onChange={(event) => choose('jdId', event.target.value)}
-            >
-              <option value="" disabled>
-                {loading ? '正在读取…' : '选择已保存的岗位'}
-              </option>
-              {state.jdId && !job && <option value={state.jdId}>已选择岗位</option>}
-              {jobs.map((row, index) => (
-                <option key={row.id} value={row.id}>
-                  {row.title} · {row.company || '公司未填写'} · {index + 1}
-                </option>
-              ))}
-            </select>
+              placeholder={loading ? '正在读取…' : '搜索岗位、公司或技能'}
+              fallback="已选择岗位"
+              choices={jobs.map((row) => ({
+                value: row.id,
+                label: row.title,
+                detail: row.company || '公司未填写',
+                search: [...row.skills, ...row.tools].join(' '),
+              }))}
+              onChange={(value) => choose('jdId', value)}
+            />
             <p title={job?.company || ''}>
               {job?.company || (loading ? '正在读取岗位信息…' : '选择这次准备申请的岗位')}
             </p>
