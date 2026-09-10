@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { analyticsPath, connectAnalytics } from './controller.ts';
+import { analyticsPath, connectAnalytics, initialFilters, recentDates } from './controller.ts';
 
 function setup(request) {
   let state;
@@ -11,6 +11,29 @@ function setup(request) {
   return { controller, state: () => state, abort };
 }
 const response = (label) => ({ data: { summary: label, is_mock: false, market: null } });
+
+test('default analysis includes manually recorded jobs without requiring a real-source label', async () => {
+  const calls = [];
+  const f = setup(async (path) => {
+    calls.push(path);
+    return response('recorded');
+  });
+  await f.controller.load();
+  assert.deepEqual(initialFilters(), { source_type: '', date_from: '', date_to: '' });
+  assert.deepEqual(calls, ['/api/v1/analytics']);
+});
+
+test('recent ranges use inclusive local calendar days and can clear date limits', () => {
+  assert.deepEqual(recentDates(30, new Date(2026, 8, 10)), {
+    date_from: '2026-08-12',
+    date_to: '2026-09-10',
+  });
+  assert.deepEqual(recentDates(30, new Date(2024, 2, 1)), {
+    date_from: '2024-02-01',
+    date_to: '2024-03-01',
+  });
+  assert.deepEqual(recentDates(0), { date_from: '', date_to: '' });
+});
 
 test('global source and date filters are encoded in a single analytics request', () => {
   assert.equal(
@@ -60,7 +83,7 @@ test('invalid dates fail before network; abort suppresses late data', async () =
   assert.equal(f.state().result, null);
 });
 
-test('explicit snapshot import refreshes real source and is not repeated while pending', async () => {
+test('explicit snapshot import refreshes saved jobs and is not repeated while pending', async () => {
   const calls = [];
   let complete;
   const f = setup((path, options) => {
@@ -77,7 +100,7 @@ test('explicit snapshot import refreshes real source and is not repeated while p
   assert.equal(calls[0].options.method, 'POST');
   complete({ data: { created: 5, existing: 0 } });
   await work;
-  assert.equal(calls[1].path, '/api/v1/analytics?source_type=real');
+  assert.equal(calls[1].path, '/api/v1/analytics');
   assert.match(f.state().notice, /新增 5 条/);
 });
 

@@ -5,11 +5,13 @@ import { useEffect, useId, useState, type ReactNode } from 'react';
 import {
   connectAnalytics,
   initialFilters,
+  recentDates,
   type AnalyticsController,
 } from '../modules/analytics/controller.ts';
 import { useController } from '../core/WorkspaceContext';
 import type { AnalysisResponse, SkillFrequency, SalaryGroup } from '../core/contracts';
 import { Button, Chips, Feedback, NextLink, PageHeading, SafeSource } from '../components/ui';
+import MarketOverview from '../components/MarketOverview';
 
 const sources: Record<string, string> = {
   real: '真实采样',
@@ -395,8 +397,8 @@ export function AnalyticsResult({ result }: { result: AnalysisResponse }) {
   const data = result.market;
   const [salaryKey, setSalaryKey] = useState('');
   const [searchParams, setSearchParams] = useSearchParams();
-  const tabs = analyticsTopics;
-  const tab = tabs.find((item) => item.id === searchParams.get('tab'))?.id || 'skills';
+  const tabs = [{ id: 'overview', label: '分析总览' }, ...analyticsTopics];
+  const tab = tabs.find((item) => item.id === searchParams.get('tab'))?.id || 'overview';
   const setTab = (id: string) => {
     setSearchParams((previous) => {
       const next = new URLSearchParams(previous);
@@ -527,6 +529,25 @@ export function AnalyticsResult({ result }: { result: AnalysisResponse }) {
                     {item.label}
                   </button>
                 ))}
+              </div>
+              <div
+                className="market-topic"
+                role="tabpanel"
+                id="market-panel-overview"
+                aria-labelledby="market-tab-overview"
+                hidden={tab !== 'overview'}
+                tabIndex={0}
+              >
+                {tab === 'overview' && (
+                  <MarketOverview
+                    data={data}
+                    salaryGroup={salaryGroup}
+                    salaryChart={salaryGroup && <SalaryHistogram group={salaryGroup} />}
+                    salaryLabel={salaryLabel}
+                    onSalaryChange={setSalaryKey}
+                    onDetails={setTab}
+                  />
+                )}
               </div>
               <div
                 className="market-topic"
@@ -780,8 +801,22 @@ export default function AnalyticsPage() {
       data-module="analytics"
     >
       <div className="market-heading">
-        <PageHeading title="市场洞察">岗位需求 · 技能热度 · 薪资分布</PageHeading>
+        <PageHeading title="市场洞察">
+          聚合已录入 JD，了解技能需求、岗位薪资与职业准备方向。
+        </PageHeading>
         <div className="inline-actions">
+          <Button className="secondary" onClick={() => setWide(!wide)}>
+            {wide ? '退出大屏' : '大屏模式'}
+          </Button>
+        </div>
+      </div>
+      <details className="market-import-options">
+        <summary>补充岗位数据</summary>
+        <p>已有岗位会直接参与分析；需要更多样本时，可前往目标岗位录入，或手动同步外部来源。</p>
+        <div className="inline-actions">
+          <NextLink to="/jobs" primary={false}>
+            录入目标岗位
+          </NextLink>
           <select
             aria-label="外部招聘来源"
             value={feedSource}
@@ -801,29 +836,55 @@ export default function AnalyticsPage() {
           >
             {s.busy === 'external' ? '正在同步…' : '同步外部岗位'}
           </Button>
-          <Button className="secondary" onClick={() => setWide(!wide)}>
-            {wide ? '退出大屏' : '大屏模式'}
-          </Button>
         </div>
+        <p className="market-feed-note">
+          {feedSource === 'ncss' ? (
+            <>
+              <SafeSource url="https://www.ncss.cn/student/jobs/index.html">
+                国家大学生就业服务平台
+              </SafeSource>{' '}
+              · 国内招聘，手动同步最新最多 30 条公开记录
+            </>
+          ) : (
+            <>
+              <SafeSource url="https://jobicy.com">Jobicy</SafeSource> ·
+              全球远程岗位，手动同步最新最多 200 条
+            </>
+          )}
+          。缓存 1 小时；保留首次采集的岗位详情与来源。
+        </p>
+      </details>
+      <div className="market-period-controls" aria-label="采集时间范围">
+        <span>采集时间</span>
+        {[
+          { days: 0, label: '不限日期' },
+          { days: 30, label: '近 30 天采集' },
+          { days: 90, label: '近 90 天采集' },
+        ].map(({ days, label }) => {
+          const dates = recentDates(days);
+          return (
+            <Button
+              key={days}
+              disabled={Boolean(s.busy)}
+              aria-pressed={
+                s.filters.date_from === dates.date_from && s.filters.date_to === dates.date_to
+              }
+              onClick={() => {
+                const next = { ...filters, ...dates };
+                setFilters(next);
+                void c.load(next);
+              }}
+            >
+              {label}
+            </Button>
+          );
+        })}
       </div>
-      <p className="market-feed-note">
-        {feedSource === 'ncss' ? (
-          <>
-            <SafeSource url="https://www.ncss.cn/student/jobs/index.html">
-              国家大学生就业服务平台
-            </SafeSource>{' '}
-            · 国内招聘，手动同步最新最多 30 条公开记录
-          </>
-        ) : (
-          <>
-            <SafeSource url="https://jobicy.com">Jobicy</SafeSource> ·
-            全球远程岗位，手动同步最新最多 200 条
-          </>
-        )}
-        。缓存 1 小时；保留首次采集的岗位详情与来源。
+      <p className="analytics-help">
+        默认聚合全部来源的已录入岗位。近期按采集日期筛选，不是职位发布日期；无采集日期的岗位只进入不限日期的分析。
       </p>
       <details id="analytics-filters" className="analytics-filter-panel">
-        <summary>筛选来源与日期 · 默认真实采样</summary>
+        <summary>筛选来源与日期 · 当前{sources[s.filters.source_type] || '全部来源'}</summary>
         <form
           className="analytics-filters"
           onSubmit={(e) => {

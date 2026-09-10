@@ -1,11 +1,58 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { AnalyticsResult } from '../src/pages/AnalyticsPage';
 import type { AnalysisResponse } from '../src/core/contracts';
 
 afterEach(cleanup);
-it.each(['skills', 'salary', 'jobs', 'unknown'])(
+
+it('opens an overview with all Level 3 outputs based on the same recorded sample', () => {
+  const value = result();
+  value.market!.skill_frequency = [{ skill: 'SQL', job_count: 1, share_percent: 33.33 }];
+  render(
+    <MemoryRouter>
+      <AnalyticsResult result={value} />
+    </MemoryRouter>,
+  );
+  expect(screen.getByRole('tabpanel').id).toBe('market-panel-overview');
+  expect(screen.getByRole('heading', { name: '热门技能词云' })).toBeTruthy();
+  expect(screen.getByRole('heading', { name: '岗位薪资分布' })).toBeTruthy();
+  const matrix = screen.getByRole('region', { name: '各岗位技能要求分布图' });
+  expect(within(matrix).getByLabelText('SQL：已识别要求')).toBeTruthy();
+  expect(screen.getByRole('heading', { name: '职业规划参考' })).toBeTruthy();
+  expect(screen.getByRole('img', { name: /人民币月薪分布/ })).toBeTruthy();
+  fireEvent.change(screen.getByLabelText('薪资口径'), { target: { value: 'USD/hour' } });
+  expect(screen.getByRole('img', { name: /美元时薪分布/ })).toBeTruthy();
+  expect(screen.queryByRole('img', { name: /人民币月薪分布/ })).toBeNull();
+});
+
+it('paginates every recorded job in the skill matrix and keeps unrecognized skills explicit', () => {
+  const value = result();
+  value.market!.skill_frequency = [{ skill: 'SQL', job_count: 1, share_percent: 10 }];
+  const original = value.market!.jobs[0];
+  value.market!.jobs = Array.from({ length: 10 }, (_, i) => ({
+    ...original,
+    jd_id: `matrix-${i}`,
+    title: `岗位 ${i}`,
+    skills: i === 9 ? ['sql'] : [],
+  }));
+  render(
+    <MemoryRouter>
+      <AnalyticsResult result={value} />
+    </MemoryRouter>,
+  );
+  const matrix = screen.getByRole('region', { name: '各岗位技能要求分布图' });
+  expect(within(matrix).getAllByLabelText('SQL：未识别')).toHaveLength(8);
+  fireEvent.click(screen.getByRole('button', { name: '下一组' }));
+  expect(within(matrix).getByText('岗位 9')).toBeTruthy();
+  expect(within(matrix).getByLabelText('SQL：已识别要求')).toBeTruthy();
+  fireEvent.change(screen.getByRole('searchbox', { name: '查找岗位' }), {
+    target: { value: '岗位 9' },
+  });
+  expect(within(matrix).getAllByRole('row')).toHaveLength(2);
+  expect(screen.getByText('1 个岗位 · 第 1 / 1 页')).toBeTruthy();
+});
+it.each(['overview', 'skills', 'salary', 'jobs', 'unknown'])(
   'opens the requested market topic from the URL: %s',
   (tab) => {
     render(
@@ -14,7 +61,7 @@ it.each(['skills', 'salary', 'jobs', 'unknown'])(
       </MemoryRouter>,
     );
     expect(screen.getByRole('tabpanel').id).toBe(
-      `market-panel-${tab === 'unknown' ? 'skills' : tab}`,
+      `market-panel-${tab === 'unknown' ? 'overview' : tab}`,
     );
   },
 );
@@ -78,7 +125,7 @@ const result = (): AnalysisResponse => ({
 });
 const show = (value: AnalysisResponse) =>
   render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={['/analytics?tab=skills']}>
       <AnalyticsResult result={value} />
     </MemoryRouter>,
   );
