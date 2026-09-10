@@ -1,8 +1,9 @@
-import type { JDCreate } from '../../core/contracts';
+import type { JD, JDCreate } from '../../core/contracts';
 
 export const jobLabels = {
   title: '岗位名称',
   company: '公司（选填）',
+  source_url: '岗位链接（选填）',
   location: '工作地点',
   salary: '薪资待遇',
   education_requirement: '学历要求',
@@ -23,6 +24,7 @@ export interface JobEditorDraft {
   synthetic: boolean;
   savedId: string | null;
   savedSnapshot: string | null;
+  sourceRecord?: JD;
 }
 export function emptyJobDraft(): JobEditorDraft {
   return {
@@ -43,6 +45,24 @@ export function jobValues(data: JDCreate): JobValues {
     }),
   ) as JobValues;
 }
+export function openJobDraft(record: JD): JobEditorDraft {
+  const draft: JobEditorDraft = {
+    ...emptyJobDraft(),
+    values: jobValues(record),
+    protectedFields: Object.keys(jobLabels).filter((key) => key !== 'jd_text') as JobField[],
+    synthetic: record.source_type === 'synthetic',
+    sourceRecord: structuredClone(record),
+    savedId: record.id,
+  };
+  draft.savedSnapshot = JSON.stringify(jobPayload(draft));
+  return draft;
+}
+export function jobDraftDirty(draft: JobEditorDraft): boolean {
+  return (
+    Object.values(draft.values).some(Boolean) &&
+    JSON.stringify(jobPayload(draft)) !== draft.savedSnapshot
+  );
+}
 export function applyJobPreview(draft: JobEditorDraft, data: JDCreate): JobEditorDraft {
   const candidate = jobValues(data);
   const values = { ...draft.values };
@@ -58,8 +78,24 @@ export function jobPayload(draft: JobEditorDraft): JDCreate {
       .split(/[、,，\n]/)
       .map((item) => item.trim())
       .filter(Boolean);
+  const source = draft.sourceRecord;
   return {
+    ...(source
+      ? {
+          source_name: source.source_name,
+          collected_at: source.collected_at,
+          ...(values.salary === (source.salary || '')
+            ? {
+                salary_min: source.salary_min,
+                salary_max: source.salary_max,
+                currency: source.currency,
+                salary_period: source.salary_period,
+              }
+            : {}),
+        }
+      : {}),
     ...values,
+    source_url: values.source_url.trim() || null,
     company: values.company || null,
     salary: values.salary || null,
     original_text: values.jd_text,
@@ -71,6 +107,6 @@ export function jobPayload(draft: JobEditorDraft): JDCreate {
       values.tools || draft.protectedFields.includes('tools') || draft.candidate
         ? tags(values.tools)
         : undefined,
-    source_type: draft.synthetic ? 'synthetic' : 'unknown',
+    source_type: draft.synthetic ? 'synthetic' : source?.source_type || 'unknown',
   };
 }

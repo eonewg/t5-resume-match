@@ -254,7 +254,18 @@ export default function ResumeHistoryPage() {
             ref={previewPanel}
             tabIndex={0}
           >
-            <h2>版本预览</h2>
+            <div className="detail-title-row">
+              <h2>版本预览</h2>
+              {preview && (
+                <Button
+                  tone="secondary"
+                  disabled={Boolean(busy)}
+                  onClick={() => void open(preview)}
+                >
+                  编辑简历
+                </Button>
+              )}
+            </div>
             {preview ? (
               <>
                 <header>

@@ -3217,3 +3217,21 @@
 .split-workspace-frame .library-nav h1 {
   margin: 0;
 }
+
+.detail-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.detail-title-row h2 {
+  min-width: 0;
+  margin: 0;
+}
+.detail-title-row > button {
+  flex-shrink: 0;
+}
+.history-detail > .detail-title-row h2 {
+  font-size: 18px;
+}

@@ -5,7 +5,7 @@ import { useController, useWorkspace } from '../core/WorkspaceContext';
 import { Button, Chips, Feedback, SafeSource } from '../components/ui';
 import Icon from '../components/Icon';
 import LibraryNav from '../components/LibraryNav';
-import { jobLabels as fieldLabels } from '../modules/jobs/draft';
+import { jobLabels as fieldLabels, openJobDraft, jobDraftDirty } from '../modules/jobs/draft';
 
 const start = (controller: JobsController) => {
   void controller.load();
@@ -13,7 +13,7 @@ const start = (controller: JobsController) => {
 export default function JobsPage() {
   const { state: s, controller } = useController(connectJobs, start, 'jobs');
   const navigate = useNavigate();
-  const { store, jobLibrary } = useWorkspace();
+  const { store, jobLibrary, jobDraft } = useWorkspace();
   const readingPane = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (readingPane.current) readingPane.current.scrollTop = 0;
@@ -149,7 +149,25 @@ export default function JobsPage() {
                   <span className="employer-mark" aria-hidden="true">
                     {job.company?.slice(0, 2) || <Icon name="jobs" />}
                   </span>
-                  <h2>{job.title}</h2>
+                  <div className="detail-title-row">
+                    <h2>{job.title}</h2>
+                    <Button
+                      tone="secondary"
+                      disabled={s.busy && !refreshing}
+                      onClick={() => {
+                        if (
+                          jobDraft.current &&
+                          jobDraftDirty(jobDraft.current) &&
+                          !window.confirm('编辑这份岗位会替换当前未保存的岗位草稿，是否继续？')
+                        )
+                          return;
+                        jobDraft.current = openJobDraft(job);
+                        navigate('/jobs/new');
+                      }}
+                    >
+                      编辑岗位
+                    </Button>
+                  </div>
                   <p className="job-employer">
                     {job.company || '公司暂未提供'}
                     {job.salary && ` · ${job.salary}`}
@@ -194,7 +212,7 @@ export default function JobsPage() {
                   来源：
                   {job.source_name ||
                     (job.source_type === 'synthetic' ? '合成演示' : '暂未提供')}{' '}
-                  {job.source_url && <SafeSource url={job.source_url}>查看来源 ↗</SafeSource>}
+                  {job.source_url && <SafeSource url={job.source_url}>打开岗位链接 ↗</SafeSource>}
                 </p>
                 <footer className="job-detail-actions">
                   <Button

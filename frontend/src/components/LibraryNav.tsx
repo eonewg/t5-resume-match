@@ -4,9 +4,11 @@ import { NavLink } from 'react-router-dom';
 export default function LibraryNav({
   kind,
   children,
+  editing = false,
 }: {
   kind: 'resume' | 'jobs';
   children?: ReactNode;
+  editing?: boolean;
 }) {
   const links =
     kind === 'resume'
@@ -15,7 +17,7 @@ export default function LibraryNav({
           ['/resume/history', '简历库'],
         ]
       : [
-          ['/jobs/new', '创建岗位'],
+          ['/jobs/new', editing ? '编辑岗位' : '创建岗位'],
           ['/jobs', '岗位库'],
         ];
   return (

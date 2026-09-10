@@ -9,6 +9,7 @@ import {
   emptyJobDraft,
   jobLabels,
   jobPayload,
+  jobDraftDirty,
   type JobField,
 } from '../modules/jobs/draft';
 import LibraryNav from '../components/LibraryNav';
@@ -25,6 +26,7 @@ const groups: { name: string; fields: JobField[] }[] = [
     fields: [
       'title',
       'company',
+      'source_url',
       'location',
       'salary',
       'education_requirement',
@@ -64,9 +66,7 @@ export default function JobCreatePage() {
   useEffect(() => {
     jobDraft.current = draft;
   }, [draft, jobDraft]);
-  const dirty =
-    Object.values(draft.values).some(Boolean) &&
-    JSON.stringify(jobPayload(draft)) !== draft.savedSnapshot;
+  const dirty = jobDraftDirty(draft);
   useEffect(() => {
     const warn = (event: BeforeUnloadEvent) => {
       if (dirty) {
@@ -156,6 +156,16 @@ export default function JobCreatePage() {
         )
       )
         throw Error('请填写岗位名称，并补充职责、任职要求或原文。');
+      if (payload.source_url) {
+        let link: URL;
+        try {
+          link = new URL(payload.source_url);
+        } catch {
+          throw Error('岗位链接请填写完整的 http:// 或 https:// 地址。');
+        }
+        if (!['http:', 'https:'].includes(link.protocol) || link.username || link.password)
+          throw Error('岗位链接请填写不含账号密码的 http:// 或 https:// 地址。');
+      }
       const snapshot = JSON.stringify(payload);
       let id = draft.savedSnapshot === snapshot ? draft.savedId : null;
       if (!id) {
@@ -183,7 +193,11 @@ export default function JobCreatePage() {
   return (
     <div className="job-create-page" data-module="jobs-create">
       <div className="page-title-row">
-        <LibraryNav kind="jobs">导入岗位要求，在右侧核对后保存；也可以直接手动填写。</LibraryNav>
+        <LibraryNav kind="jobs" editing={Boolean(draft.sourceRecord)}>
+          {draft.sourceRecord
+            ? '正在编辑已保存岗位。修改后保存为新版本，原岗位仍保留在库中。'
+            : '导入岗位要求，在右侧核对后保存；也可以直接手动填写。'}
+        </LibraryNav>
       </div>
       <Feedback error={error} busy={Boolean(busy)}>
         {busy
@@ -313,7 +327,14 @@ export default function JobCreatePage() {
                 ) : (
                   <input
                     id={`jobs-${key}`}
-                    maxLength={key === 'skills' || key === 'tools' ? 50000 : 200}
+                    maxLength={
+                      key === 'skills' || key === 'tools'
+                        ? 50000
+                        : key === 'source_url' || key === 'salary'
+                          ? 2000
+                          : 200
+                    }
+                    placeholder={key === 'source_url' ? 'https://…' : undefined}
                     value={draft.values[key]}
                     readOnly={Boolean(busy)}
                     onChange={(e) => edit(key, e.target.value)}
@@ -338,7 +359,7 @@ export default function JobCreatePage() {
           </div>
           <div className="job-editor-footer">
             <Button tone="primary" type="submit" disabled={Boolean(busy)}>
-              保存并选中
+              {draft.sourceRecord && dirty ? '保存新版本并选中' : '保存并选中'}
             </Button>
             <Button
               disabled={Boolean(busy)}
