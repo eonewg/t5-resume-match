@@ -17,8 +17,8 @@ import AISettingsPanel from './components/AISettingsPanel';
 
 const navigation: [string, string, IconName][] = [
   ['home', '首页', 'home'],
-  ['resume', '我的简历', 'resume'],
-  ['jobs', '目标岗位', 'jobs'],
+  ['resume', '简历', 'resume'],
+  ['jobs', '岗位', 'jobs'],
   ['matching', '匹配分析', 'matching'],
   ['diagnosis', 'AI 优化', 'diagnosis'],
   ['analytics', '市场洞察', 'analytics'],
@@ -357,7 +357,7 @@ export function ProductShell() {
         )}
       </dialog>
       <div
-        className={`app-frame ${collapsed ? 'sidebar-collapsed' : ''} ${['resume/history', 'jobs'].includes(key) ? 'split-workspace-frame' : ''}`}
+        className={`app-frame ${collapsed ? 'sidebar-collapsed' : ''} ${['resume', 'resume/history', 'jobs', 'jobs/new'].includes(key) ? 'split-workspace-frame' : ''}`}
       >
         <main id="main-content" tabIndex={-1}>
           {exitError && (

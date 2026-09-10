@@ -1,6 +1,13 @@
+import type { ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 
-export default function LibraryNav({ kind }: { kind: 'resume' | 'jobs' }) {
+export default function LibraryNav({
+  kind,
+  children,
+}: {
+  kind: 'resume' | 'jobs';
+  children?: ReactNode;
+}) {
   const links =
     kind === 'resume'
       ? [
@@ -12,12 +19,26 @@ export default function LibraryNav({ kind }: { kind: 'resume' | 'jobs' }) {
           ['/jobs', '岗位库'],
         ];
   return (
-    <nav className="library-nav" aria-label={kind === 'resume' ? '简历工作区' : '岗位工作区'}>
-      {links.map(([to, label]) => (
-        <NavLink key={to} to={to} end>
-          {label}
-        </NavLink>
-      ))}
-    </nav>
+    <header className="page-heading workspace-heading">
+      <nav className="library-nav" aria-label={kind === 'resume' ? '简历工作区' : '岗位工作区'}>
+        {links.map(([to, label]) => (
+          <NavLink key={to} to={to} end>
+            {({ isActive }) => (
+              <>
+                <span className="library-title-space" aria-hidden="true">
+                  {label}
+                </span>
+                {isActive ? (
+                  <h1 tabIndex={-1}>{label}</h1>
+                ) : (
+                  <span className="library-title-label">{label}</span>
+                )}
+              </>
+            )}
+          </NavLink>
+        ))}
+      </nav>
+      {children && <p className="page-intro">{children}</p>}
+    </header>
   );
 }

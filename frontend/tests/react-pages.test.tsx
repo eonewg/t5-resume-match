@@ -174,8 +174,8 @@ describe('React routes and task workspace', () => {
       '/analytics?tab=jobs',
     );
     expect(screen.queryByRole('searchbox', { name: '搜索已录入岗位' })).toBeNull();
-    fireEvent.click(screen.getByRole('link', { name: '目标岗位', exact: true }));
-    await screen.findByRole('heading', { name: '目标岗位', level: 1 });
+    fireEvent.click(screen.getByRole('link', { name: '岗位', exact: true }));
+    await screen.findByRole('heading', { name: '岗位库', level: 1 });
     const search = input('job-search');
     fireEvent.change(search, { target: { value: 'Python' } });
     await waitFor(() => expect(document.querySelector('[data-job-id="j"]')).not.toBeNull());
@@ -198,8 +198,8 @@ describe('React routes and task workspace', () => {
     await screen.findByText('后端工程师');
   });
   it.each([
-    ['/resume', '我的简历'],
-    ['/jobs', '目标岗位'],
+    ['/resume', '编辑简历'],
+    ['/jobs', '岗位库'],
     ['/matching', '匹配分析'],
     ['/diagnosis', 'AI 优化'],
     ['/analytics', '市场洞察'],
@@ -497,7 +497,7 @@ describe('matching and diagnosis rendering', () => {
     fail = false;
     fireEvent.submit(input('jobs-title').closest('form')!);
     await waitFor(() => expect(store.getState().jdId).toBe('saved-job'));
-    await screen.findByRole('heading', { name: '目标岗位', level: 1 });
+    await screen.findByRole('heading', { name: '岗位库', level: 1 });
     expect(screen.queryByRole('heading', { name: '创建岗位', level: 1 })).toBeNull();
     expect(store.getState().result).toBeNull();
     expect(requests.filter((request) => request.path === '/api/v1/matches')).toHaveLength(0);
@@ -716,7 +716,7 @@ describe('desktop workspace operations', () => {
     expect(document.querySelector('[data-module="resume"]')).not.toBe(null);
     fail = false;
     fireEvent.click(input('resume-save-next'));
-    await screen.findByRole('heading', { name: '目标岗位', exact: true });
+    await screen.findByRole('heading', { name: '岗位库', exact: true });
     expect(
       requests.filter((r) => r.path === '/api/v1/resumes' && r.options.method === 'POST'),
     ).toHaveLength(1);

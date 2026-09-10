@@ -10,7 +10,7 @@ import type { ResumeField } from '../core/controller-types';
 import { fieldStatus } from '../core/ui.ts';
 import Icon from '../components/Icon';
 import demoResume from '../demo/fixtures/resume-zh.ts';
-import { Button, Feedback, NextLink, PageHeading } from '../components/ui';
+import { Button, Feedback, NextLink } from '../components/ui';
 import ScreenshotImport from '../components/ScreenshotImport';
 import LibraryNav from '../components/LibraryNav';
 
@@ -220,9 +220,8 @@ export default function ResumePage() {
   return (
     <div className="resume-editor" data-module="resume">
       <div className="page-title-row">
-        <PageHeading title="我的简历">上传、粘贴或编辑简历内容，右侧确认关键信息。</PageHeading>
+        <LibraryNav kind="resume">上传、粘贴或编辑简历内容，右侧确认关键信息。</LibraryNav>
       </div>
-      <LibraryNav kind="resume" />
       <Feedback id="resume-status" error={s.error ? status : undefined} busy={Boolean(s.busy)}>
         {status}
       </Feedback>

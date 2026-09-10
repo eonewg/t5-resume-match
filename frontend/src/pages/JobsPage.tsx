@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { connectJobs, type JobsController } from '../modules/jobs/controller.ts';
 import { useController, useWorkspace } from '../core/WorkspaceContext';
-import { Button, Chips, Feedback, PageHeading, SafeSource } from '../components/ui';
+import { Button, Chips, Feedback, SafeSource } from '../components/ui';
 import Icon from '../components/Icon';
 import LibraryNav from '../components/LibraryNav';
 import { jobLabels as fieldLabels } from '../modules/jobs/draft';
@@ -35,9 +35,7 @@ export default function JobsPage() {
   return (
     <div className="jobs-page" data-module="jobs">
       <div className="page-title-row">
-        <PageHeading title="目标岗位">
-          选择你准备申请的岗位，让后续匹配和优化有一个具体目标。
-        </PageHeading>
+        <LibraryNav kind="jobs">选择你准备申请的岗位，让后续匹配和优化有一个具体目标。</LibraryNav>
         <Button
           id="jobs-add"
           tone="primary"
@@ -47,7 +45,6 @@ export default function JobsPage() {
           添加岗位
         </Button>
       </div>
-      <LibraryNav kind="jobs" />
       <Feedback id="jobs-status" error={s.error} busy={s.busy}>
         {s.busy
           ? {

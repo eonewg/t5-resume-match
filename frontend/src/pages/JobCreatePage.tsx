@@ -13,7 +13,7 @@ import {
 } from '../modules/jobs/draft';
 import LibraryNav from '../components/LibraryNav';
 import ScreenshotImport from '../components/ScreenshotImport';
-import { Button, Feedback, PageHeading } from '../components/ui';
+import { Button, Feedback } from '../components/ui';
 import Icon from '../components/Icon';
 import cpp from '../demo/fixtures/job-cpp';
 import go from '../demo/fixtures/job-go';
@@ -177,10 +177,7 @@ export default function JobCreatePage() {
     });
   return (
     <div className="job-create-page" data-module="jobs-create">
-      <PageHeading title="创建岗位">
-        导入岗位要求，在右侧核对后保存；也可以直接手动填写。
-      </PageHeading>
-      <LibraryNav kind="jobs" />
+      <LibraryNav kind="jobs">导入岗位要求，在右侧核对后保存；也可以直接手动填写。</LibraryNav>
       <Feedback error={error} busy={Boolean(busy)}>
         {busy
           ? {
