@@ -4,13 +4,13 @@
 
 ## 责任与代码范围
 
-简历文本及文档导入、AI 结构化解析、字段核对与保护、编辑保存、历史读回；对接截图识别入口。
+简历文本及文档导入、AI 结构化解析、字段核对与保护、编辑保存、历史读回；在简历页面接入 A 提供的截图识别组件，不修改公共上传路由、截图服务或数据库。
 
 - `backend/modules/resume/`、`tests/resume/`
 - `frontend/src/modules/resume/`、`frontend/src/pages/ResumePage.tsx`、`frontend/src/pages/ResumeHistoryPage.tsx`
 - 简历相关前端测试与 `docs/resume-ai/`
 
-共享文件变更与 A 协调，目录归属用于协作审查，不改变公开 provider 名称或运行时接口。
+文件归属以[独占范围与交接规则](../../T5_FIVE_PERSON_ALLOCATION.md#3-独占文件范围)为准。只修改自己负责的文件；其他模块与公共文件的需求交给对应负责人实施，不改变公开 provider 名称或运行时接口。
 
 ## 验证与交接
 

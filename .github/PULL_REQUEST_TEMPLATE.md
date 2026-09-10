@@ -19,4 +19,4 @@
 
 区分离线替身、Mock 与真实 AI/数据库验证；不附真实密钥。不虚构实验结果。
 
-A 按准确提交复核集成，E 汇总验证记录。B 的 Resume、C 的 Jobs/Matching（含 Embedding）、D 的 Diagnosis、E 的 Analytics 分别验收，每项提供准确证据。维护 PR 按变更范围提供必要的数据库、UI 或运行验证；历史最终交付证据保持原样。
+A 按准确提交复核集成并汇总系统验证记录。B 的 Resume、C 的 Jobs/Matching（含 Embedding）、D 的 Diagnosis、E 的 Analytics 分别验收，每项提供准确证据。维护 PR 按变更范围提供必要的数据库、UI 或运行验证；历史最终交付证据保持原样。

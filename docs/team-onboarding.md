@@ -22,7 +22,7 @@ git switch -c fix/your-topic
 
 ## 开发、验证与交付
 
-A 负责总架构与集成，B 负责 Resume，C 负责 Jobs/Matching/Embedding，D 负责 Diagnosis，E 负责 Analytics 与质量组织。
+A 负责总架构与集成，B 负责 Resume，C 负责 Jobs/Matching/Embedding，D 负责 Diagnosis，E 负责 Analytics 与市场数据验证。
 这些职责用于审查，不再通过现代 PR 的分支后缀强制限定路径。
 按 [模块自检指南](member-development.md) 验证公开契约、相关业务与边界，再运行完整检查。
 

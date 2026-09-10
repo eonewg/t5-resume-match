@@ -10,11 +10,11 @@
 | B | Resume、编辑保存与历史 | [B](roles/B.md) |
 | C | Jobs、Matching、Embedding | [C](roles/C.md) |
 | D | Diagnosis、STAR 与定向建议 | [D](roles/D.md) |
-| E | Analytics、样本、系统测试组织与验证汇总 | [E](roles/E.md) |
+| E | Analytics、市场样本、统计口径与模块测试 | [E](roles/E.md) |
 
 业务模块通过[API 契约](api-contract.md)、公共 Schema 和 ports 交互，不调用其他模块内部实现。四个公开 provider 保持 resume、jobs、diagnosis、analytics；Matching 和 Embedding 位于 jobs。
 
-A 统筹公共数据库、依赖、配置及共享前端。C 定义向量模型、维度、距离及评分需求，A 实施存储和迁移。各成员自测自己的模块，公共需求写入集成请求；E 组织系统验证，A 复核并集成。历史请求和验收按当时事实保留。
+A 统筹公共数据库、依赖、配置及共享前端。C 定义向量模型、维度、距离及评分需求，A 实施存储和迁移。各成员自测自己的模块，公共需求写入集成请求；各成员负责本模块测试，A 组织系统验证、汇总并集成。每个文件仅有一个修改负责人；公共文件归 A，业务模块归 B–E。具体边界见[独占范围](../T5_FIVE_PERSON_ALLOCATION.md#3-独占文件范围)，跨模块需求由目标文件负责人实施。历史请求和验收按当时事实保留。
 
 main 为维护集成基线，从 main 创建任务分支、PR 指向 main，不自动合并。
 
