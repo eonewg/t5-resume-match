@@ -1152,3 +1152,121 @@ body {
 .connection-tooltip p {
   margin: 5px 0 0;
 }
+.ai-provider-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 18px 0;
+}
+.ai-provider-toolbar h3 {
+  margin: 0;
+}
+.ai-provider-list {
+  display: grid;
+  gap: 12px;
+}
+.ai-provider-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: white;
+}
+.ai-provider-card[data-active='true'] {
+  border-color: #9bbcff;
+  background: #f5f9ff;
+}
+.ai-provider-identity {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+.ai-provider-identity > div {
+  min-width: 0;
+}
+.ai-provider-identity h3 {
+  margin: 0;
+  font-size: 16px;
+  overflow-wrap: anywhere;
+}
+.ai-settings-panel .ai-provider-identity p {
+  margin: 5px 0;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.ai-provider-identity small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.ai-provider-avatar {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  background: #edf3ff;
+  color: var(--accent);
+  border-radius: 12px;
+  font-size: 20px;
+}
+.ai-provider-controls {
+  display: grid;
+  justify-items: end;
+  gap: 12px;
+  flex-shrink: 0;
+}
+.ai-provider-assignments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.ai-settings-panel .ai-provider-assignments label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  font-weight: 400;
+}
+.ai-provider-assignments input {
+  width: 15px;
+  height: 15px;
+}
+.ai-provider-empty {
+  padding: 24px;
+  background: #f6f8fc;
+  border-radius: 12px;
+}
+.ai-provider-defaults {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  font-size: 12px;
+  color: var(--muted);
+  margin: 12px 0 20px;
+}
+.ai-provider-list ~ form {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #f9fbff;
+}
+.ai-provider-preset {
+  margin-bottom: 16px;
+}
+@media (max-width: 700px) {
+  .ai-provider-card {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 16px;
+  }
+  .ai-provider-controls {
+    justify-items: start;
+  }
+}

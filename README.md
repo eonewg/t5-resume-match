@@ -29,7 +29,7 @@
 
 ### Windows 便携版
 
-解压整个 `Vitae` 文件夹 → 双击 `Vitae.exe` → 在侧栏“设置”填写自己的 API Key → 测试连接后保存并应用。最终用户无需安装 Python、uv、Git 或 Node，也无需手动编辑 `.env`。保留整个目录（包括 `_internal`），不能只复制 EXE。详细步骤见包内 `使用说明.txt` 或 [Windows 上手说明](docs/windows-quickstart.txt)。
+解压整个 `Vitae` 文件夹 → 双击 `Vitae.exe` → 在侧栏“设置”新建模型配置并填写自己的 API Key → 测试连接后保存，再勾选要使用的功能。最终用户无需安装 Python、uv、Git 或 Node，也无需手动编辑 `.env`。保留整个目录（包括 `_internal`），不能只复制 EXE。详细步骤见包内 `使用说明.txt` 或 [Windows 上手说明](docs/windows-quickstart.txt)。
 
 启动后仅监听 `127.0.0.1:8000`，成功后自动打开浏览器；关闭控制台或按 Ctrl+C 停止。端口已占用时启动失败，不自动换端口，请先停止占用 8000 的程序后重试。`.env` 从 EXE 同目录读取，SQLite 默认保存在 EXE 同目录的 `data/t5.db`；请解压到可写目录。移动整个文件夹即可保留配置与数据，不使用 LocalAppData。AI 功能需要有效密钥和联网；未配置密钥仍可启动，但 AI 请求会明确失败。`/ready` 表示数据库和四个正式 provider 已加载，不检测密钥有效性。
 
