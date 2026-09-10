@@ -1,4 +1,4 @@
-param([string]$DistPath = 'dist', [string]$WorkPath = 'build')
+﻿param([string]$DistPath = 'dist', [string]$WorkPath = 'build')
 $ErrorActionPreference = 'Stop'
 if ($env:OS -ne 'Windows_NT') { throw 'Build on Windows with uv installed.' }
 Push-Location (Split-Path $PSScriptRoot -Parent)
