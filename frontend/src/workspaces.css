@@ -2705,34 +2705,6 @@
   border-radius: 8px;
   background: white;
 }
-.salary-detail-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.salary-detail-list li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--line);
-  font-size: 13px;
-}
-.salary-detail-list label {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-.salary-detail-list input {
-  flex-shrink: 0;
-}
-.salary-detail-list li > span {
-  flex-shrink: 0;
-  font-variant-numeric: tabular-nums;
-}
 .salary-detail-pagination {
   display: flex;
   align-items: center;
@@ -2746,25 +2718,9 @@
   font-size: 13px;
   color: var(--muted);
 }
-.salary-comparison {
-  border-top: 1px solid var(--line);
-  margin-top: 20px;
-  padding-top: 20px;
-}
-.salary-comparison .analytics-bar-label {
-  flex-wrap: wrap;
-}
 @media (max-width: 600px) {
   .salary-detail-controls {
     grid-template-columns: minmax(0, 1fr);
-  }
-  .salary-detail-list li {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .salary-detail-list li > span {
-    padding-left: 24px;
   }
 }
 .screenshot-import {
@@ -2973,4 +2929,41 @@
   .market-overview {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+.salary-direction-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0;
+}
+.salary-direction-options .button {
+  border: 1px solid var(--line);
+  gap: 8px;
+}
+.salary-direction-options .button[aria-pressed='true'] {
+  background: #e8f0ff;
+  color: #225ec9;
+  border-color: #c6d8ff;
+}
+.salary-direction-options span {
+  font-size: 11px;
+  opacity: 0.75;
+}
+.salary-direction-chart {
+  margin: 22px 0 8px;
+  padding: 0 12px;
+}
+.salary-direction-chart .analytics-salary-row {
+  padding: 14px 0;
+}
+.salary-direction-chart .analytics-bar-label {
+  align-items: baseline;
+  gap: 16px;
+}
+.salary-direction-chart .analytics-bar-label > span {
+  overflow-wrap: anywhere;
+}
+.salary-direction-chart .analytics-bar-label strong {
+  white-space: nowrap;
+  font-size: 13px;
 }

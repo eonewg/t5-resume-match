@@ -200,54 +200,48 @@ it('salary groups use separate selectable scales', () => {
   expect(document.querySelector('[data-currency="USD"]')?.hasAttribute('hidden')).toBe(false);
   expect(document.querySelector('[data-currency="CNY"]')).toBeNull();
   expect(document.querySelector('[data-currency="USD"]')?.textContent).toContain('0–0');
-  fireEvent.click(screen.getByText(/查看每个岗位的招聘薪资/));
-  fireEvent.click(screen.getByRole('checkbox', { name: '明确的零值' }));
+  fireEvent.click(screen.getByText(/按岗位方向查看薪资/));
   expect(document.querySelector('[data-currency="USD"] .is-point')).not.toBeNull();
 });
 
-it('pages and searches salary details without losing selected comparisons or mixing currencies', () => {
+it('groups salary directions and draws paginated ranges without checkbox selection', () => {
   const value = result();
-  value.market!.salary_groups[0].ranges = Array.from({ length: 23 }, (_, index) => ({
-    jd_id: `salary-${index}`,
-    title: `测试岗位 ${index + 1}`,
+  const group = value.market!.salary_groups[0];
+  group.ranges = Array.from({ length: 8 }, (_, index) => ({
+    jd_id: `dev-${index}`,
+    title: `Software Engineer ${index}`,
     lower: index * 1000,
     upper: index * 1000 + 2000,
   }));
-  value.market!.salary_groups[0].sample_size = 23;
+  group.ranges.push({ jd_id: 'sales', title: 'Sales Executive', lower: 3000, upper: 4000 });
+  group.sample_size = 9;
   show(value);
   fireEvent.click(screen.getByRole('tab', { name: '薪资分析' }));
-  fireEvent.click(screen.getByText(/查看每个岗位的招聘薪资/));
-  expect(screen.getAllByRole('checkbox')).toHaveLength(10);
-  for (let i = 1; i <= 5; i++)
-    fireEvent.click(screen.getByRole('checkbox', { name: `测试岗位 ${i}` }));
-  expect((screen.getByRole('checkbox', { name: '测试岗位 6' }) as HTMLInputElement).disabled).toBe(
-    true,
-  );
-  expect(document.querySelectorAll('.salary-comparison .analytics-salary-row')).toHaveLength(5);
+  fireEvent.click(screen.getByText(/按岗位方向查看薪资/));
+  expect(screen.queryByRole('checkbox')).toBeNull();
+  const chart = screen.getByRole('region', { name: '研发与技术岗位薪资区间图' });
+  expect(chart.querySelectorAll('.analytics-salary-row')).toHaveLength(6);
+  const scale = chart.querySelector('.analytics-salary-axis')!.textContent;
   fireEvent.click(screen.getByRole('button', { name: '下一页' }));
-  fireEvent.click(screen.getByRole('button', { name: '下一页' }));
-  expect(screen.getAllByRole('checkbox')).toHaveLength(3);
-  fireEvent.change(screen.getByRole('searchbox', { name: '搜索岗位' }), {
-    target: { value: '测试岗位 23' },
+  expect(chart.querySelectorAll('.analytics-salary-row')).toHaveLength(2);
+  expect(chart.querySelector('.analytics-salary-axis')!.textContent).toBe(scale);
+  fireEvent.change(screen.getByRole('searchbox', { name: '搜索当前方向' }), {
+    target: { value: 'Engineer 7' },
   });
-  expect(screen.getAllByRole('checkbox')).toHaveLength(1);
-  expect(document.querySelectorAll('.salary-comparison .analytics-salary-row')).toHaveLength(5);
-  fireEvent.click(screen.getByRole('button', { name: '清空对比' }));
-  expect(document.querySelector('.salary-comparison')).toBeNull();
-  fireEvent.change(screen.getByRole('searchbox', { name: '搜索岗位' }), {
+  expect(chart.querySelectorAll('.analytics-salary-row')).toHaveLength(1);
+  expect(chart.querySelector('.analytics-salary-axis')!.textContent).toBe(scale);
+  fireEvent.click(screen.getByRole('button', { name: /销售与市场/ }));
+  expect(screen.getByRole('region', { name: '销售与市场岗位薪资区间图' }).textContent).toContain(
+    'Sales Executive',
+  );
+  expect(screen.queryByRole('region', { name: '研发与技术岗位薪资区间图' })).toBeNull();
+  fireEvent.change(screen.getByRole('searchbox', { name: '搜索当前方向' }), {
     target: { value: '不存在' },
   });
-  expect(screen.getByText(/没有找到对应岗位/)).toBeTruthy();
-  fireEvent.change(screen.getByRole('searchbox', { name: '搜索岗位' }), { target: { value: '' } });
-  fireEvent.change(screen.getByRole('combobox', { name: '排列顺序' }), {
-    target: { value: 'upper' },
-  });
-  expect(screen.getAllByRole('checkbox')[0].closest('label')?.textContent).toBe('测试岗位 23');
-  fireEvent.click(screen.getAllByRole('checkbox')[0]);
+  expect(screen.getByText(/当前方向没有找到/)).toBeTruthy();
   fireEvent.change(screen.getByRole('combobox', { name: '查看哪类薪资' }), {
     target: { value: 'USD/hour' },
   });
-  expect(document.querySelector('.salary-comparison')).toBeNull();
   expect(document.querySelector('.salary-range-details')?.hasAttribute('open')).toBe(false);
 });
 

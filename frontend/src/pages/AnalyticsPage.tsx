@@ -12,6 +12,7 @@ import { useController } from '../core/WorkspaceContext';
 import type { AnalysisResponse, SkillFrequency, SalaryGroup } from '../core/contracts';
 import { Button, Chips, Feedback, NextLink, PageHeading, SafeSource } from '../components/ui';
 import MarketOverview from '../components/MarketOverview';
+import SalaryDetails from '../components/SalaryDetails';
 
 const sources: Record<string, string> = {
   real: '真实采样',
@@ -136,148 +137,6 @@ function SkillChart({
         </li>
       ))}
     </ul>
-  );
-}
-function SalaryDetails({ group }: { group: SalaryGroup }) {
-  const [query, setQuery] = useState('');
-  const [sort, setSort] = useState('original');
-  const [page, setPage] = useState(0);
-  const [selected, setSelected] = useState<string[]>([]);
-  const matches = group.ranges.filter((row) =>
-    row.title.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()),
-  );
-  if (sort === 'upper') matches.sort((a, b) => b.upper - a.upper);
-  if (sort === 'lower') matches.sort((a, b) => b.lower - a.lower);
-  if (sort === 'name') matches.sort((a, b) => a.title.localeCompare(b.title, 'zh-CN'));
-  const pages = Math.max(1, Math.ceil(matches.length / 10));
-  const currentPage = Math.min(page, pages - 1);
-  const rows = matches.slice(currentPage * 10, currentPage * 10 + 10);
-  const compared = group.ranges.filter((row) => selected.includes(row.jd_id));
-  const maximum = Math.max(1, ...compared.map((row) => row.upper));
-  const toggle = (id: string) =>
-    setSelected((previous) => {
-      const valid = previous.filter((key) => group.ranges.some((row) => row.jd_id === key));
-      return valid.includes(id)
-        ? valid.filter((key) => key !== id)
-        : valid.length < 5
-          ? [...valid, id]
-          : valid;
-    });
-  return (
-    <details className="analytics-details salary-range-details">
-      <summary>查看每个岗位的招聘薪资 · {group.ranges.length} 个岗位</summary>
-      <section
-        className="analytics-salary-group"
-        data-currency={group.currency}
-        data-period={group.period}
-      >
-        <h3>{salaryLabel(group)}</h3>
-        <div className="salary-detail-controls">
-          <label>
-            搜索岗位
-            <input
-              type="search"
-              value={query}
-              placeholder="输入岗位名称"
-              onChange={(event) => {
-                setQuery(event.target.value);
-                setPage(0);
-              }}
-            />
-          </label>
-          <label>
-            排列顺序
-            <select
-              value={sort}
-              onChange={(event) => {
-                setSort(event.target.value);
-                setPage(0);
-              }}
-            >
-              <option value="original">原始顺序</option>
-              <option value="upper">薪资上限从高到低</option>
-              <option value="lower">薪资下限从高到低</option>
-              <option value="name">岗位名称</option>
-            </select>
-          </label>
-        </div>
-        <p className="analytics-help">
-          勾选最多 5 个岗位比较薪资。每页显示 10 个，搜索和排序不影响上方的整体分布。
-        </p>
-        <ul className="salary-detail-list" aria-label="岗位薪资明细">
-          {rows.map((row) => (
-            <li key={row.jd_id}>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={selected.includes(row.jd_id)}
-                  disabled={compared.length >= 5 && !selected.includes(row.jd_id)}
-                  onChange={() => toggle(row.jd_id)}
-                />
-                <span>{row.title}</span>
-              </label>
-              <span>
-                {number(row.lower)}–{number(row.upper)}
-              </span>
-            </li>
-          ))}
-        </ul>
-        {!matches.length && <p role="status">没有找到对应岗位，试试其他关键词。</p>}
-        <div className="salary-detail-pagination">
-          <span>
-            共 {matches.length} 个岗位 · 第 {currentPage + 1} / {pages} 页
-          </span>
-          <Button disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)}>
-            上一页
-          </Button>
-          <Button disabled={currentPage + 1 >= pages} onClick={() => setPage(currentPage + 1)}>
-            下一页
-          </Button>
-        </div>
-        {compared.length > 0 && (
-          <section className="salary-comparison" aria-label="所选岗位薪资对比">
-            <div className="section-heading">
-              <h3>
-                已选 {compared.length} / 5 个岗位 · {salaryLabel(group)}
-              </h3>
-              <Button onClick={() => setSelected([])}>清空对比</Button>
-            </div>
-            <p className="salary-range-legend">
-              蓝线左端是招聘薪资下限，右端是上限；固定金额显示为圆点。
-            </p>
-            <div className="analytics-salary-axis">
-              {[0, 1, 2, 3, 4].map((tick) => (
-                <span key={tick} style={{ left: `${tick * 25}%` }}>
-                  {number((maximum * tick) / 4)}
-                </span>
-              ))}
-            </div>
-            {compared.map((row) => (
-              <div className="analytics-salary-row" key={row.jd_id}>
-                <div className="analytics-bar-label">
-                  <span>{row.title}</span>
-                  <span>
-                    {number(row.lower)}–{number(row.upper)}
-                  </span>
-                  <Button aria-label={`移除对比：${row.title}`} onClick={() => toggle(row.jd_id)}>
-                    移除
-                  </Button>
-                </div>
-                <div className="analytics-salary-track" aria-hidden="true">
-                  <span
-                    className={`analytics-salary-range ${row.lower === row.upper ? 'is-point' : ''}`}
-                    style={{
-                      left: `${(row.lower / maximum) * 100}%`,
-                      width: `${((row.upper - row.lower) / maximum) * 100}%`,
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
-          </section>
-        )}
-      </section>
-    </details>
   );
 }
 function SalaryHistogram({ group }: { group: SalaryGroup }) {
@@ -663,6 +522,7 @@ export function AnalyticsResult({ result }: { result: AnalysisResponse }) {
                   )}
                   {salaryGroup && (
                     <SalaryDetails
+                      label={salaryLabel(salaryGroup)}
                       key={`${salaryGroup.currency}/${salaryGroup.period}`}
                       group={salaryGroup}
                     />
