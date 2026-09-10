@@ -2692,3 +2692,85 @@
 .market-topic .analytics-salary-axis span:last-child::after {
   left: 100%;
 }
+.salary-detail-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  margin: 16px 0;
+}
+.salary-detail-controls label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+}
+.salary-detail-controls input,
+.salary-detail-controls select {
+  width: 100%;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: white;
+}
+.salary-detail-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.salary-detail-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+}
+.salary-detail-list label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.salary-detail-list input {
+  flex-shrink: 0;
+}
+.salary-detail-list li > span {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+.salary-detail-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 16px 0;
+}
+.salary-detail-pagination > span {
+  margin-right: auto;
+  font-size: 13px;
+  color: var(--muted);
+}
+.salary-comparison {
+  border-top: 1px solid var(--line);
+  margin-top: 20px;
+  padding-top: 20px;
+}
+.salary-comparison .analytics-bar-label {
+  flex-wrap: wrap;
+}
+@media (max-width: 600px) {
+  .salary-detail-controls {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .salary-detail-list li {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .salary-detail-list li > span {
+    padding-left: 24px;
+  }
+}
