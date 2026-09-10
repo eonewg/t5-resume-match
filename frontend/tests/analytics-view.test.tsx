@@ -5,6 +5,19 @@ import { AnalyticsResult } from '../src/pages/AnalyticsPage';
 import type { AnalysisResponse } from '../src/core/contracts';
 
 afterEach(cleanup);
+it.each(['skills', 'salary', 'jobs', 'unknown'])(
+  'opens the requested market topic from the URL: %s',
+  (tab) => {
+    render(
+      <MemoryRouter initialEntries={[`/analytics?tab=${tab}`]}>
+        <AnalyticsResult result={result()} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole('tabpanel').id).toBe(
+      `market-panel-${tab === 'unknown' ? 'skills' : tab}`,
+    );
+  },
+);
 const result = (): AnalysisResponse => ({
   summary: '只描述已录入样本。',
   skills: { SQL: 2 },
@@ -84,12 +97,12 @@ describe('Analytics reading surface', () => {
     });
     expect(frequencyTable.textContent).toContain('技能 12');
     expect(frequencyTable.textContent).toContain('66.67%');
-    expect(document.querySelectorAll('.analytics-salary-group')).toHaveLength(2);
+    expect(document.querySelectorAll('.analytics-salary-group')).toHaveLength(1);
     expect(document.querySelector('[data-currency="CNY"]')?.getAttribute('data-period')).toBe(
       'month',
     );
-    expect(document.querySelector('[data-currency="USD"]')?.textContent).toContain('0–0');
-    expect(document.querySelector('[data-currency="USD"] .is-point')).not.toBeNull();
+    expect(document.querySelector('.salary-range-details')?.hasAttribute('open')).toBe(false);
+    expect(document.querySelector('.salary-comparison')).toBeNull();
     expect(document.getElementById('analytics-sources')?.textContent).toContain('暂未提供完整区间');
     expect(screen.queryByRole('link', { name: '不安全来源', hidden: true })).toBeNull();
   });
@@ -134,23 +147,72 @@ it('filters source evidence on skill selection without changing chart denominato
 it('salary groups use separate selectable scales', () => {
   show(result());
   fireEvent.click(screen.getByRole('tab', { name: '薪资分析' }));
-  fireEvent.change(screen.getByRole('combobox', { name: '薪资口径' }), {
+  fireEvent.change(screen.getByRole('combobox', { name: '查看哪类薪资' }), {
     target: { value: 'USD/hour' },
   });
   expect(document.querySelector('[data-currency="USD"]')?.hasAttribute('hidden')).toBe(false);
-  expect(document.querySelector('[data-currency="CNY"]')?.hasAttribute('hidden')).toBe(true);
+  expect(document.querySelector('[data-currency="CNY"]')).toBeNull();
   expect(document.querySelector('[data-currency="USD"]')?.textContent).toContain('0–0');
+  fireEvent.click(screen.getByText(/查看每个岗位的招聘薪资/));
+  fireEvent.click(screen.getByRole('checkbox', { name: '明确的零值' }));
+  expect(document.querySelector('[data-currency="USD"] .is-point')).not.toBeNull();
+});
+
+it('pages and searches salary details without losing selected comparisons or mixing currencies', () => {
+  const value = result();
+  value.market!.salary_groups[0].ranges = Array.from({ length: 23 }, (_, index) => ({
+    jd_id: `salary-${index}`,
+    title: `测试岗位 ${index + 1}`,
+    lower: index * 1000,
+    upper: index * 1000 + 2000,
+  }));
+  value.market!.salary_groups[0].sample_size = 23;
+  show(value);
+  fireEvent.click(screen.getByRole('tab', { name: '薪资分析' }));
+  fireEvent.click(screen.getByText(/查看每个岗位的招聘薪资/));
+  expect(screen.getAllByRole('checkbox')).toHaveLength(10);
+  for (let i = 1; i <= 5; i++)
+    fireEvent.click(screen.getByRole('checkbox', { name: `测试岗位 ${i}` }));
+  expect((screen.getByRole('checkbox', { name: '测试岗位 6' }) as HTMLInputElement).disabled).toBe(
+    true,
+  );
+  expect(document.querySelectorAll('.salary-comparison .analytics-salary-row')).toHaveLength(5);
+  fireEvent.click(screen.getByRole('button', { name: '下一页' }));
+  fireEvent.click(screen.getByRole('button', { name: '下一页' }));
+  expect(screen.getAllByRole('checkbox')).toHaveLength(3);
+  fireEvent.change(screen.getByRole('searchbox', { name: '搜索岗位' }), {
+    target: { value: '测试岗位 23' },
+  });
+  expect(screen.getAllByRole('checkbox')).toHaveLength(1);
+  expect(document.querySelectorAll('.salary-comparison .analytics-salary-row')).toHaveLength(5);
+  fireEvent.click(screen.getByRole('button', { name: '清空对比' }));
+  expect(document.querySelector('.salary-comparison')).toBeNull();
+  fireEvent.change(screen.getByRole('searchbox', { name: '搜索岗位' }), {
+    target: { value: '不存在' },
+  });
+  expect(screen.getByText(/没有找到对应岗位/)).toBeTruthy();
+  fireEvent.change(screen.getByRole('searchbox', { name: '搜索岗位' }), { target: { value: '' } });
+  fireEvent.change(screen.getByRole('combobox', { name: '排列顺序' }), {
+    target: { value: 'upper' },
+  });
+  expect(screen.getAllByRole('checkbox')[0].closest('label')?.textContent).toBe('测试岗位 23');
+  fireEvent.click(screen.getAllByRole('checkbox')[0]);
+  fireEvent.change(screen.getByRole('combobox', { name: '查看哪类薪资' }), {
+    target: { value: 'USD/hour' },
+  });
+  expect(document.querySelector('.salary-comparison')).toBeNull();
+  expect(document.querySelector('.salary-range-details')?.hasAttribute('open')).toBe(false);
 });
 
 it('salary histogram counts each selected interval once and labels its midpoint basis', () => {
   show(result());
   fireEvent.click(screen.getByRole('tab', { name: '薪资分析' }));
-  const chart = screen.getByRole('img', { name: /CNY 每月薪资区间中点分布/ });
+  const chart = screen.getByRole('img', { name: /人民币月薪分布/ });
   const counts = Array.from(chart.querySelectorAll('title')).map((node) =>
-    Number(/：(\d+) 条/.exec(node.textContent || '')![1]),
+    Number(/：(\d+) 个岗位/.exec(node.textContent || '')![1]),
   );
   expect(counts.reduce((sum, value) => sum + value, 0)).toBe(1);
-  expect(screen.getByText(/非实际到手薪资/)).toBeTruthy();
+  expect(screen.getByText(/不是实际到手收入/)).toBeTruthy();
 });
 
 it('shows only one full topic and supports keyboard tab navigation', () => {
@@ -159,9 +221,7 @@ it('shows only one full topic and supports keyboard tab navigation', () => {
   expect(screen.getByRole('tabpanel').id).toBe('market-panel-skills');
   fireEvent.keyDown(screen.getByRole('tab', { name: '技能需求' }), { key: 'ArrowRight' });
   expect(screen.getByRole('tabpanel').id).toBe('market-panel-salary');
-  expect(
-    document.querySelector('[data-currency="CNY"] .analytics-salary-axis')?.children,
-  ).toHaveLength(5);
+  expect(document.querySelector('.salary-comparison')).toBeNull();
   fireEvent.keyDown(screen.getByRole('tab', { name: '薪资分析' }), { key: 'End' });
   expect(screen.getByRole('tabpanel').id).toBe('market-panel-jobs');
 });

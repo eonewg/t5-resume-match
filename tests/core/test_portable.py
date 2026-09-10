@@ -19,7 +19,7 @@ import sys
 from pathlib import Path
 if {frozen!r}:
     sys.frozen = True
-    sys.executable = {str(runtime / "T5-Resume-Match.exe")!r}
+    sys.executable = {str(runtime / "Vitae.exe")!r}
     sys._MEIPASS = {str(runtime / "_internal")!r}
 from backend.core.paths import RESOURCE_ROOT, RUNTIME_ROOT, ENV_FILE
 from backend.core.database import build_engine
