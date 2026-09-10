@@ -25,9 +25,6 @@ export default function LibraryNav({
           <NavLink key={to} to={to} end>
             {({ isActive }) => (
               <>
-                <span className="library-title-space" aria-hidden="true">
-                  {label}
-                </span>
                 {isActive ? (
                   <h1 tabIndex={-1}>{label}</h1>
                 ) : (

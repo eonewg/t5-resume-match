@@ -2979,8 +2979,12 @@
   scrollbar-gutter: stable;
 }
 .resume-editor > .page-title-row,
-.history-page > .page-title-row {
+.history-page > .page-title-row,
+.jobs-page > .page-title-row,
+.job-create-page > .page-title-row {
   padding: 0;
+  align-items: flex-start;
+  margin: 0 0 24px;
 }
 .workspace-heading {
   min-width: 0;
@@ -2994,23 +2998,15 @@
   margin: 0 0 4px;
 }
 .library-nav a {
-  display: grid;
-  align-items: baseline;
+  display: block;
   color: var(--muted);
   text-decoration: none;
 }
-.library-nav a > * {
-  grid-area: 1 / 1;
-}
-.library-nav .library-title-space,
 .library-nav h1 {
   font-size: 32px;
   font-weight: 750;
   line-height: 1.5;
   margin: 0;
-}
-.library-title-space {
-  visibility: hidden;
 }
 .library-title-label {
   font-size: 20px;
@@ -3170,4 +3166,54 @@
   .job-editor-grid {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* All working pages share one outer spacing and heading rhythm. */
+.split-workspace-frame
+  #module-view
+  > :is(
+    .resume-editor,
+    .history-page,
+    .jobs-page,
+    .job-create-page,
+    .matching-page,
+    .diagnosis-page,
+    .analytics-page
+  ):not(.market-dashboard-wide) {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  padding: 20px 12px 12px;
+  overflow: auto;
+  scrollbar-gutter: stable;
+}
+.split-workspace-frame
+  #module-view
+  > :is(
+    .resume-editor,
+    .history-page,
+    .jobs-page,
+    .job-create-page,
+    .matching-page,
+    .diagnosis-page,
+    .analytics-page
+  )
+  > :is(.page-heading, .page-title-row, .market-heading) {
+  padding: 0;
+  margin: 0 0 24px;
+  align-items: flex-start;
+}
+.split-workspace-frame :is(.page-title-row, .market-heading) > .page-heading {
+  margin: 0;
+  padding: 0;
+}
+.split-workspace-frame .page-heading h1 {
+  font-size: 32px;
+  font-weight: 750;
+  line-height: 1.5;
+  min-height: 52px;
+  margin: 0 0 4px;
+}
+.split-workspace-frame .library-nav h1 {
+  margin: 0;
 }

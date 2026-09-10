@@ -357,7 +357,7 @@ export function ProductShell() {
         )}
       </dialog>
       <div
-        className={`app-frame ${collapsed ? 'sidebar-collapsed' : ''} ${['resume', 'resume/history', 'jobs', 'jobs/new'].includes(key) ? 'split-workspace-frame' : ''}`}
+        className={`app-frame ${collapsed ? 'sidebar-collapsed' : ''} ${['resume', 'resume/history', 'jobs', 'jobs/new', 'matching', 'diagnosis', 'analytics'].includes(key) ? 'split-workspace-frame' : ''}`}
       >
         <main id="main-content" tabIndex={-1}>
           {exitError && (

@@ -56,7 +56,6 @@ export default function JobCreatePage() {
     const abort = new AbortController();
     api.current = createApi({ signal: abort.signal });
     alive.current = true;
-    document.getElementById('jobs-title')?.focus();
     return () => {
       alive.current = false;
       abort.abort();
@@ -177,7 +176,9 @@ export default function JobCreatePage() {
     });
   return (
     <div className="job-create-page" data-module="jobs-create">
-      <LibraryNav kind="jobs">导入岗位要求，在右侧核对后保存；也可以直接手动填写。</LibraryNav>
+      <div className="page-title-row">
+        <LibraryNav kind="jobs">导入岗位要求，在右侧核对后保存；也可以直接手动填写。</LibraryNav>
+      </div>
       <Feedback error={error} busy={Boolean(busy)}>
         {busy
           ? {
