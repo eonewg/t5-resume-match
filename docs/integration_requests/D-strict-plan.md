@@ -11,10 +11,10 @@ Level 2 方案/验证/接口请求见 [语义匹配记录](D-embedding-contract.
 ## 统一依据
 
 - [T5 需求矩阵](../../T5_REQUIREMENTS_MATRIX.md)
-- [A/D 两人分工](../../T5_TWO_PERSON_ALLOCATION_STRICT.md)
+- [当前五人分工](../../T5_FIVE_PERSON_ALLOCATION.md)（本记录中的 A/D 归属保留当时含义）
 - [D 职责](../roles/D.md)
 - [公共协作规则](../team-rules.md)
-- [D Agent 执行约定](D-agent-policy.md)
+- [当前成员开发指南](../member-development.md)
 
 需求和分工只引用统一文件，不维护完整副本；课程小组组织形式按课程要求执行。
 

@@ -1,34 +1,19 @@
-# D：Jobs、Matching、Embedding 与 AI Diagnosis
+# D：AI 诊断负责人
 
-当前从最新 main 创建维护分支，PR 指向 main；不要求 owner 后缀。
-下述 D 模块职责用于协作审查；可选 local scope 保留目录约束，现代 PR 的 CI 不按 owner 限制路径。
-遵守 [协作规则](../team-rules.md) 和 [T5 需求](../../T5_REQUIREMENTS_MATRIX.md)。
+计划工作量 **16%**。姓名待确认；本页用于职责安排，不追溯认定历史贡献。完整分配见[五人方案](../../T5_FIVE_PERSON_ALLOCATION.md)，协作遵守[团队约定](../team-rules.md)。
 
-## 责任范围
+## 责任与代码范围
 
-D 负责 JD 输入与解析、技能/工具/薪资提取、关键词匹配、gap、embedding 和组合评分，以及 STAR 与 JD 定向 AI 诊断。
+STAR 内容增强、JD 定向建议、量化补充提示、事实保护、结构化输出校验与诊断失败恢复。
 
-允许修改 backend/modules/jobs/、backend/modules/diagnosis/、对应 frontend/src/modules/ 目录、tests/jobs/、tests/diagnosis/ 和 docs/integration_requests/D-*.md。Matching 与 Embedding 属于 jobs 模块；不另建跨 owner 依赖。
+- `backend/modules/diagnosis/`、`tests/diagnosis/`
+- `frontend/src/modules/diagnosis/`、`frontend/src/pages/DiagnosisPage.tsx` 与相关测试
+- 诊断模块说明及模型评估材料
 
-公共 API、Schema、数据库、根依赖/配置和公共前端由 A 维护。D 提交明确字段、向量参数、索引或接口请求，不能自行修改公共层。
+共享文件变更与 A 协调，目录归属用于协作审查，不改变公开 provider 名称或运行时接口。
 
-## 公开入口与功能
+## 验证与交接
 
-| 模块 | 入口 | 方法 |
-| --- | --- | --- |
-| Jobs/Matching | backend.modules.jobs.public:JobsService | parse(JDInput) → JDData；match(Resume, JD) → MatchResult |
-| Diagnosis | backend.modules.diagnosis.public:DiagnosisService | diagnose(DiagnosisInput) → DiagnosisResult |
+验证 STAR 和定向建议、缺少事实时提示补充、内容拒绝/截断/异常处理。与 B/C 对齐简历/JD 输入，与 A 对齐供应商设置；不编造数字，不以 Mock 替代真实成功。
 
-公开类无参构造，同步方法；遵守 [API 契约](../api-contract.md) 和公共 ports。
-
-- Jobs：JD 文本输入与复用，技能/工具和薪资解析；无法解析的字段允许为空，原文、标题、公司保持不变。持久化由公共 API 完成。
-- Matching：先实现关键词基线，输出 0–100 分数、已匹配/缺失技能、gap 与一致解释；覆盖空技能、重复、大小写、无匹配等边界，不原地修改输入。
-- Embedding：决定对象、模型/接口、维度、距离及关键词+向量组合评分，明确向 A 提交数据库需求。向量相似度是增强，不能替代关键词基线。
-- Diagnosis：平淡经历 STAR 增强、JD 定向关键词/经历建议、量化成果补充提示；保留事实，不生成虚假数字，不把建议作为已确认事实。
-- 问题定义：为真实脱敏样本提供表达/技能 gap 分析，支持 A 汇总报告。
-
-## 测试和交付
-
-按 [开发指南](../member-development.md) 分别自检 jobs、diagnosis。使用离线替身测试网络成功、超时、无效响应和失败路径；网络超时/重试有界，真实失败不能自动降级为 Mock 成功。真实模型质量与延迟单独验证，不能用离线结果代替。
-
-UI 在自己的模块导出 mount，通过 [公共前端](../frontend-integration.md) 接入。PR 提供两个模块各自的功能、准确 SHA、契约/测试证据、复现和未完成项。A 按模块记录 PASS/BLOCKED/ADAPT，一个模块通过不代表另一个完成。
+按实际工作填写任务、产出路径/提交、验证和剩余问题；不得预填通过。历史验收见[台账](../acceptance.md)，当前任务需提供对应版本证据。
