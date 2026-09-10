@@ -8,7 +8,7 @@ const snapshot = () => ({
   profiles: [] as any[],
   can_exit: true,
   modules: Object.fromEntries(
-    ['resume', 'matching', 'diagnosis'].map((key) => [
+    ['resume', 'matching', 'diagnosis', 'vision'].map((key) => [
       key,
       {
         base_url: 'https://fixture.test/v1',

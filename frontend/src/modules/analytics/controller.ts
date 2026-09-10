@@ -2,7 +2,15 @@ import type { ControllerContext, AnalyticsState, Filters } from '../../core/cont
 import type { AnalysisResponse } from '../../core/contracts';
 import { failureMessage } from '../../core/errors';
 
-export const initialFilters = (): Filters => ({ source_type: 'real', date_from: '', date_to: '' });
+export const initialFilters = (): Filters => ({ source_type: '', date_from: '', date_to: '' });
+
+export function recentDates(days: number, now = new Date()) {
+  const format = (date: Date) =>
+    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  const from = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  from.setDate(from.getDate() - days + 1);
+  return days ? { date_from: format(from), date_to: format(now) } : { date_from: '', date_to: '' };
+}
 
 export function analyticsPath(filters: Partial<Filters>) {
   const query = new URLSearchParams();
@@ -76,7 +84,7 @@ export function connectAnalytics(
       state.busy = '';
       await load(initialFilters());
       if (active()) {
-        state.notice = `新增 ${data.created} 条，已有 ${data.existing} 条；已展示真实快照。`;
+        state.notice = `新增 ${data.created} 条，已有 ${data.existing} 条；已更新已录入岗位分析。`;
         show();
       }
     } catch (error) {

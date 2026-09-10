@@ -1,12 +1,23 @@
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react';
 import { createApi } from './api';
 import { createWorkspace, type Workspace, type WorkspaceState } from './state';
 import type { ControllerContext, ResumeDraft } from './controller-types';
+import type { JobEditorDraft } from '../modules/jobs/draft';
 
 interface ContextValue {
   store: Workspace;
   state: WorkspaceState;
   draft: React.RefObject<ResumeDraft | null>;
+  jobDraft: React.RefObject<JobEditorDraft | null>;
+  jobLibrary: NonNullable<ControllerContext['jobLibrary']>;
 }
 const Context = createContext<ContextValue | null>(null);
 export function WorkspaceProvider({
@@ -19,8 +30,14 @@ export function WorkspaceProvider({
   const [store] = useState(() => workspace || createWorkspace());
   const [state, setState] = useState(store.getState);
   const draft = useRef<ResumeDraft | null>(null);
+  const jobDraft = useRef<JobEditorDraft | null>(null);
+  const jobLibrary = useRef<NonNullable<ControllerContext['jobLibrary']>['current']>(null);
   useEffect(() => store.subscribe(setState), [store]);
-  return <Context.Provider value={{ store, state, draft }}>{children}</Context.Provider>;
+  return (
+    <Context.Provider value={{ store, state, draft, jobDraft, jobLibrary }}>
+      {children}
+    </Context.Provider>
+  );
 }
 export function useWorkspace() {
   const value = useContext(Context);
@@ -41,13 +58,19 @@ export function useController<S, C extends Disposable>(
   start: (controller: C) => void,
   view?: string,
 ) {
-  const { store, draft } = useWorkspace();
+  const { store, draft, jobLibrary } = useWorkspace();
   const [state, setState] = useState<S | null>(null);
   const controller = useRef<C | null>(null);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const abort = new AbortController();
     const instance = connect(
-      { ...store, api: createApi({ signal: abort.signal }), signal: abort.signal, view },
+      {
+        ...store,
+        api: createApi({ signal: abort.signal }),
+        signal: abort.signal,
+        view,
+        jobLibrary,
+      },
       setState,
       view === 'resume' ? draft.current : null,
     );
@@ -59,6 +82,6 @@ export function useController<S, C extends Disposable>(
       instance.dispose();
       controller.current = null;
     };
-  }, [connect, start, store, draft, view]);
+  }, [connect, start, store, draft, view, jobLibrary]);
   return { state, controller };
 }

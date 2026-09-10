@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from '../components/Icon';
-import { Button, Feedback, NextLink, PageHeading } from '../components/ui';
+import { Button, Feedback, NextLink } from '../components/ui';
+import LibraryNav from '../components/LibraryNav';
 import { createApi } from '../core/api';
 import type { Resume } from '../core/contracts';
 import type { ResumeState } from '../core/controller-types';
@@ -142,7 +143,7 @@ export default function ResumeHistoryPage() {
   return (
     <div className="page history-page">
       <div className="page-title-row">
-        <PageHeading title="历史简历">查找、比较并管理你保存过的简历版本。</PageHeading>
+        <LibraryNav kind="resume">查找、比较并管理你保存过的简历版本。</LibraryNav>
         <div className="button-row">
           <Button
             tone="ghost"
@@ -253,7 +254,18 @@ export default function ResumeHistoryPage() {
             ref={previewPanel}
             tabIndex={0}
           >
-            <h2>版本预览</h2>
+            <div className="detail-title-row">
+              <h2>版本预览</h2>
+              {preview && (
+                <Button
+                  tone="secondary"
+                  disabled={Boolean(busy)}
+                  onClick={() => void open(preview)}
+                >
+                  编辑简历
+                </Button>
+              )}
+            </div>
             {preview ? (
               <>
                 <header>

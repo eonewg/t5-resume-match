@@ -38,11 +38,86 @@ const job: JD = {
 const modules = Object.fromEntries(
   ['resume', 'jobs', 'diagnosis', 'analytics'].map((key) => [key, { is_mock: false }]),
 );
+
+it('previews a job screenshot, allows corrections and saves only after confirmation', async () => {
+  handler = (path, options) => {
+    if (path === '/api/v1/jobs/new-job') return json({ ...job, id: 'new-job' });
+    if (path === '/api/v1/jobs/upload-preview')
+      return json({
+        ...job,
+        original_text: '截图原文',
+        requirements: 'Python',
+        responsibilities: '开发接口',
+      });
+    if (path === '/api/v1/jobs' && options.method === 'POST')
+      return json({ ...job, ...JSON.parse(String(options.body)), id: 'new-job' });
+  };
+  page('/jobs');
+  fireEvent.click(await screen.findByRole('button', { name: '添加岗位', exact: true }));
+  const picker = screen.getByLabelText('选择岗位截图');
+  fireEvent.change(picker, {
+    target: { files: [new File(['synthetic-image'], 'job.png', { type: 'image/png' })] },
+  });
+  expect(await screen.findByAltText('岗位截图预览')).toBeTruthy();
+  expect(requests.filter((x) => x.path === '/api/v1/jobs/upload-preview')).toHaveLength(0);
+  fireEvent.click(screen.getByRole('button', { name: '识别截图' }));
+  fireEvent.click(screen.getByRole('tab', { name: '职责与要求' }));
+  await waitFor(() =>
+    expect((screen.getByLabelText('任职要求') as HTMLTextAreaElement).value).toBe('Python'),
+  );
+  expect(
+    requests.filter((x) => x.path === '/api/v1/jobs' && x.options.method === 'POST'),
+  ).toHaveLength(0);
+  expect((screen.getByLabelText('岗位原文（保留备查）') as HTMLTextAreaElement).value).toBe(
+    '截图原文',
+  );
+  fireEvent.change(screen.getByLabelText('任职要求'), { target: { value: 'SQL' } });
+  fireEvent.click(screen.getByRole('button', { name: '保存并选中' }));
+  await waitFor(() =>
+    expect(
+      requests.find((x) => x.path === '/api/v1/jobs' && x.options.method === 'POST'),
+    ).toBeDefined(),
+  );
+  expect(
+    JSON.parse(
+      String(
+        requests.find((x) => x.path === '/api/v1/jobs' && x.options.method === 'POST')!.options
+          .body,
+      ),
+    ),
+  ).toMatchObject({ requirements: 'SQL', original_text: '截图原文' });
+});
 const json = (value: unknown, status = 200, headers = {}) =>
   new Response(JSON.stringify(value), { status, headers });
+
+it('keeps resume screenshots local until recognition and separates document upload', async () => {
+  handler = (path) => (path === '/api/v1/resumes/upload-preview' ? json(resume) : undefined);
+  page('/resume');
+  const picker = await screen.findByLabelText('选择简历截图');
+  expect((document.getElementById('resume-file') as HTMLInputElement).accept).toBe(
+    '.pdf,.docx,.txt',
+  );
+  const first = new File(['first'], 'first.png', { type: 'image/png' });
+  fireEvent.change(picker, { target: { files: [first] } });
+  expect(await screen.findByAltText('简历截图预览')).toBeTruthy();
+  expect(requests.filter((x) => x.path.endsWith('/upload-preview'))).toHaveLength(0);
+  fireEvent.click(screen.getByRole('button', { name: '移除' }));
+  expect(screen.queryByAltText('简历截图预览')).toBeNull();
+  expect(URL.revokeObjectURL).toHaveBeenCalled();
+  const second = new File(['second'], 'second.png', { type: 'image/png' });
+  fireEvent.change(picker, { target: { files: [second] } });
+  fireEvent.click(screen.getByRole('button', { name: '识别截图' }));
+  await waitFor(() =>
+    expect(requests.filter((x) => x.path.endsWith('/upload-preview'))).toHaveLength(1),
+  );
+  const body = requests.find((x) => x.path.endsWith('/upload-preview'))!.options.body as FormData;
+  expect((body.get('file') as File).name).toBe('second.png');
+});
 let requests: { path: string; options: RequestInit }[];
 let handler: (path: string, options: RequestInit) => Response | Promise<Response> | undefined;
 beforeEach(() => {
+  vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:synthetic-preview');
+  vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
   requests = [];
   handler = () => undefined;
   vi.stubGlobal('scrollTo', vi.fn());
@@ -83,28 +158,32 @@ function page(path: string, selected = false) {
 const input = (id: string) => document.getElementById(id) as HTMLInputElement;
 const settleResume = () => waitFor(() => expect(input('resume-dropzone').disabled).toBe(false));
 describe('React routes and task workspace', () => {
-  it('carries global search into the job list and permits browsing before resume confirmation', async () => {
+  it('searches within the job list and permits browsing before resume confirmation', async () => {
     const store = page('/');
-    expect(Array.from(document.querySelectorAll('.insight-links a')).map((link) => [
-      link.querySelector('strong')?.textContent,
-      link.getAttribute('href'),
-    ])).toEqual([
+    expect(
+      Array.from(document.querySelectorAll('.insight-links a')).map((link) => [
+        link.querySelector('strong')?.textContent,
+        link.getAttribute('href'),
+      ]),
+    ).toEqual([
       ['技能需求', '/analytics?tab=skills'],
       ['薪资分析', '/analytics?tab=salary'],
       ['岗位与来源', '/analytics?tab=jobs'],
     ]);
-    expect(screen.getByRole('link', { name: '浏览岗位样本' }).getAttribute('href')).toBe('/analytics?tab=jobs');
-    const search = screen.getByRole('searchbox', { name: '搜索已录入岗位' });
+    expect(screen.getByRole('link', { name: '浏览岗位样本' }).getAttribute('href')).toBe(
+      '/analytics?tab=jobs',
+    );
+    expect(screen.queryByRole('searchbox', { name: '搜索已录入岗位' })).toBeNull();
+    fireEvent.click(screen.getByRole('link', { name: '岗位', exact: true }));
+    await screen.findByRole('heading', { name: '岗位库', level: 1 });
+    const search = input('job-search');
     fireEvent.change(search, { target: { value: 'Python' } });
-    fireEvent.submit(search.closest('form')!);
-    await screen.findByRole('heading', { name: '目标岗位', level: 1 });
     await waitFor(() => expect(document.querySelector('[data-job-id="j"]')).not.toBeNull());
     expect(input('job-search').value).toBe('Python');
     fireEvent.click(document.querySelector('[data-job-id="j"]')!);
     expect((input('jobs-run') as unknown as HTMLButtonElement).disabled).toBe(true);
     expect(store.getState()).toMatchObject({ resumeId: null, jdId: 'j', result: null });
     fireEvent.change(search, { target: { value: '不存在的技能' } });
-    fireEvent.submit(search.closest('form')!);
     await waitFor(() => expect(document.querySelector('[data-job-id="j"]')).toBeNull());
     expect(document.getElementById('jobs-original')?.textContent).toBe(job.jd_text);
     expect(requests.some((request) => request.options.method === 'POST')).toBe(false);
@@ -119,15 +198,15 @@ describe('React routes and task workspace', () => {
     await screen.findByText('后端工程师');
   });
   it.each([
-    ['/resume', '我的简历'],
-    ['/jobs', '目标岗位'],
+    ['/resume', '编辑简历'],
+    ['/jobs', '岗位库'],
     ['/matching', '匹配分析'],
     ['/diagnosis', 'AI 优化'],
     ['/analytics', '市场洞察'],
   ])('normal route %s renders its React page', async (path, title) => {
     page(path);
     await screen.findByRole('heading', { name: title, level: 1 });
-    expect(document.querySelectorAll('nav [aria-current="page"]').length).toBe(1);
+    expect(document.querySelectorAll('#primary-navigation [aria-current="page"]').length).toBe(1);
   });
   it('empty matching and diagnosis send no mutation request', async () => {
     page('/matching');
@@ -146,7 +225,7 @@ describe('migrated demo interactions', () => {
     page('/resume');
     await settleResume();
     const picker = vi.spyOn(input('resume-file'), 'click');
-    fireEvent.click(screen.getByRole('button', { name: '上传文件', exact: true }));
+    fireEvent.click(screen.getByRole('button', { name: '上传文档', exact: true }));
     expect(picker).toHaveBeenCalledOnce();
     fireEvent.change(input('resume-raw'), { target: { value: '待识别的简历原文' } });
     expect(input('resume-raw').value).toBe('待识别的简历原文');
@@ -180,6 +259,7 @@ describe('migrated demo interactions', () => {
   it('all three job fixtures only fill inputs and preserve synthetic provenance on explicit save', async () => {
     page('/jobs', true);
     await screen.findByText('测试同学');
+    fireEvent.click(input('jobs-add'));
     const count = requests.length;
     for (const sample of [cpp, go, ml]) {
       fireEvent.click(input('jobs-demo-' + sample.id));
@@ -192,9 +272,11 @@ describe('migrated demo interactions', () => {
     expect(input('jobs-title').value).toBe(ml.title);
     expect(requests.length).toBe(count);
     handler = (path, options) =>
-      path === '/api/v1/jobs'
-        ? json({ ...job, ...JSON.parse(options.body as string), id: 'new-job' })
-        : undefined;
+      path === '/api/v1/jobs/new-job'
+        ? json({ ...job, id: 'new-job' })
+        : path === '/api/v1/jobs'
+          ? json({ ...job, ...JSON.parse(options.body as string), id: 'new-job' })
+          : undefined;
     fireEvent.submit(input('jobs-title').closest('form')!);
     await waitFor(() => expect(requests.some((r) => r.options.method === 'POST')).toBe(true));
     const sent = requests.find((r) => r.options.method === 'POST')!;
@@ -392,14 +474,17 @@ describe('matching and diagnosis rendering', () => {
         ? fail
           ? json({ error: { message: '岗位保存失败' } }, 503)
           : json({ ...job, ...JSON.parse(options.body as string), id: 'saved-job' }, 201)
-        : undefined;
+        : path === '/api/v1/jobs/saved-job'
+          ? json({ ...job, title: '我的目标岗位', id: 'saved-job' })
+          : undefined;
     const store = page('/jobs', true);
     await screen.findByText('测试同学');
-    const formPanel = document.querySelector('.job-form') as HTMLElement;
     fireEvent.change(input('job-search'), { target: { value: '后端' } });
     fireEvent.click(screen.getByRole('button', { name: '添加岗位', exact: true }));
-    expect(formPanel.hidden).toBe(false);
-    expect(document.activeElement).toBe(input('jobs-title'));
+    expect(screen.getByRole('heading', { name: '创建岗位', level: 1 })).toBeTruthy();
+    expect(document.activeElement).toBe(
+      screen.getByRole('heading', { name: '创建岗位', level: 1 }),
+    );
     fireEvent.change(input('jobs-title'), { target: { value: '我的目标岗位' } });
     fireEvent.change(input('jobs-text'), { target: { value: '用户提供的岗位原文' } });
     fireEvent.submit(input('jobs-title').closest('form')!);
@@ -407,44 +492,33 @@ describe('matching and diagnosis rendering', () => {
     expect(input('jobs-title').value).toBe('我的目标岗位');
     expect(input('jobs-text').value).toBe('用户提供的岗位原文');
     expect(store.getState().jdId).toBe('j');
-    expect(formPanel.hidden).toBe(false);
+    expect(screen.getByRole('heading', { name: '创建岗位', level: 1 })).toBeTruthy();
     expect(document.querySelector('.job-option[aria-pressed="true"]')).toBeNull();
     fail = false;
     fireEvent.submit(input('jobs-title').closest('form')!);
     await waitFor(() => expect(store.getState().jdId).toBe('saved-job'));
-    expect(formPanel.hidden).toBe(true);
-    expect(input('job-search').value).toBe('');
-    expect(
-      document.querySelector('.job-option[aria-pressed="true"]')?.getAttribute('data-job-id'),
-    ).toBe('saved-job');
+    await screen.findByRole('heading', { name: '岗位库', level: 1 });
+    expect(screen.queryByRole('heading', { name: '创建岗位', level: 1 })).toBeNull();
     expect(store.getState().result).toBeNull();
     expect(requests.filter((request) => request.path === '/api/v1/matches')).toHaveLength(0);
   });
 
-  it('adding a job leaves the old detail inactive and returning restores browsing with the draft retained', async () => {
+  it('separates creation from the library and retains its draft across internal navigation', async () => {
     const store = page('/jobs', true);
     await screen.findByText('测试同学');
-    const selected = document.querySelector('[data-job-id="j"]')!;
-    const detail = screen.getByTestId('selected-job');
-    const formPanel = document.querySelector('.job-form') as HTMLElement;
-    expect(selected.getAttribute('aria-pressed')).toBe('true');
-    expect(formPanel.hidden).toBe(true);
-    expect(screen.getAllByRole('button', { name: '添加岗位', exact: true })).toHaveLength(1);
+    expect(document.querySelector('.job-fields-panel')).toBeNull();
     fireEvent.click(input('jobs-add'));
-    expect(selected.getAttribute('aria-pressed')).toBe('false');
-    expect(detail.hidden).toBe(true);
-    expect(formPanel.hidden).toBe(false);
+    expect(screen.queryByTestId('selected-job')).toBeNull();
     fireEvent.change(input('jobs-title'), { target: { value: '未保存的岗位' } });
-    fireEvent.click(input('jobs-cancel-add'));
-    expect(selected.getAttribute('aria-pressed')).toBe('true');
-    expect(detail.hidden).toBe(false);
-    expect(formPanel.hidden).toBe(true);
-    fireEvent.click(input('jobs-add'));
+    fireEvent.click(screen.getByRole('link', { name: '岗位库', exact: true }));
+    await screen.findByTestId('selected-job');
+    expect(document.querySelector('[data-job-id="j"]')?.getAttribute('aria-pressed')).toBe('true');
+    fireEvent.click(screen.getByRole('link', { name: '创建岗位', exact: true }));
     expect(input('jobs-title').value).toBe('未保存的岗位');
-    fireEvent.click(selected);
-    expect(formPanel.hidden).toBe(true);
-    expect(detail.hidden).toBe(false);
     expect(store.getState().jdId).toBe('j');
+    expect(
+      within(screen.getByRole('navigation', { name: '主要导航' })).queryByText('岗位库'),
+    ).toBeNull();
     expect(requests.some((request) => request.options.method === 'POST')).toBe(false);
   });
 
@@ -539,9 +613,13 @@ describe('desktop workspace operations', () => {
     await waitFor(() => expect(input('jobs-run').disabled).toBe(false));
     fireEvent.click(input('jobs-run'));
     await screen.findByText('已命中 1 项岗位关键词，还有 1 项未直接命中。');
-    fireEvent.change(input('quick-job'), { target: { value: 'j2' } });
+    fireEvent.focus(input('quick-job'));
+    fireEvent.change(input('quick-job'), { target: { value: '另一岗位' } });
+    fireEvent.keyDown(input('quick-job'), { key: 'Enter' });
     expect(document.querySelector('#match-score')).toBeNull();
-    fireEvent.change(input('quick-job'), { target: { value: 'j' } });
+    fireEvent.focus(input('quick-job'));
+    fireEvent.change(input('quick-job'), { target: { value: '后端工程师' } });
+    fireEvent.keyDown(input('quick-job'), { key: 'Enter' });
     await waitFor(() => expect(input('match-score').textContent).toBe('50%'));
     expect(requests.filter((r) => r.path === '/api/v1/matches')).toHaveLength(1);
     fireEvent.click(document.querySelector('[data-view="diagnosis"]')!);
@@ -551,10 +629,14 @@ describe('desktop workspace operations', () => {
     ).toEqual(['当前简历', '目标岗位']);
     fireEvent.click(input('diagnosis-run'));
     await screen.findByText('缓存中的优化建议');
-    fireEvent.change(input('quick-resume'), { target: { value: 'r2' } });
+    fireEvent.focus(input('quick-resume'));
+    fireEvent.change(input('quick-resume'), { target: { value: '另一版本' } });
+    fireEvent.keyDown(input('quick-resume'), { key: 'Enter' });
     expect(screen.queryByText('缓存中的优化建议')).toBeNull();
     expect(store.getState().resumeId).toBe('r2');
-    fireEvent.change(input('quick-resume'), { target: { value: 'r' } });
+    fireEvent.focus(input('quick-resume'));
+    fireEvent.change(input('quick-resume'), { target: { value: '测试同学' } });
+    fireEvent.keyDown(input('quick-resume'), { key: 'Enter' });
     await screen.findByText('缓存中的优化建议');
     expect(requests.filter((r) => r.path === '/api/v1/diagnoses')).toHaveLength(1);
     expect(screen.getByRole('link', { name: '返回简历编辑 →' }).getAttribute('href')).toBe(
@@ -634,7 +716,7 @@ describe('desktop workspace operations', () => {
     expect(document.querySelector('[data-module="resume"]')).not.toBe(null);
     fail = false;
     fireEvent.click(input('resume-save-next'));
-    await screen.findByRole('heading', { name: '目标岗位', exact: true });
+    await screen.findByRole('heading', { name: '岗位库', exact: true });
     expect(
       requests.filter((r) => r.path === '/api/v1/resumes' && r.options.method === 'POST'),
     ).toHaveLength(1);
@@ -731,4 +813,195 @@ it('home recognizes direct diagnosis while keeping unrun matching incomplete', a
   expect(items[3].getAttribute('data-state')).toBe('complete');
   expect(document.getElementById('home-next')?.getAttribute('href')).toBe('/diagnosis');
   expect(requests.filter((r) => r.options.method === 'POST')).toHaveLength(0);
+});
+
+it('imports document text explicitly, protects manual blanks and retries a saved job by GET only', async () => {
+  let failRead = true;
+  let saved: JD | null = null;
+  handler = (path, options) => {
+    if (path === '/api/v1/jobs/extract-text') return json({ raw_text: '文档原文 Python' });
+    if (path === '/api/v1/jobs/preview')
+      return json({ ...job, company: '模型公司', original_text: '文档原文 Python' });
+    if (path === '/api/v1/jobs' && options.method === 'POST') {
+      saved = { ...job, ...JSON.parse(String(options.body)), id: 'manual' };
+      return json(saved, 201);
+    }
+    if (path === '/api/v1/jobs/manual')
+      return failRead ? json({ error: { message: '读取失败' } }, 503) : json(saved);
+  };
+  const store = page('/jobs/new');
+  fireEvent.change(screen.getByLabelText('导入岗位文档'), {
+    target: { files: [new File(['文档原文 Python'], 'sample.txt', { type: 'text/plain' })] },
+  });
+  await waitFor(() => expect(input('jobs-text').value).toBe('文档原文 Python'));
+  expect(requests.filter((r) => r.options.method === 'POST').map((r) => r.path)).toEqual([
+    '/api/v1/jobs/extract-text',
+  ]);
+  fireEvent.change(input('jobs-company'), { target: { value: '手写' } });
+  fireEvent.change(input('jobs-company'), { target: { value: '' } });
+  fireEvent.click(screen.getByRole('button', { name: '用 AI 识别岗位' }));
+  await waitFor(() => expect(input('jobs-title').value).toBe(job.title));
+  expect(input('jobs-company').value).toBe('');
+  fireEvent.click(screen.getByRole('button', { name: '保存并选中' }));
+  await screen.findByText('读取失败');
+  expect(store.getState().jdId).toBeNull();
+  failRead = false;
+  fireEvent.click(screen.getByRole('button', { name: '保存并选中' }));
+  await waitFor(() => expect(store.getState().jdId).toBe('manual'));
+  expect(
+    requests.filter((r) => r.path === '/api/v1/jobs' && r.options.method === 'POST'),
+  ).toHaveLength(1);
+});
+
+it('searches selectors by skills, supports no results and only changes selection after picking', async () => {
+  handler = (path) =>
+    path.startsWith('/api/v1/jobs?')
+      ? json([job, { ...job, id: 'j2', title: '数据工程师', skills: ['dbt'] }])
+      : undefined;
+  const store = page('/matching', true);
+  await waitFor(() => expect(input('quick-job').disabled).toBe(false));
+  fireEvent.focus(input('quick-job'));
+  fireEvent.change(input('quick-job'), { target: { value: 'DBT' } });
+  expect(screen.getAllByRole('option')).toHaveLength(1);
+  expect(store.getState().jdId).toBe('j');
+  fireEvent.change(input('quick-job'), { target: { value: '无此岗位' } });
+  expect(screen.queryByRole('option')).toBeNull();
+  fireEvent.keyDown(input('quick-job'), { key: 'Enter' });
+  expect(store.getState().jdId).toBe('j');
+  fireEvent.keyDown(input('quick-job'), { key: 'Escape' });
+  expect(input('quick-job').value).toBe(job.title);
+  fireEvent.focus(input('quick-job'));
+  fireEvent.change(input('quick-job'), { target: { value: 'dbt' } });
+  fireEvent.click(screen.getByRole('option'));
+  expect(store.getState().jdId).toBe('j2');
+  expect(requests.some((r) => r.options.method === 'POST')).toBe(false);
+});
+
+it('retains the job library while refreshing on return and preserves it on refresh failure', async () => {
+  page('/jobs', true);
+  await screen.findByText('测试同学');
+  await waitFor(() => expect(input('jobs-add').disabled).toBe(false));
+  fireEvent.click(input('jobs-add'));
+  let finish: (response: Response) => void = () => {};
+  handler = (path) =>
+    path.startsWith('/api/v1/jobs?')
+      ? new Promise<Response>((resolve) => {
+          finish = resolve;
+        })
+      : undefined;
+  fireEvent.click(screen.getByRole('link', { name: '岗位库', exact: true }));
+  expect(document.querySelector('[data-job-id="j"]')).not.toBeNull();
+  expect(screen.getByTestId('selected-job').textContent).toContain(job.title);
+  expect(document.getElementById('jobs-status')?.hidden).toBe(true);
+  expect(input('jobs-add').disabled).toBe(false);
+  await act(async () => finish(json({ error: { message: '刷新失败' } }, 503)));
+  await screen.findByText('刷新失败');
+  expect(document.querySelector('[data-job-id="j"]')).not.toBeNull();
+  handler = (path) =>
+    path.startsWith('/api/v1/jobs?')
+      ? json([job, { ...job, id: 'fresh', title: '新增岗位' }])
+      : undefined;
+  fireEvent.click(screen.getByRole('button', { name: '重试加载' }));
+  await waitFor(() => expect(document.querySelector('[data-job-id="fresh"]')).not.toBeNull());
+});
+
+it('opens a saved job for editing and saves a new version with its source and salary metadata', async () => {
+  const original = {
+    ...job,
+    source_type: 'real',
+    source_url: 'https://example.com/jobs/old',
+    source_name: '招聘页',
+    collected_at: '2026-09-10',
+    salary: '20-30K',
+    salary_min: 20000,
+    salary_max: 30000,
+    currency: 'CNY',
+    salary_period: 'month',
+    requirements: 'Python',
+    original_text: '完整原文',
+  };
+  let saved: JD | null = null;
+  handler = (path, options) => {
+    if (path.startsWith('/api/v1/jobs?')) return json([original]);
+    if (path === '/api/v1/jobs/j') return json(original);
+    if (path === '/api/v1/jobs' && options.method === 'POST') {
+      saved = { ...original, ...JSON.parse(String(options.body)), id: 'edited' };
+      return json(saved, 201);
+    }
+    if (path === '/api/v1/jobs/edited') return json(saved);
+  };
+  const store = page('/jobs', true);
+  const edit = await screen.findByRole('button', { name: '编辑岗位' });
+  await waitFor(() => expect((edit as HTMLButtonElement).disabled).toBe(false));
+  fireEvent.click(edit);
+  await screen.findByRole('heading', { name: '编辑岗位', level: 1 });
+  expect(input('jobs-title').value).toBe(job.title);
+  expect(input('jobs-text').value).toBe('完整原文');
+  expect(input('jobs-source_url').value).toBe(original.source_url);
+  expect(requests.some((r) => r.options.method === 'POST')).toBe(false);
+  fireEvent.change(input('jobs-title'), { target: { value: '修改后的岗位' } });
+  fireEvent.change(input('jobs-source_url'), { target: { value: 'https://example.com/jobs/new' } });
+  fireEvent.click(screen.getByRole('button', { name: '保存新版本并选中' }));
+  await waitFor(() => expect(store.getState().jdId).toBe('edited'));
+  const sent = requests.find((r) => r.path === '/api/v1/jobs' && r.options.method === 'POST')!;
+  expect(JSON.parse(String(sent.options.body))).toMatchObject({
+    title: '修改后的岗位',
+    original_text: '完整原文',
+    requirements: 'Python',
+    source_type: 'real',
+    source_url: 'https://example.com/jobs/new',
+    source_name: '招聘页',
+    collected_at: '2026-09-10',
+    salary_min: 20000,
+    salary_max: 30000,
+    currency: 'CNY',
+    salary_period: 'month',
+  });
+  await waitFor(() =>
+    expect(screen.getByRole('link', { name: '打开岗位链接 ↗' }).getAttribute('href')).toBe(
+      'https://example.com/jobs/new',
+    ),
+  );
+  expect(requests.filter((r) => r.options.method === 'POST')).toHaveLength(1);
+});
+
+it('keeps an unsaved job draft when opening another job is cancelled', async () => {
+  page('/jobs/new', true);
+  fireEvent.change(input('jobs-title'), { target: { value: '保留草稿' } });
+  fireEvent.click(screen.getByRole('link', { name: '岗位库', exact: true }));
+  const edit = await screen.findByRole('button', { name: '编辑岗位' });
+  await waitFor(() => expect((edit as HTMLButtonElement).disabled).toBe(false));
+  vi.mocked(window.confirm).mockReturnValueOnce(false);
+  fireEvent.click(edit);
+  expect(screen.queryByRole('heading', { name: '编辑岗位', level: 1 })).toBeNull();
+  fireEvent.click(screen.getByRole('link', { name: '创建岗位', exact: true }));
+  expect(input('jobs-title').value).toBe('保留草稿');
+});
+
+it('validates optional job links before saving and retains them across AI recognition', async () => {
+  handler = (path) =>
+    path === '/api/v1/jobs/preview' ? json({ ...job, source_url: null }) : undefined;
+  page('/jobs/new');
+  fireEvent.change(input('jobs-title'), { target: { value: '手动岗位' } });
+  fireEvent.change(input('jobs-text'), { target: { value: 'Python' } });
+  fireEvent.change(input('jobs-source_url'), { target: { value: 'javascript:alert(1)' } });
+  fireEvent.click(screen.getByRole('button', { name: '保存并选中' }));
+  await screen.findByText('岗位链接请填写不含账号密码的 http:// 或 https:// 地址。');
+  expect(requests.some((r) => r.options.method === 'POST')).toBe(false);
+  fireEvent.change(input('jobs-source_url'), { target: { value: 'https://example.com/job' } });
+  fireEvent.click(screen.getByRole('button', { name: '用 AI 识别岗位' }));
+  await screen.findByText('已识别为可编辑草稿。手动填写过的字段保持不变，可逐项采用本次建议。');
+  expect(input('jobs-source_url').value).toBe('https://example.com/job');
+});
+
+it('opens the previewed resume from the detail editing button without invoking AI', async () => {
+  page('/resume/history');
+  const detail = await screen.findByRole('complementary', { name: '版本预览' });
+  const edit = within(detail).getByRole('button', { name: '编辑简历' });
+  await waitFor(() => expect((edit as HTMLButtonElement).disabled).toBe(false));
+  fireEvent.click(edit);
+  await settleResume();
+  expect(input('resume-name').value).toBe(resume.name);
+  expect(input('resume-raw').value).toBe(resume.raw_text.replace(/\r\n?/g, '\n'));
+  expect(requests.some((r) => r.options.method === 'POST')).toBe(false);
 });

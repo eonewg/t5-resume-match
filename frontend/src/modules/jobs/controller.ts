@@ -3,7 +3,7 @@ import type { JD, JDCreate, MatchRecord, Modules, Resume } from '../../core/cont
 import { failureMessage } from '../../core/errors';
 
 export function connectJobs(
-  { api, getState, updateSelection, subscribe, signal, view }: ControllerContext,
+  { api, getState, updateSelection, subscribe, signal, view, jobLibrary }: ControllerContext,
   render: (state: JobsState) => void,
 ) {
   let state: JobsState = {
@@ -18,6 +18,7 @@ export function connectJobs(
     error: '',
     notice: '',
     jobMock: null,
+    ...(view === 'jobs' ? jobLibrary?.current : null),
   };
   let disposed = false,
     version = 0;
@@ -72,6 +73,9 @@ export function connectJobs(
       const update = await work();
       if (!active() || ticket !== version) return;
       state = { ...state, ...update };
+      if (view === 'jobs' && jobLibrary && update.jobs) {
+        jobLibrary.current = { jobs: state.jobs, resumes: state.resumes, jobMock: state.jobMock };
+      }
       if (update.result) {
         const shared = getState();
         updateSelection({
@@ -123,6 +127,11 @@ export function connectJobs(
       ]);
       const jobRows = [...jobs.data],
         resumeRows = [...resumes.data];
+      for (let offset = 100, count = jobs.data.length; count === 100; offset += 100) {
+        const batch = (await api.request<JD[]>(`/api/v1/jobs?limit=100&offset=${offset}`)).data;
+        jobRows.push(...batch);
+        count = batch.length;
+      }
       if (state.jdId && !jobRows.some((x) => x.id === state.jdId))
         jobRows.push(
           (await api.request<JD>('/api/v1/jobs/' + encodeURIComponent(state.jdId))).data,
@@ -143,7 +152,11 @@ export function connectJobs(
     });
   const create = (form: JDCreate) =>
     task(async () => {
-      if (!form.title.trim() || !form.jd_text.trim()) throw Error('请填写岗位名称和 JD 原文。');
+      if (
+        !form.title.trim() ||
+        !(form.jd_text.trim() || form.responsibilities?.trim() || form.requirements?.trim())
+      )
+        throw Error('请填写岗位名称，并补充职责、任职要求或岗位原文。');
       const { data, isMock } = await api.request<JD>('/api/v1/jobs', {
         method: 'POST',
         body: form,
@@ -257,6 +270,23 @@ export function connectJobs(
   signal.addEventListener('abort', dispose, { once: true });
   show();
   if (signal.aborted) dispose();
-  return { load, create, match, assess, choose, dispose };
+  async function upload(file: File): Promise<JDCreate | undefined> {
+    let draft: JDCreate | undefined;
+    await task(async () => {
+      const ticket = version;
+      if (!/\.(png|jpe?g|webp)$/i.test(file.name)) throw Error('请选择 PNG、JPEG 或 WEBP 截图。');
+      if (!file.size || file.size > 10 * 1024 * 1024) throw Error('图片须为非空文件，最大 10 MB。');
+      const body = new FormData();
+      body.append('file', file);
+      const response = await api.request<JDCreate>('/api/v1/jobs/upload-preview', {
+        method: 'POST',
+        body,
+      });
+      if (active() && ticket === version) draft = response.data;
+      return { notice: '截图已识别，请核对各字段后保存；未展示或看不清的内容请自行补充。' };
+    });
+    return active() ? draft : undefined;
+  }
+  return { load, create, upload, match, assess, choose, dispose };
 }
 export type JobsController = ReturnType<typeof connectJobs>;

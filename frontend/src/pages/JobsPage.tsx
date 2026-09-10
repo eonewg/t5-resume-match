@@ -2,11 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { connectJobs, type JobsController } from '../modules/jobs/controller.ts';
 import { useController, useWorkspace } from '../core/WorkspaceContext';
-import { Button, Chips, Feedback, PageHeading, SafeSource } from '../components/ui';
+import { Button, Chips, Feedback, SafeSource } from '../components/ui';
 import Icon from '../components/Icon';
-import cpp from '../demo/fixtures/job-cpp.ts';
-import go from '../demo/fixtures/job-go.ts';
-import ml from '../demo/fixtures/job-ml.ts';
+import LibraryNav from '../components/LibraryNav';
+import { jobLabels as fieldLabels, openJobDraft, jobDraftDirty } from '../modules/jobs/draft';
 
 const start = (controller: JobsController) => {
   void controller.load();
@@ -14,23 +13,18 @@ const start = (controller: JobsController) => {
 export default function JobsPage() {
   const { state: s, controller } = useController(connectJobs, start, 'jobs');
   const navigate = useNavigate();
-  const { store } = useWorkspace();
-  const [formOpen, setFormOpen] = useState(false);
+  const { store, jobLibrary, jobDraft } = useWorkspace();
   const readingPane = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (readingPane.current) readingPane.current.scrollTop = 0;
-  }, [s?.jdId, formOpen]);
-  useEffect(() => {
-    if (formOpen) document.getElementById('jobs-title')?.focus();
-  }, [formOpen]);
+  }, [s?.jdId]);
   const [params] = useSearchParams();
   const [query, setQuery] = useState(params.get('q') || '');
   useEffect(() => setQuery(params.get('q') || ''), [params]);
-  const [form, setForm] = useState({ title: '', company: '', jd_text: '' });
-  const [demo, setDemo] = useState(false);
   const [operation, setOperation] = useState('load');
   if (!s) return <p role="status">正在读取目标岗位…</p>;
   const c = controller.current!;
+  const refreshing = operation === 'load' && s.busy && Boolean(jobLibrary.current);
   const job = s.jobs.find((row) => row.id === s.jdId);
   const resume = s.resumes.find((row) => row.id === s.resumeId);
   const visibleJobs = s.jobs.filter((row) =>
@@ -42,29 +36,29 @@ export default function JobsPage() {
   return (
     <div className="jobs-page" data-module="jobs">
       <div className="page-title-row">
-        <PageHeading title="目标岗位">
-          选择你准备申请的岗位，让后续匹配和优化有一个具体目标。
-        </PageHeading>
+        <LibraryNav kind="jobs">选择你准备申请的岗位，让后续匹配和优化有一个具体目标。</LibraryNav>
         <Button
           id="jobs-add"
           tone="primary"
-          disabled={s.busy || formOpen}
-          onClick={() => setFormOpen(true)}
+          disabled={s.busy && !refreshing}
+          onClick={() => navigate('/jobs/new')}
         >
           添加岗位
         </Button>
       </div>
       <Feedback id="jobs-status" error={s.error} busy={s.busy}>
-        {s.busy
-          ? {
-              load: '正在读取简历与岗位…',
-              create: '正在整理岗位要求并保存…',
-              match: '正在对照简历与岗位技能…',
-            }[operation]
-          : s.notice}
+        {refreshing
+          ? ''
+          : s.busy
+            ? {
+                load: '正在读取简历与岗位…',
+                create: '正在整理岗位要求并保存…',
+                match: '正在对照简历与岗位技能…',
+              }[operation]
+            : s.notice}
       </Feedback>
       {s.error && operation === 'load' && (
-        <Button onClick={() => void c.load()} disabled={s.busy}>
+        <Button onClick={() => void c.load()} disabled={s.busy && !refreshing}>
           重试加载
         </Button>
       )}
@@ -111,16 +105,15 @@ export default function JobsPage() {
                   className="job-option"
                   key={row.id}
                   data-job-id={row.id}
-                  aria-pressed={!formOpen && row.id === s.jdId}
-                  disabled={s.busy}
+                  aria-pressed={row.id === s.jdId}
+                  disabled={s.busy && !refreshing}
                   onClick={() => {
                     c.choose('jdId', row.id);
-                    setFormOpen(false);
                   }}
                 >
                   <span className="job-option-title">
                     <strong>{row.title}</strong>
-                    <span aria-hidden="true">{!formOpen && row.id === s.jdId ? '→' : ''}</span>
+                    <span aria-hidden="true">{row.id === s.jdId ? '→' : ''}</span>
                   </span>
                   <span>{row.company || '公司暂未提供'}</span>
                   <span className="job-option-skills">
@@ -139,7 +132,7 @@ export default function JobsPage() {
             {s.jobs.length > 0 && !visibleJobs.length && (
               <p className="compact-empty">没有相符岗位，试试其他关键词。</p>
             )}
-            {!s.jobs.length && !s.busy && (
+            {!s.jobs.length && (!s.busy || refreshing) && (
               <p className="compact-empty">还没有岗位。添加一份准备申请的岗位要求。</p>
             )}
           </section>
@@ -148,15 +141,33 @@ export default function JobsPage() {
             ref={readingPane}
             role="region"
             tabIndex={0}
-            aria-label={formOpen ? '添加岗位表单' : '岗位详情'}
+            aria-label="岗位详情"
           >
             {job && (
-              <article className="job-detail" data-testid="selected-job" hidden={formOpen}>
+              <article className="job-detail" data-testid="selected-job">
                 <header>
                   <span className="employer-mark" aria-hidden="true">
                     {job.company?.slice(0, 2) || <Icon name="jobs" />}
                   </span>
-                  <h2>{job.title}</h2>
+                  <div className="detail-title-row">
+                    <h2>{job.title}</h2>
+                    <Button
+                      tone="secondary"
+                      disabled={s.busy && !refreshing}
+                      onClick={() => {
+                        if (
+                          jobDraft.current &&
+                          jobDraftDirty(jobDraft.current) &&
+                          !window.confirm('编辑这份岗位会替换当前未保存的岗位草稿，是否继续？')
+                        )
+                          return;
+                        jobDraft.current = openJobDraft(job);
+                        navigate('/jobs/new');
+                      }}
+                    >
+                      编辑岗位
+                    </Button>
+                  </div>
                   <p className="job-employer">
                     {job.company || '公司暂未提供'}
                     {job.salary && ` · ${job.salary}`}
@@ -175,15 +186,33 @@ export default function JobsPage() {
                     <Chips values={job.tools} />
                   </section>
                 )}
+                {(
+                  [
+                    'location',
+                    'education_requirement',
+                    'experience_requirement',
+                    'responsibilities',
+                    'requirements',
+                    'preferred_qualifications',
+                  ] as const
+                ).map(
+                  (key) =>
+                    job[key] && (
+                      <section className="job-original" key={key}>
+                        <h3>{fieldLabels[key]}</h3>
+                        <p>{job[key]}</p>
+                      </section>
+                    ),
+                )}
                 <section className="job-original">
                   <h3>岗位原文</h3>
-                  <p id="jobs-original">{job.jd_text}</p>
+                  <p id="jobs-original">{job.original_text || job.jd_text}</p>
                 </section>
                 <p className="job-source">
                   来源：
                   {job.source_name ||
                     (job.source_type === 'synthetic' ? '合成演示' : '暂未提供')}{' '}
-                  {job.source_url && <SafeSource url={job.source_url}>查看来源 ↗</SafeSource>}
+                  {job.source_url && <SafeSource url={job.source_url}>打开岗位链接 ↗</SafeSource>}
                 </p>
                 <footer className="job-detail-actions">
                   <Button
@@ -212,98 +241,12 @@ export default function JobsPage() {
                 </footer>
               </article>
             )}
-            {!job && !formOpen && (
+            {!job && (
               <div className="job-reading-prompt">
                 <h2>选择一个目标岗位</h2>
                 <p>从左侧打开岗位，阅读完整要求后开始匹配。</p>
               </div>
             )}
-            <section className="job-form" hidden={!formOpen} aria-labelledby="jobs-form-heading">
-              <div className="section-heading">
-                <h2 id="jobs-form-heading">添加新岗位</h2>
-                <Button id="jobs-cancel-add" disabled={s.busy} onClick={() => setFormOpen(false)}>
-                  返回浏览
-                </Button>
-              </div>
-              <form
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  setOperation('create');
-                  const previousId = store.getState().jdId;
-                  await c.create({
-                    ...form,
-                    company: form.company || null,
-                    ...(demo ? { source_type: 'synthetic' as const } : {}),
-                  });
-                  if (controller.current === c && store.getState().jdId !== previousId) {
-                    setFormOpen(false);
-                    setForm({ title: '', company: '', jd_text: '' });
-                    setDemo(false);
-                    setQuery('');
-                  }
-                }}
-              >
-                {(['title', 'company', 'jd_text'] as const).map((key) => (
-                  <div key={key} className={key === 'jd_text' ? 'full-field' : ''}>
-                    <label htmlFor={key === 'jd_text' ? 'jobs-text' : `jobs-${key}`}>
-                      {key === 'title'
-                        ? '岗位名称'
-                        : key === 'company'
-                          ? '公司（选填）'
-                          : '岗位要求原文'}
-                    </label>
-                    {key === 'jd_text' ? (
-                      <textarea
-                        id="jobs-text"
-                        rows={6}
-                        required
-                        maxLength={50000}
-                        value={form[key]}
-                        readOnly={s.busy}
-                        onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                      />
-                    ) : (
-                      <input
-                        id={`jobs-${key}`}
-                        maxLength={200}
-                        required={key === 'title'}
-                        value={form[key]}
-                        readOnly={s.busy}
-                        onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                      />
-                    )}
-                  </div>
-                ))}
-                <Button type="submit" tone="primary" disabled={s.busy}>
-                  {s.busy && operation === 'create' ? '正在整理并保存…' : '保存并选中'}
-                </Button>
-                <details className="job-demo-options full-field">
-                  <summary>使用合成示例</summary>
-                  <p>仅填入表单；保存、匹配与优化均需主动发起。</p>
-                  <div className="inline-actions">
-                    {[cpp, go, ml].map((sample) => (
-                      <Button
-                        tone="ghost"
-                        key={sample.id}
-                        id={`jobs-demo-${sample.id}`}
-                        disabled={s.busy}
-                        onClick={() => {
-                          if (
-                            Object.values(form).some((v) => v.trim()) &&
-                            !window.confirm('填入示例岗位会替换当前未保存表单，是否继续？')
-                          )
-                            return;
-                          setForm({ title: sample.title, company: '', jd_text: sample.text });
-                          setDemo(true);
-                        }}
-                      >
-                        {sample.title}
-                      </Button>
-                    ))}
-                  </div>
-                </details>
-              </form>
-            </section>
           </div>
         </div>
       </>

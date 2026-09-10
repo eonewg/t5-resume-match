@@ -61,6 +61,8 @@ export function createApi({
         '/api/v1/resumes/parse',
         '/api/v1/resumes/preview',
         '/api/v1/resumes/upload-preview',
+        '/api/v1/jobs/upload-preview',
+        '/api/v1/jobs/preview',
       ].includes(path);
     const timer = setTimeout(
       cancel,

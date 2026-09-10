@@ -21,9 +21,14 @@ from backend.modules.jobs.public import JobsService
 from backend.modules.resume.config import ResumeSettings
 from backend.modules.resume.public import ResumeService
 
-Module = Literal["resume", "matching", "diagnosis"]
-MODULES = ("resume", "matching", "diagnosis")
-PROVIDER_KEYS = {"resume": "resume", "matching": "jobs", "diagnosis": "diagnosis"}
+Module = Literal["resume", "matching", "diagnosis", "vision"]
+MODULES = ("resume", "matching", "diagnosis", "vision")
+PROVIDER_KEYS = {
+    "resume": "resume",
+    "matching": "jobs",
+    "diagnosis": "diagnosis",
+    "vision": "resume",
+}
 
 
 class ModelConfig(BaseModel):
@@ -61,7 +66,7 @@ class ModelConfig(BaseModel):
 
 
 class UpdateConfig(ModelConfig):
-    modules: list[Module] = Field(default_factory=list, max_length=3)
+    modules: list[Module] = Field(default_factory=list, max_length=4)
     revision: str = Field(min_length=1, max_length=64)
     profile_id: str | None = Field(default=None, max_length=64)
     profile_name: str = Field(default="我的供应商", min_length=1, max_length=80)
@@ -83,13 +88,13 @@ class SavedProfile(BaseModel):
 
 class ResetConfig(BaseModel):
     model_config = ConfigDict(extra="forbid", hide_input_in_errors=True)
-    modules: list[Module] = Field(min_length=1, max_length=3)
+    modules: list[Module] = Field(min_length=1, max_length=4)
     revision: str = Field(min_length=1, max_length=64)
 
 
 class ProfileAction(ResetConfig):
     profile_id: str = Field(min_length=1, max_length=64)
-    modules: list[Module] = Field(default_factory=list, max_length=3)
+    modules: list[Module] = Field(default_factory=list, max_length=4)
 
 
 class RevealKey(BaseModel):
@@ -106,7 +111,7 @@ class SaveExit(BaseModel):
 
 
 def effective(module, service):
-    if module == "resume" and isinstance(service, ResumeService):
+    if module in {"resume", "vision"} and isinstance(service, ResumeService):
         settings = service.settings or ResumeSettings()
         return settings, {
             "base_url": settings.llm_base_url,
@@ -292,11 +297,27 @@ class AISettings:
             base_url=data.base_url, model=data.model, api_style=data.api_style, api_key=key
         )
 
+    def vision_config(self):
+        with self.lock:
+            identifier = self.assignments.get("vision")
+            values = (
+                self.profiles[identifier].config.model_dump()
+                if identifier
+                else self.base_values["vision"]
+            )
+            if not values.get("api_key") or not values["api_key"].get_secret_value():
+                raise HTTPException(
+                    409, "请先在模型设置中为岗位与截图识别分配模型；识别截图时需支持图片输入。"
+                )
+            return ModelConfig.model_validate(values).model_copy(deep=True)
+
     def providers(self, configs):
         providers = dict(self.baseline)
         for module, config in configs.items():
             if self.base_settings[module] is None:
                 raise ValueError("provider not configurable")
+            if module == "vision":
+                continue
             vendor = (
                 "deepseek" if urlsplit(config.base_url).hostname == "api.deepseek.com" else "custom"
             )

@@ -1,21 +1,13 @@
 import vitaeLogo from './assets/vitae.svg';
 import { createPortal } from 'react-dom';
 import { Component, useEffect, useState, useRef, type ReactNode } from 'react';
-import {
-  HashRouter,
-  Link,
-  NavLink,
-  Navigate,
-  Route,
-  Routes,
-  useLocation,
-  useNavigate,
-} from 'react-router-dom';
+import { HashRouter, Link, NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { WorkspaceProvider } from './core/WorkspaceContext';
 import { createApi } from './core/api';
 import HomePage from './pages/HomePage';
 import ResumePage from './pages/ResumePage';
 import JobsPage from './pages/JobsPage';
+import JobCreatePage from './pages/JobCreatePage';
 import MatchingPage from './pages/MatchingPage';
 import DiagnosisPage from './pages/DiagnosisPage';
 import AnalyticsPage from './pages/AnalyticsPage';
@@ -25,9 +17,8 @@ import AISettingsPanel from './components/AISettingsPanel';
 
 const navigation: [string, string, IconName][] = [
   ['home', '首页', 'home'],
-  ['resume', '我的简历', 'resume'],
-  ['resume/history', '历史简历', 'history'],
-  ['jobs', '目标岗位', 'jobs'],
+  ['resume', '简历', 'resume'],
+  ['jobs', '岗位', 'jobs'],
   ['matching', '匹配分析', 'matching'],
   ['diagnosis', 'AI 优化', 'diagnosis'],
   ['analytics', '市场洞察', 'analytics'],
@@ -186,8 +177,6 @@ function ServiceStatus() {
 }
 export function ProductShell() {
   const location = useLocation();
-  const navigate = useNavigate();
-  const [search, setSearch] = useState('');
   const [collapsed, setCollapsed] = useState(() => {
     try {
       return localStorage.getItem('t5-sidebar-collapsed') === 'true';
@@ -233,7 +222,7 @@ export function ProductShell() {
   }
 
   const key = location.pathname.slice(1) || 'home';
-  const title = navigation.find(([value]) => value === key)?.[1] || '市场洞察';
+  const title = navigation.find(([value]) => value === key.split('/')[0])?.[1] || '市场洞察';
   useEffect(() => {
     document.title = `${title} · Vitae`;
     document.querySelector<HTMLHeadingElement>('h1')?.focus({ preventScroll: true });
@@ -285,17 +274,11 @@ export function ProductShell() {
             <NavLink
               key={value}
               to={value === 'home' ? '/' : `/${value}`}
-              end
+              end={value !== 'resume' && value !== 'jobs'}
               data-view={value}
               aria-label={label}
               title={collapsed ? label : undefined}
-              className={
-                value === 'resume/history'
-                  ? 'nav-subpage'
-                  : value === 'analytics'
-                    ? 'nav-secondary'
-                    : ''
-              }
+              className={value === 'analytics' ? 'nav-secondary' : ''}
             >
               <Icon name={icon} />
               <span>{label}</span>
@@ -374,30 +357,8 @@ export function ProductShell() {
         )}
       </dialog>
       <div
-        className={`app-frame ${collapsed ? 'sidebar-collapsed' : ''} ${['resume/history', 'jobs'].includes(key) ? 'split-workspace-frame' : ''}`}
+        className={`app-frame ${collapsed ? 'sidebar-collapsed' : ''} ${['resume', 'resume/history', 'jobs', 'jobs/new', 'matching', 'diagnosis', 'analytics'].includes(key) ? 'split-workspace-frame' : ''}`}
       >
-        <header className="topbar">
-          <form
-            className="global-search"
-            role="search"
-            onSubmit={(event) => {
-              event.preventDefault();
-              navigate('/jobs?q=' + encodeURIComponent(search.trim()));
-            }}
-          >
-            <Icon name="search" />
-            <label htmlFor="global-search" className="sr-only">
-              搜索已录入岗位
-            </label>
-            <input
-              id="global-search"
-              type="search"
-              placeholder="搜索岗位、技能或行业…"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-            />
-          </form>
-        </header>
         <main id="main-content" tabIndex={-1}>
           {exitError && (
             <p role="alert" className="feedback" data-error="true">
@@ -412,6 +373,7 @@ export function ProductShell() {
                 <Route path="/resume" element={<ResumePage />} />
                 <Route path="/resume/history" element={<ResumeHistoryPage />} />
                 <Route path="/jobs" element={<JobsPage />} />
+                <Route path="/jobs/new" element={<JobCreatePage />} />
                 <Route path="/matching" element={<MatchingPage />} />
                 <Route path="/diagnosis" element={<DiagnosisPage />} />
                 <Route path="/analytics" element={<AnalyticsPage />} />

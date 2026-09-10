@@ -51,6 +51,23 @@ def change(client, **kwargs):
     }
 
 
+def test_vision_assignment_is_independent_and_restored(config):
+    with TestClient(create_app(config)) as client:
+        original = client.app.state.providers["resume"]
+        response = client.put("/api/v1/settings/ai", json=change(client, modules=["vision"]))
+        assert response.status_code == 200
+        identifier = response.json()["saved_profile_id"]
+        assert client.app.state.ai_settings.vision_config().model == "synthetic-model"
+        assert client.app.state.providers["resume"] is original
+        assert set(client.app.state.providers) == {"resume", "jobs", "diagnosis", "analytics"}
+    with TestClient(create_app(config)) as client:
+        assert (
+            client.get("/api/v1/settings/ai").json()["modules"]["vision"]["profile_id"]
+            == identifier
+        )
+        assert client.app.state.ai_settings.vision_config().model == "synthetic-model"
+
+
 def test_masked_atomic_persistence_restore_and_no_background_call(config, monkeypatch):
     calls = []
     monkeypatch.setattr(ai_settings, "test_connection", lambda *_: calls.append("probe"))
@@ -313,7 +330,10 @@ def test_multiple_profiles_switch_independently_reveal_and_delete(config):
         ).json()
         b = second["saved_profile_id"]
         assert len(second["profiles"]) == 2
-        assert all(value["profile_id"] == a for value in second["modules"].values())
+        assert all(
+            second["modules"][key]["profile_id"] == a for key in ("resume", "matching", "diagnosis")
+        )
+        assert second["modules"]["vision"]["profile_id"] is None
         switched = client.post(
             "/api/v1/settings/ai/activate",
             json={"revision": second["revision"], "profile_id": b, "modules": ["resume"]},

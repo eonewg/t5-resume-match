@@ -5,11 +5,14 @@ import { useEffect, useId, useState, type ReactNode } from 'react';
 import {
   connectAnalytics,
   initialFilters,
+  recentDates,
   type AnalyticsController,
 } from '../modules/analytics/controller.ts';
 import { useController } from '../core/WorkspaceContext';
 import type { AnalysisResponse, SkillFrequency, SalaryGroup } from '../core/contracts';
 import { Button, Chips, Feedback, NextLink, PageHeading, SafeSource } from '../components/ui';
+import MarketOverview from '../components/MarketOverview';
+import SalaryDetails from '../components/SalaryDetails';
 
 const sources: Record<string, string> = {
   real: '真实采样',
@@ -136,148 +139,6 @@ function SkillChart({
     </ul>
   );
 }
-function SalaryDetails({ group }: { group: SalaryGroup }) {
-  const [query, setQuery] = useState('');
-  const [sort, setSort] = useState('original');
-  const [page, setPage] = useState(0);
-  const [selected, setSelected] = useState<string[]>([]);
-  const matches = group.ranges.filter((row) =>
-    row.title.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()),
-  );
-  if (sort === 'upper') matches.sort((a, b) => b.upper - a.upper);
-  if (sort === 'lower') matches.sort((a, b) => b.lower - a.lower);
-  if (sort === 'name') matches.sort((a, b) => a.title.localeCompare(b.title, 'zh-CN'));
-  const pages = Math.max(1, Math.ceil(matches.length / 10));
-  const currentPage = Math.min(page, pages - 1);
-  const rows = matches.slice(currentPage * 10, currentPage * 10 + 10);
-  const compared = group.ranges.filter((row) => selected.includes(row.jd_id));
-  const maximum = Math.max(1, ...compared.map((row) => row.upper));
-  const toggle = (id: string) =>
-    setSelected((previous) => {
-      const valid = previous.filter((key) => group.ranges.some((row) => row.jd_id === key));
-      return valid.includes(id)
-        ? valid.filter((key) => key !== id)
-        : valid.length < 5
-          ? [...valid, id]
-          : valid;
-    });
-  return (
-    <details className="analytics-details salary-range-details">
-      <summary>查看每个岗位的招聘薪资 · {group.ranges.length} 个岗位</summary>
-      <section
-        className="analytics-salary-group"
-        data-currency={group.currency}
-        data-period={group.period}
-      >
-        <h3>{salaryLabel(group)}</h3>
-        <div className="salary-detail-controls">
-          <label>
-            搜索岗位
-            <input
-              type="search"
-              value={query}
-              placeholder="输入岗位名称"
-              onChange={(event) => {
-                setQuery(event.target.value);
-                setPage(0);
-              }}
-            />
-          </label>
-          <label>
-            排列顺序
-            <select
-              value={sort}
-              onChange={(event) => {
-                setSort(event.target.value);
-                setPage(0);
-              }}
-            >
-              <option value="original">原始顺序</option>
-              <option value="upper">薪资上限从高到低</option>
-              <option value="lower">薪资下限从高到低</option>
-              <option value="name">岗位名称</option>
-            </select>
-          </label>
-        </div>
-        <p className="analytics-help">
-          勾选最多 5 个岗位比较薪资。每页显示 10 个，搜索和排序不影响上方的整体分布。
-        </p>
-        <ul className="salary-detail-list" aria-label="岗位薪资明细">
-          {rows.map((row) => (
-            <li key={row.jd_id}>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={selected.includes(row.jd_id)}
-                  disabled={compared.length >= 5 && !selected.includes(row.jd_id)}
-                  onChange={() => toggle(row.jd_id)}
-                />
-                <span>{row.title}</span>
-              </label>
-              <span>
-                {number(row.lower)}–{number(row.upper)}
-              </span>
-            </li>
-          ))}
-        </ul>
-        {!matches.length && <p role="status">没有找到对应岗位，试试其他关键词。</p>}
-        <div className="salary-detail-pagination">
-          <span>
-            共 {matches.length} 个岗位 · 第 {currentPage + 1} / {pages} 页
-          </span>
-          <Button disabled={currentPage === 0} onClick={() => setPage(currentPage - 1)}>
-            上一页
-          </Button>
-          <Button disabled={currentPage + 1 >= pages} onClick={() => setPage(currentPage + 1)}>
-            下一页
-          </Button>
-        </div>
-        {compared.length > 0 && (
-          <section className="salary-comparison" aria-label="所选岗位薪资对比">
-            <div className="section-heading">
-              <h3>
-                已选 {compared.length} / 5 个岗位 · {salaryLabel(group)}
-              </h3>
-              <Button onClick={() => setSelected([])}>清空对比</Button>
-            </div>
-            <p className="salary-range-legend">
-              蓝线左端是招聘薪资下限，右端是上限；固定金额显示为圆点。
-            </p>
-            <div className="analytics-salary-axis">
-              {[0, 1, 2, 3, 4].map((tick) => (
-                <span key={tick} style={{ left: `${tick * 25}%` }}>
-                  {number((maximum * tick) / 4)}
-                </span>
-              ))}
-            </div>
-            {compared.map((row) => (
-              <div className="analytics-salary-row" key={row.jd_id}>
-                <div className="analytics-bar-label">
-                  <span>{row.title}</span>
-                  <span>
-                    {number(row.lower)}–{number(row.upper)}
-                  </span>
-                  <Button aria-label={`移除对比：${row.title}`} onClick={() => toggle(row.jd_id)}>
-                    移除
-                  </Button>
-                </div>
-                <div className="analytics-salary-track" aria-hidden="true">
-                  <span
-                    className={`analytics-salary-range ${row.lower === row.upper ? 'is-point' : ''}`}
-                    style={{
-                      left: `${(row.lower / maximum) * 100}%`,
-                      width: `${((row.upper - row.lower) / maximum) * 100}%`,
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
-          </section>
-        )}
-      </section>
-    </details>
-  );
-}
 function SalaryHistogram({ group }: { group: SalaryGroup }) {
   const gradient = useId();
   const midpoints = group.ranges.map((row) => row.lower / 2 + row.upper / 2);
@@ -395,8 +256,8 @@ export function AnalyticsResult({ result }: { result: AnalysisResponse }) {
   const data = result.market;
   const [salaryKey, setSalaryKey] = useState('');
   const [searchParams, setSearchParams] = useSearchParams();
-  const tabs = analyticsTopics;
-  const tab = tabs.find((item) => item.id === searchParams.get('tab'))?.id || 'skills';
+  const tabs = [{ id: 'overview', label: '分析总览' }, ...analyticsTopics];
+  const tab = tabs.find((item) => item.id === searchParams.get('tab'))?.id || 'overview';
   const setTab = (id: string) => {
     setSearchParams((previous) => {
       const next = new URLSearchParams(previous);
@@ -531,6 +392,25 @@ export function AnalyticsResult({ result }: { result: AnalysisResponse }) {
               <div
                 className="market-topic"
                 role="tabpanel"
+                id="market-panel-overview"
+                aria-labelledby="market-tab-overview"
+                hidden={tab !== 'overview'}
+                tabIndex={0}
+              >
+                {tab === 'overview' && (
+                  <MarketOverview
+                    data={data}
+                    salaryGroup={salaryGroup}
+                    salaryChart={salaryGroup && <SalaryHistogram group={salaryGroup} />}
+                    salaryLabel={salaryLabel}
+                    onSalaryChange={setSalaryKey}
+                    onDetails={setTab}
+                  />
+                )}
+              </div>
+              <div
+                className="market-topic"
+                role="tabpanel"
                 id="market-panel-skills"
                 aria-labelledby="market-tab-skills"
                 hidden={tab !== 'skills'}
@@ -642,6 +522,7 @@ export function AnalyticsResult({ result }: { result: AnalysisResponse }) {
                   )}
                   {salaryGroup && (
                     <SalaryDetails
+                      label={salaryLabel(salaryGroup)}
                       key={`${salaryGroup.currency}/${salaryGroup.period}`}
                       group={salaryGroup}
                     />
@@ -780,8 +661,22 @@ export default function AnalyticsPage() {
       data-module="analytics"
     >
       <div className="market-heading">
-        <PageHeading title="市场洞察">岗位需求 · 技能热度 · 薪资分布</PageHeading>
+        <PageHeading title="市场洞察">
+          聚合已录入 JD，了解技能需求、岗位薪资与职业准备方向。
+        </PageHeading>
         <div className="inline-actions">
+          <Button className="secondary" onClick={() => setWide(!wide)}>
+            {wide ? '退出大屏' : '大屏模式'}
+          </Button>
+        </div>
+      </div>
+      <details className="market-import-options">
+        <summary>补充岗位数据</summary>
+        <p>已有岗位会直接参与分析；需要更多样本时，可前往目标岗位录入，或手动同步外部来源。</p>
+        <div className="inline-actions">
+          <NextLink to="/jobs" primary={false}>
+            录入目标岗位
+          </NextLink>
           <select
             aria-label="外部招聘来源"
             value={feedSource}
@@ -801,29 +696,55 @@ export default function AnalyticsPage() {
           >
             {s.busy === 'external' ? '正在同步…' : '同步外部岗位'}
           </Button>
-          <Button className="secondary" onClick={() => setWide(!wide)}>
-            {wide ? '退出大屏' : '大屏模式'}
-          </Button>
         </div>
+        <p className="market-feed-note">
+          {feedSource === 'ncss' ? (
+            <>
+              <SafeSource url="https://www.ncss.cn/student/jobs/index.html">
+                国家大学生就业服务平台
+              </SafeSource>{' '}
+              · 国内招聘，手动同步最新最多 30 条公开记录
+            </>
+          ) : (
+            <>
+              <SafeSource url="https://jobicy.com">Jobicy</SafeSource> ·
+              全球远程岗位，手动同步最新最多 200 条
+            </>
+          )}
+          。缓存 1 小时；保留首次采集的岗位详情与来源。
+        </p>
+      </details>
+      <div className="market-period-controls" aria-label="采集时间范围">
+        <span>采集时间</span>
+        {[
+          { days: 0, label: '不限日期' },
+          { days: 30, label: '近 30 天采集' },
+          { days: 90, label: '近 90 天采集' },
+        ].map(({ days, label }) => {
+          const dates = recentDates(days);
+          return (
+            <Button
+              key={days}
+              disabled={Boolean(s.busy)}
+              aria-pressed={
+                s.filters.date_from === dates.date_from && s.filters.date_to === dates.date_to
+              }
+              onClick={() => {
+                const next = { ...filters, ...dates };
+                setFilters(next);
+                void c.load(next);
+              }}
+            >
+              {label}
+            </Button>
+          );
+        })}
       </div>
-      <p className="market-feed-note">
-        {feedSource === 'ncss' ? (
-          <>
-            <SafeSource url="https://www.ncss.cn/student/jobs/index.html">
-              国家大学生就业服务平台
-            </SafeSource>{' '}
-            · 国内招聘，手动同步最新最多 30 条公开记录
-          </>
-        ) : (
-          <>
-            <SafeSource url="https://jobicy.com">Jobicy</SafeSource> ·
-            全球远程岗位，手动同步最新最多 200 条
-          </>
-        )}
-        。缓存 1 小时；保留首次采集的岗位详情与来源。
+      <p className="analytics-help">
+        默认聚合全部来源的已录入岗位。近期按采集日期筛选，不是职位发布日期；无采集日期的岗位只进入不限日期的分析。
       </p>
       <details id="analytics-filters" className="analytics-filter-panel">
-        <summary>筛选来源与日期 · 默认真实采样</summary>
+        <summary>筛选来源与日期 · 当前{sources[s.filters.source_type] || '全部来源'}</summary>
         <form
           className="analytics-filters"
           onSubmit={(e) => {

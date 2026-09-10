@@ -2,7 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { createApi } from '../core/api';
 import { Button, Feedback } from './ui';
 
-const moduleLabels = { resume: '简历识别', matching: '匹配分析', diagnosis: 'AI 优化' };
+const moduleLabels = {
+  resume: '简历识别',
+  matching: '匹配分析',
+  diagnosis: 'AI 优化',
+  vision: '岗位与截图识别',
+};
 type Module = keyof typeof moduleLabels;
 type Protocol = 'chat_completions' | 'responses';
 interface Connection {

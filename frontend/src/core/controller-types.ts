@@ -5,6 +5,7 @@ export interface ControllerContext extends Workspace {
   api: Api;
   signal: AbortSignal;
   view?: string;
+  jobLibrary?: { current: Pick<JobsState, 'jobs' | 'resumes' | 'jobMock'> | null };
 }
 export interface ResumeValues {
   raw_text: string;

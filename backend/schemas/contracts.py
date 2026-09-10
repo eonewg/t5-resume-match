@@ -75,6 +75,13 @@ class JDSource(Contract):
 
 
 class JDFields(JDSource):
+    location: str = Field(default="", max_length=200)
+    education_requirement: str = Field(default="", max_length=200)
+    experience_requirement: str = Field(default="", max_length=200)
+    responsibilities: str = Field(default="", max_length=12000)
+    requirements: str = Field(default="", max_length=12000)
+    preferred_qualifications: str = Field(default="", max_length=12000)
+    original_text: str = Field(default="", max_length=50000)
     skills: list[Label] = Field(default_factory=list, max_length=500)
     tools: list[Label] = Field(default_factory=list, max_length=500)
     salary: str | None = Field(default=None, max_length=2000)
@@ -99,6 +106,39 @@ class JDFields(JDSource):
 
 class JDCreate(JDInput, JDFields):
     """HTTP input; optional confirmed metadata never changes the legacy parse port."""
+
+    @model_validator(mode="before")
+    @classmethod
+    def confirmed_job_text(cls, values):
+        if not isinstance(values, dict):
+            return values
+        sections = [
+            ("岗位职责与目标", "responsibilities"),
+            ("任职要求", "requirements"),
+            ("加分项", "preferred_qualifications"),
+        ]
+        if not any(values.get(key) for _, key in sections):
+            return values
+        values = dict(values)
+        values.setdefault("original_text", values.get("jd_text", ""))
+        fields = [
+            ("岗位名称", "title"),
+            ("公司", "company"),
+            ("地点", "location"),
+            ("学历", "education_requirement"),
+            ("经验", "experience_requirement"),
+            ("薪资", "salary"),
+            *sections,
+        ]
+        values["jd_text"] = "\n\n".join(
+            label + "：\n" + str(values[key]) for label, key in fields if values.get(key)
+        )
+        for label, key in [("技能标签", "skills"), ("工具与框架", "tools")]:
+            if isinstance(values.get(key), list) and all(
+                isinstance(item, str) for item in values[key]
+            ):
+                values["jd_text"] += "\n\n" + label + "：" + "、".join(values[key])
+        return values
 
 
 class JDData(JDInput, JDFields):
