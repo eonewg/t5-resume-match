@@ -53,10 +53,13 @@ it('previews a job screenshot, allows corrections and saves only after confirmat
   };
   page('/jobs');
   fireEvent.click(await screen.findByRole('button', { name: '添加岗位', exact: true }));
-  const picker = screen.getByLabelText(/从岗位截图识别/);
+  const picker = screen.getByLabelText('选择岗位截图');
   fireEvent.change(picker, {
     target: { files: [new File(['synthetic-image'], 'job.png', { type: 'image/png' })] },
   });
+  expect(await screen.findByAltText('岗位截图预览')).toBeTruthy();
+  expect(requests.filter((x) => x.path === '/api/v1/jobs/upload-preview')).toHaveLength(0);
+  fireEvent.click(screen.getByRole('button', { name: '识别截图' }));
   await waitFor(() =>
     expect((screen.getByLabelText('任职要求') as HTMLTextAreaElement).value).toBe('Python'),
   );
@@ -84,9 +87,35 @@ it('previews a job screenshot, allows corrections and saves only after confirmat
 });
 const json = (value: unknown, status = 200, headers = {}) =>
   new Response(JSON.stringify(value), { status, headers });
+
+it('keeps resume screenshots local until recognition and separates document upload', async () => {
+  handler = (path) => (path === '/api/v1/resumes/upload-preview' ? json(resume) : undefined);
+  page('/resume');
+  const picker = await screen.findByLabelText('选择简历截图');
+  expect((document.getElementById('resume-file') as HTMLInputElement).accept).toBe(
+    '.pdf,.docx,.txt',
+  );
+  const first = new File(['first'], 'first.png', { type: 'image/png' });
+  fireEvent.change(picker, { target: { files: [first] } });
+  expect(await screen.findByAltText('简历截图预览')).toBeTruthy();
+  expect(requests.filter((x) => x.path.endsWith('/upload-preview'))).toHaveLength(0);
+  fireEvent.click(screen.getByRole('button', { name: '移除' }));
+  expect(screen.queryByAltText('简历截图预览')).toBeNull();
+  expect(URL.revokeObjectURL).toHaveBeenCalled();
+  const second = new File(['second'], 'second.png', { type: 'image/png' });
+  fireEvent.change(picker, { target: { files: [second] } });
+  fireEvent.click(screen.getByRole('button', { name: '识别截图' }));
+  await waitFor(() =>
+    expect(requests.filter((x) => x.path.endsWith('/upload-preview'))).toHaveLength(1),
+  );
+  const body = requests.find((x) => x.path.endsWith('/upload-preview'))!.options.body as FormData;
+  expect((body.get('file') as File).name).toBe('second.png');
+});
 let requests: { path: string; options: RequestInit }[];
 let handler: (path: string, options: RequestInit) => Response | Promise<Response> | undefined;
 beforeEach(() => {
+  vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:synthetic-preview');
+  vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
   requests = [];
   handler = () => undefined;
   vi.stubGlobal('scrollTo', vi.fn());
@@ -194,7 +223,7 @@ describe('migrated demo interactions', () => {
     page('/resume');
     await settleResume();
     const picker = vi.spyOn(input('resume-file'), 'click');
-    fireEvent.click(screen.getByRole('button', { name: '上传文件或截图', exact: true }));
+    fireEvent.click(screen.getByRole('button', { name: '上传文档', exact: true }));
     expect(picker).toHaveBeenCalledOnce();
     fireEvent.change(input('resume-raw'), { target: { value: '待识别的简历原文' } });
     expect(input('resume-raw').value).toBe('待识别的简历原文');

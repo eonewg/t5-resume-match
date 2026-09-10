@@ -2,6 +2,7 @@
 
 import base64
 import json
+import re
 import warnings
 from io import BytesIO
 
@@ -12,6 +13,20 @@ from PIL import Image
 from backend.schemas.contracts import JDCreate, ResumeData
 
 LIMIT = 10 * 1024 * 1024
+
+
+def renumber_section(text: str) -> str:
+    """Renumber split section items without changing their content or the archived source."""
+    counter = 0
+
+    def replace(match):
+        nonlocal counter
+        counter += 1
+        return match[1] + str(counter) + "、"
+
+    return re.sub(
+        r"^([ \t]*)\d{1,3}(?:[、）)][ \t]*|[.．][ \t]+)", replace, text, flags=re.MULTILINE
+    )
 
 
 def recognize(file: UploadFile, config, kind: str):
@@ -109,6 +124,9 @@ def recognize(file: UploadFile, config, kind: str):
             text = choice["message"]["content"]
         decoded = json.loads(text)
         if kind == "job":
+            for key in ("responsibilities", "requirements", "preferred_qualifications"):
+                if isinstance(decoded.get(key), str):
+                    decoded[key] = renumber_section(decoded[key])
             decoded.update(
                 source_type="unknown",
                 source_url=None,

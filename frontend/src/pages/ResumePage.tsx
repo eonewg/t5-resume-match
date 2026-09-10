@@ -11,6 +11,7 @@ import { fieldStatus } from '../core/ui.ts';
 import Icon from '../components/Icon';
 import demoResume from '../demo/fixtures/resume-zh.ts';
 import { Button, Feedback, NextLink, PageHeading } from '../components/ui';
+import ScreenshotImport from '../components/ScreenshotImport';
 
 const start = (controller: ResumeController) => {
   void controller.init();
@@ -29,6 +30,7 @@ export default function ResumePage() {
   const history = useRef<HTMLDetailsElement>(null);
   const [activeField, setActiveField] = useState<ResumeField>('name');
   const [dragging, setDragging] = useState(false);
+  const [documentError, setDocumentError] = useState('');
   const imported = Boolean(s?.imported || s?.savedId || s?.candidate);
   useEffect(() => {
     const beforeUnload = (event: BeforeUnloadEvent) => {
@@ -42,6 +44,15 @@ export default function ResumePage() {
   }, [s?.dirty]);
   if (!s) return <p role="status">正在准备简历编辑器…</p>;
   const c = controller.current!;
+  const uploadDocument = (selected?: File) => {
+    if (!selected) return;
+    if (!/\.(pdf|docx|txt)$/i.test(selected.name)) {
+      setDocumentError('此入口支持 PDF、DOCX、TXT；图片请使用下方“从截图导入”。');
+      return;
+    }
+    setDocumentError('');
+    void c.upload(selected);
+  };
   const demoFilled =
     s.values.raw_text.replace(/\r\n?/g, '\n') === demoResume.replace(/\r\n?/g, '\n');
   const locked = Boolean(s.busy && s.busy !== 'parse');
@@ -240,7 +251,7 @@ export default function ResumePage() {
                 tone="secondary"
                 disabled={Boolean(s.busy)}
                 className={`resume-upload-button ${dragging ? 'drag-over' : ''}`}
-                title="支持 PDF、DOCX、TXT、PNG/JPEG/WEBP，最大 10 MB；截图将发送至配置的图片模型识别"
+                title="支持 PDF、DOCX、TXT，最大 10 MB"
                 onClick={() => file.current?.click()}
                 onDragOver={(e) => {
                   e.preventDefault();
@@ -251,11 +262,11 @@ export default function ResumePage() {
                   e.preventDefault();
                   setDragging(false);
                   const selected = e.dataTransfer.files[0];
-                  if (!s.busy && selected) void c.upload(selected);
+                  if (!s.busy) uploadDocument(selected);
                 }}
               >
                 <Icon name="upload" />
-                上传文件或截图
+                上传文档
               </Button>
             </div>
             <input
@@ -263,13 +274,19 @@ export default function ResumePage() {
               type="file"
               ref={file}
               hidden
-              accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.webp"
+              accept=".pdf,.docx,.txt"
               disabled={Boolean(s.busy)}
               onChange={(e) => {
                 const selected = e.target.files?.[0];
-                if (selected) void c.upload(selected);
+                uploadDocument(selected);
                 e.target.value = '';
               }}
+            />
+            {documentError && <p role="alert">{documentError}</p>}
+            <ScreenshotImport
+              subject="简历"
+              busy={Boolean(s.busy)}
+              onRecognize={(selected) => c.upload(selected)}
             />
             <div className="resume-source">
               <label htmlFor="resume-raw">

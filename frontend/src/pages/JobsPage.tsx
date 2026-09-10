@@ -7,6 +7,7 @@ import Icon from '../components/Icon';
 import cpp from '../demo/fixtures/job-cpp.ts';
 import go from '../demo/fixtures/job-go.ts';
 import ml from '../demo/fixtures/job-ml.ts';
+import ScreenshotImport from '../components/ScreenshotImport';
 
 const emptyForm = {
   title: '',
@@ -278,37 +279,29 @@ export default function JobsPage() {
                   返回浏览
                 </Button>
               </div>
-              <label className="full-field">
-                从岗位截图识别（PNG / JPEG / WEBP，最大 10 MB）
-                <input
-                  type="file"
-                  accept=".png,.jpg,.jpeg,.webp"
-                  disabled={s.busy}
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    e.target.value = '';
-                    if (!file) return;
-                    if (
-                      Object.values(form).some((v) => v.trim()) &&
-                      !window.confirm('识别结果将替换当前未保存表单，是否继续？')
-                    )
-                      return;
-                    const draft = await c.upload(file);
-                    if (controller.current !== c || !draft) return;
-                    draft.jd_text = draft.original_text || draft.jd_text;
-                    setForm(
-                      Object.fromEntries(
-                        Object.keys(emptyForm).map((key) => {
-                          const value = draft[key as keyof typeof draft];
-                          return [key, Array.isArray(value) ? value.join('、') : value || ''];
-                        }),
-                      ) as typeof emptyForm,
-                    );
-                    setDemo(false);
-                  }}
-                />
-              </label>
-              <p>截图会发送至模型设置中的“截图识别”服务。识别后可编辑，确认保存才会加入岗位库。</p>
+              <ScreenshotImport
+                subject="岗位"
+                busy={s.busy}
+                onRecognize={async (file) => {
+                  if (
+                    Object.values(form).some((v) => v.trim()) &&
+                    !window.confirm('识别结果将替换当前未保存表单，是否继续？')
+                  )
+                    return;
+                  const draft = await c.upload(file);
+                  if (controller.current !== c || !draft) return;
+                  draft.jd_text = draft.original_text || draft.jd_text;
+                  setForm(
+                    Object.fromEntries(
+                      Object.keys(emptyForm).map((key) => {
+                        const value = draft[key as keyof typeof draft];
+                        return [key, Array.isArray(value) ? value.join('、') : value || ''];
+                      }),
+                    ) as typeof emptyForm,
+                  );
+                  setDemo(false);
+                }}
+              />
               <form
                 onSubmit={async (e) => {
                   e.preventDefault();

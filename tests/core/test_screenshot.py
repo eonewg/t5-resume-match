@@ -134,6 +134,21 @@ def test_confirmed_job_sections_drive_matching_and_keep_original():
     assert JDCreate(title="测试岗位", jd_text="传统原文").jd_text == "传统原文"
 
 
+def test_split_section_numbering_keeps_content_and_non_list_numbers():
+    assert (
+        screenshot.renumber_section("1、第一项\n2、第二项\n6、最后一项")
+        == "1、第一项\n2、第二项\n3、最后一项"
+    )
+    assert (
+        screenshot.renumber_section("3、气象背景\n4、大数据经验\n5、数据处理")
+        == "1、气象背景\n2、大数据经验\n3、数据处理"
+    )
+    assert (
+        screenshot.renumber_section("3-5年经验\nPython 3.12\n2026年毕业\n\n2. 开发\n2. 测试")
+        == "3-5年经验\nPython 3.12\n2026年毕业\n\n1、开发\n2、测试"
+    )
+
+
 @pytest.mark.parametrize("kind", ["jobs", "resumes"])
 def test_upload_routes_are_preview_only(tmp_path, monkeypatch, kind):
     app = create_app(Settings(_env_file=None, database_url=f"sqlite:///{tmp_path / 'preview.db'}"))
