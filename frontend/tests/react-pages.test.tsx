@@ -85,6 +85,15 @@ const settleResume = () => waitFor(() => expect(input('resume-dropzone').disable
 describe('React routes and task workspace', () => {
   it('carries global search into the job list and permits browsing before resume confirmation', async () => {
     const store = page('/');
+    expect(Array.from(document.querySelectorAll('.insight-links a')).map((link) => [
+      link.querySelector('strong')?.textContent,
+      link.getAttribute('href'),
+    ])).toEqual([
+      ['技能需求', '/analytics?tab=skills'],
+      ['薪资分析', '/analytics?tab=salary'],
+      ['岗位与来源', '/analytics?tab=jobs'],
+    ]);
+    expect(screen.getByRole('link', { name: '浏览岗位样本' }).getAttribute('href')).toBe('/analytics?tab=jobs');
     const search = screen.getByRole('searchbox', { name: '搜索已录入岗位' });
     fireEvent.change(search, { target: { value: 'Python' } });
     fireEvent.submit(search.closest('form')!);

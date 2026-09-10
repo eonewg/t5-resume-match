@@ -5,6 +5,19 @@ import { AnalyticsResult } from '../src/pages/AnalyticsPage';
 import type { AnalysisResponse } from '../src/core/contracts';
 
 afterEach(cleanup);
+it.each(['skills', 'salary', 'jobs', 'unknown'])(
+  'opens the requested market topic from the URL: %s',
+  (tab) => {
+    render(
+      <MemoryRouter initialEntries={[`/analytics?tab=${tab}`]}>
+        <AnalyticsResult result={result()} />
+      </MemoryRouter>,
+    );
+    expect(screen.getByRole('tabpanel').id).toBe(
+      `market-panel-${tab === 'unknown' ? 'skills' : tab}`,
+    );
+  },
+);
 const result = (): AnalysisResponse => ({
   summary: '只描述已录入样本。',
   skills: { SQL: 2 },

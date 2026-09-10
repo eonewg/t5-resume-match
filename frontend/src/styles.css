@@ -912,6 +912,7 @@ body {
 }
 .ai-settings-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 10px;
   border-top: 1px solid var(--line);
@@ -920,11 +921,15 @@ body {
 .ai-settings-reset {
   margin-left: auto;
 }
+.ai-settings-actions .button {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
 
 .ai-settings-test {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-shrink: 0;
   gap: 10px;
   min-width: 0;
 }
@@ -932,7 +937,7 @@ body {
   color: var(--success);
   font-size: 13px;
   font-weight: 600;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
 
 .ai-profile-picker {

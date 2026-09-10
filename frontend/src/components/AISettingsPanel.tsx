@@ -455,7 +455,7 @@ export default function AISettingsPanel() {
                   </Button>
                   {isTestNotice && notice && (
                     <span className="ai-settings-test-success" role="status">
-                      {notice}
+                      连接成功
                     </span>
                   )}
                 </div>

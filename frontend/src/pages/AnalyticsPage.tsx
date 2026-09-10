@@ -1,4 +1,6 @@
 import Icon from '../components/Icon';
+import { useSearchParams } from 'react-router-dom';
+import { analyticsTopics } from '../core/analytics-navigation';
 import { useEffect, useId, useState, type ReactNode } from 'react';
 import {
   connectAnalytics,
@@ -241,12 +243,16 @@ function AnalysisSection({
 export function AnalyticsResult({ result }: { result: AnalysisResponse }) {
   const data = result.market;
   const [salaryKey, setSalaryKey] = useState('');
-  const [tab, setTab] = useState('skills');
-  const tabs = [
-    { id: 'skills', label: '技能需求' },
-    { id: 'salary', label: '薪资分析' },
-    { id: 'jobs', label: '岗位与来源' },
-  ];
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabs = analyticsTopics;
+  const tab = tabs.find((item) => item.id === searchParams.get('tab'))?.id || 'skills';
+  const setTab = (id: string) => {
+    setSearchParams((previous) => {
+      const next = new URLSearchParams(previous);
+      next.set('tab', id);
+      return next;
+    });
+  };
   const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
   const skill = data?.skill_frequency.some((row) => row.skill === selectedSkill)
     ? selectedSkill

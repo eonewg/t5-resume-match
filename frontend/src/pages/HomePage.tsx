@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { createApi } from '../core/api';
+import { analyticsTopics } from '../core/analytics-navigation';
 import type { JD, Resume } from '../core/contracts';
 import { useWorkspace } from '../core/WorkspaceContext';
 import { completedSteps, nextStep, steps } from '../core/state';
@@ -161,7 +162,7 @@ export default function HomePage() {
             <Link className="button secondary accent" to="/jobs">
               {state.jdId ? '查看或更换目标' : '选择岗位'} <Icon name="arrow" />
             </Link>
-            <Link className="button secondary" to="/analytics">
+            <Link className="button secondary" to="/analytics?tab=jobs">
               浏览岗位样本
             </Link>
           </div>
@@ -181,33 +182,17 @@ export default function HomePage() {
           </Link>
         </div>
         <div className="insight-links">
-          <Link to="/analytics">
-            <span className="material-icon">
-              <Icon name="jobs" />
-            </span>
-            <span>
-              <strong>岗位样本</strong>
-              <small>了解已录入岗位与机会</small>
-            </span>
-          </Link>
-          <Link to="/analytics">
-            <span className="material-icon">
-              <Icon name="trend" />
-            </span>
-            <span>
-              <strong>热门技能</strong>
-              <small>掌握岗位要求的核心技能</small>
-            </span>
-          </Link>
-          <Link to="/analytics">
-            <span className="material-icon">
-              <Icon name="resume" />
-            </span>
-            <span>
-              <strong>薪资参考</strong>
-              <small>查看可比较的薪资范围</small>
-            </span>
-          </Link>
+          {analyticsTopics.map((topic) => (
+            <Link key={topic.id} to={`/analytics?tab=${topic.id}`}>
+              <span className="material-icon">
+                <Icon name={topic.icon} />
+              </span>
+              <span>
+                <strong>{topic.label}</strong>
+                <small>{topic.description}</small>
+              </span>
+            </Link>
+          ))}
         </div>
       </aside>
     </div>
