@@ -1,4 +1,6 @@
 const paths = {
+  power: 'M12 2v10m-6-7a9 9 0 1 0 12 0',
+  panel: 'M6 3h12a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3ZM9 3v18',
   home: 'm3 10 9-7 9 7v10h-6v-7H9v7H3Z',
   resume: 'M14 3H5v18h14V8Zm0 0v5h5M8 12h8M8 16h6',
   history: 'M3 3h18v6H3ZM7 3v6m10-6v6M3 9v11h8m7-7a4 4 0 1 0 0 8 4 4 0 0 0 0-8m0 2v2l2 1',

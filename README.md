@@ -1,4 +1,4 @@
-# T5 AI 简历诊断与岗位匹配系统
+# Vitae · AI 简历诊断与岗位匹配系统
 
 本地运行的 AI 求职辅助工具：将简历原文整理为可编辑的结构化数据，与目标岗位进行关键词匹配和能力缺口分析，生成 STAR 优化建议，并对已录入的岗位记录做市场统计。默认 SQLite 开箱即用，AI 能力由 DeepSeek 官方接口驱动。
 
@@ -20,7 +20,7 @@
 
 ## 当前 AI 配置
 
-- Provider：DeepSeek 官方（`https://api.deepseek.com`），模型 `deepseek-v4-flash`
+- Provider：DeepSeek 官方（`https://api.deepseek.com`），模型 `deepseek-flash`
 - Resume 与 Diagnosis 共用同一密钥：在 `.env` 中配置 `DEEPSEEK_API_KEY`
 - 需要分开时，可用 `T5_RESUME_LLM_API_KEY`、`T5_DIAGNOSIS_API_KEY` 分别覆盖
 - 密钥仅保存在本地 `.env`（不提交 Git）；未配置密钥可以启动，AI 功能会返回明确配置错误，不会静默回退到 Mock
@@ -114,3 +114,12 @@ npm --prefix frontend run test:e2e          # 隔离服务 + 本机 Edge，离�
 - [Windows 便携版](docs/windows-portable.md) — 构建与实测验证记录
 - [验证记录](docs/validation.md)、[验收台账](docs/acceptance.md)
 - [团队协作约定](docs/team-rules.md)、[前端接入说明](docs/frontend-integration.md)
+
+
+### 桌面界面与市场数据
+
+当前仅维护桌面端，验收宽度为 1280/1366/1440/1920px；已移除手机专用布局。市场洞察按技能、薪资、岗位来源三个页签阅读，支持大屏模式和可折叠侧栏。点击“同步外部岗位”可选择国家大学生就业服务平台国内岗位或 Jobicy 全球远程岗位，无需 Key，缓存 1 小时。来源是累计采集记录，不保证岗位仍开放；详细口径见 [市场大屏接入记录](docs/ui/market-dashboard-api.md)。
+
+### AI 供应商与退出
+
+侧栏「设置」可保存多份供应商配置，自定义 API 地址、模型与 API Key，并为简历识别、匹配分析和 AI 优化分别切换或统一应用。密钥可显示/隐藏，配置保存在本机供下次启动读取。「保存并退出」写入配置后正常结束服务进程。用法、协议范围与验收见 [AI 设置说明](docs/ai-settings.md)。

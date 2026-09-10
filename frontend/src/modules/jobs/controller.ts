@@ -7,6 +7,8 @@ export function connectJobs(
   render: (state: JobsState) => void,
 ) {
   let state: JobsState = {
+    assessmentBusy: false,
+    assessmentError: '',
     jobs: [],
     resumes: [],
     jdId: getState().jdId || '',
@@ -30,28 +32,39 @@ export function connectJobs(
         ...state,
         jdId: next.jdId || '',
         resumeId: next.resumeId || '',
-        result: null,
+        result: next.result?.match || null,
         busy: false,
+        assessmentBusy: false,
+        assessmentError: '',
       };
       show();
     }
   });
   function choose(key: 'jdId' | 'resumeId', value: string) {
     version++;
-    state = { ...state, [key]: value, result: null, error: '', busy: false };
+    state = {
+      ...state,
+      [key]: value,
+      result: null,
+      error: '',
+      busy: false,
+      assessmentBusy: false,
+      assessmentError: '',
+    };
     updateSelection({
       jdId: state.jdId || null,
       resumeId: state.resumeId || null,
-      result: null,
       isMock: true,
     });
+    state.result = getState().result?.match || null;
     show();
   }
   async function task(work: () => Promise<Partial<JobsState>>) {
-    if (!active() || state.busy) return;
+    if (!active() || state.busy || state.assessmentBusy) return;
     const ticket = ++version;
     state.busy = true;
     state.error = '';
+    state.assessmentError = '';
     state.notice = '';
     state.result = null;
     show();
@@ -165,6 +178,75 @@ export function connectJobs(
         throw Error('匹配结果不符合公共契约。');
       return { result: { ...result, is_mock: result.is_mock || response.isMock === true } };
     });
+  async function assess() {
+    const previous = state.result;
+    if (
+      !active() ||
+      state.busy ||
+      state.assessmentBusy ||
+      !previous ||
+      previous.is_mock ||
+      previous.ai_assessment
+    )
+      return;
+    const ticket = ++version;
+    state.assessmentBusy = true;
+    state.assessmentError = '';
+    show();
+    try {
+      const response = await api.request<MatchRecord>(
+        '/api/v1/matches/' + encodeURIComponent(previous.id) + '/assessment',
+        { method: 'POST' },
+      );
+      if (!active() || ticket !== version) return;
+      const result = response.data,
+        ai = result.ai_assessment;
+      if (
+        result.id !== previous.id ||
+        result.resume_id !== state.resumeId ||
+        result.jd_id !== state.jdId ||
+        response.isMock ||
+        result.is_mock !== false ||
+        !ai ||
+        !Number.isFinite(ai.score) ||
+        ai.score < 0 ||
+        ai.score > 100 ||
+        typeof ai.summary !== 'string' ||
+        typeof ai.model !== 'string' ||
+        !Array.isArray(ai.dimensions) ||
+        ai.dimensions.length !== 3 ||
+        new Set(ai.dimensions.map((d) => d.dimension)).size !== 3 ||
+        !ai.dimensions.every(
+          (d) =>
+            ['skills', 'experience', 'education'].includes(d.dimension) &&
+            typeof d.applicable === 'boolean' &&
+            Number.isFinite(d.score) &&
+            d.score >= 0 &&
+            d.score <= 100 &&
+            typeof d.reason === 'string' &&
+            [d.jd_quotes, d.resume_quotes].every(
+              (q) => Array.isArray(q) && q.every((x) => typeof x === 'string'),
+            ),
+        )
+      )
+        throw Error('AI 评估结果不符合公共契约，关键词结果已保留。');
+      // Only add the assessment; never replace the independent keyword result.
+      state.result = { ...previous, ai_assessment: ai };
+      updateSelection({
+        resumeId: state.resumeId,
+        jdId: state.jdId,
+        result: { ...getState().result, match: state.result },
+        isMock: false,
+      });
+    } catch (error) {
+      if (active() && ticket === version) state.assessmentError = failureMessage(error);
+    } finally {
+      if (active() && ticket === version) {
+        state.assessmentBusy = false;
+        show();
+      }
+    }
+  }
   function dispose() {
     if (disposed) return;
     disposed = true;
@@ -175,6 +257,6 @@ export function connectJobs(
   signal.addEventListener('abort', dispose, { once: true });
   show();
   if (signal.aborted) dispose();
-  return { load, create, match, choose, dispose };
+  return { load, create, match, assess, choose, dispose };
 }
 export type JobsController = ReturnType<typeof connectJobs>;

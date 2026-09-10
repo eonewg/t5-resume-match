@@ -37,6 +37,8 @@ export interface ResumeState extends ResumeDraft {
   historyError: boolean;
 }
 export interface JobsState {
+  assessmentBusy: boolean;
+  assessmentError: string;
   jobs: JD[];
   resumes: Resume[];
   jdId: string;

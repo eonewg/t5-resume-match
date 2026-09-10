@@ -94,6 +94,14 @@ PairInput：
 
 MatchResult 保持团队原约定：两个关联 ID、0–100 有限数值 `score`、字符串数组 `matched_skills`、`missing_skills`、`gap_analysis`。MatchRecord 另有 `id=match_<uuid>`、`is_mock`。Mock 固定 0 分只代表占位，不可作为真实评分展示。
 
+2026-09-10 向后兼容新增 `keyword_score`（纯关键词覆盖率）和 `ai_assessment`（默认为 null）。原 `score` 继续保留原有关键词/可选向量增强口径，DeepSeek 不改写该字段。关键词匹配可从已确认 `resume.skills` 的描述句中识别词表关键词，仍不读取存档 `raw_text` 恢复用户移除的技能；否定及学习意向片段不作为命中证据。
+
+`POST /api/v1/matches/{id}/assessment` 无请求体，返回 200 MatchRecord。用户主动发起后，Jobs 的可选公开 `assess(Resume, JD)` 方法使用 DeepSeek 评估已确认的教育、技能及经历。成功将 `ai_assessment` 保存到原匹配记录，GET 和后续相同 POST 可复用；失败返回 502，保留关键词记录，不自动重试或降级为 Mock。Mock 输入返回 409，不支持该方法的 provider 返回 503。
+
+`ai_assessment` 包含 `score`、`summary`、`model` 和三个 `dimensions`：`skills`、`experience`、`education`。每项有 `applicable`、0–100 整数 `score`、`reason`、`jd_quotes`、`resume_quotes`。服务校验引文来自本次输入、完整正常结束、维度齐全且无重复；没有简历引文或只有否定/意向引文时拒绝正分。总分由服务按技能 50%、经历 35%、教育 15% 加权；不适用维度排除后重新归一化。该分数是有证据约束的 AI 判断，不是经过录用结果校准的概率。详情和验证见 [匹配评估记录](matching-assessment.md)。
+
+引文是原文片段，不使用短标签的 200 字符限制。`jd_quotes` 和 `resume_quotes` 每项均为保留空白的非空字符串，上限 60,000 字符，与整份评估输入上限对齐；逐字来源校验及 256 KiB 响应体上限仍执行，不通过截断正文满足限制。公共结果每类最多 5 条；内部有限容纳多余引用，全部校验后去重并选择展示内容。前端字段类型仍是字符串数组，已有结果兼容。
+
 D 的公开方法收到 `{"resume_text":"原文","jd_text":"原文"}`，返回 `{"summary":"诊断摘要","suggestions":["建议"]}`。HTTP 接口通过 PairInput 读取公共记录后调用 D，返回 DiagnosisRecord（加 `id`、关联 ID、`is_mock`）。
 
 analytics 的公开方法仍为 `analyze(list[JD]) -> AnalysisResult`，兼容旧的 summary/skills 返回；新增可选 market，旧 provider 默认 market=null。HTTP 响应增加 is_mock 和 scope。默认真实入口为 `backend.modules.analytics.public:AnalyticsService`。
@@ -155,3 +163,21 @@ analytics 的公开方法仍为 `analyze(list[JD]) -> AnalysisResult`，兼容�
 公共编排优先调用 `match_with_context(resume, jd, context: MatchContext)`；未实现时继续调用旧 `match(resume,jd)`。
 context 由公共层逐次注入，`with context.vector_repository() as vectors` 提供同一请求 Session 的片段仓储及缓存保存点。
 完整的有序片段、版本/hash、清空和失败语义见 [PostgreSQL 契约](postgres.md#有序片段缓存与-jobs-事务入口2026-09-08)。HTTP JSON 契约不变。
+
+## 外部市场岗位同步（2026-09-10）
+
+`POST /api/v1/analytics/external-jobs` 显式同步公开招聘记录。可选 query `source=jobicy|ncss`，默认 Jobicy（最多 200 条全球远程岗位）；NCSS 请求最多 30 条国内招聘，实际以来源返回数量为准。不接受用户自定义上游地址；不上传简历/JD 或调用 AI。需真实 Jobs provider，否则 409。
+
+响应：`created`、`existing`、`skipped`、`jd_ids`、`fetched_at`（ISO 采集时间）、`cached`、`source`（Jobicy 或国家大学生就业服务平台）。上游缓存 1 小时并持久化在忽略的 `.runtime/jobicy.json` / `.runtime/ncss.json`；不后台轮询。网络/格式/缓存写入失败返回 502，原业务数据保持不变。
+
+新岗位通过 Jobs 公开解析端口处理；来源 HTML 转纯文本，保留地理限制、层级、发布日期文字、Jobicy 链接与采集日期。薪资只接收上游明确的上下限/币种/周期，缺失不推断。广泛英语岗位中的裸 `go` 不作 Go 技能证据，仅保留明确语言或技术列表语境；技能提取仍是有限词表自动识别。
+
+按来源前缀与上游 ID 去重，重复数据保留首次入库版本，不覆盖用户确认内容或已有匹配关联。空列表合法，超长标题/正文、非法来源等不合契约记录计入 skipped。已保存岗位为累计采集快照，不保证仍在招聘。
+
+历史 `/analytics/sample-jobs` 接口及课程归档文件保留；市场页面已移除旧五份 Canonical 快照导入入口。
+
+NCSS 从国家大学生就业服务平台公开列表与详情页读取，详情正文只取 `pre.mainContent`，并发最多 3 个；详情缺失跳过，全部无法读取返回 502。只保存原文与明确的地区、学历、专业信息，来源链接固定在 ncss.cn。官方列表薪资为 K/月，明确的正数上下限乘 1000 保存为 CNY/month；0/0（面议）、单边缺失或倒置区间不参与薪资比较。保留首次采集版本，手动再次同步不会覆盖用户编辑。
+
+## 本机 AI 设置与退出
+
+新增 `/api/v1/settings/ai` 配置组，支持多供应商保存、各模块选择、显式密钥显示、连接测试、恢复和保存退出。完整字段与生命周期见 [AI 设置接口](ai-settings.md#接口)。现有简历/JD、评分、STAR 和事实约束保持原契约；匹配综合评估的服务地址现可配置。

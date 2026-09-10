@@ -53,4 +53,17 @@ node scripts/check_frontend.mjs
 npm --prefix frontend run test:e2e
 ```
 
-公共检查执行 TypeScript、Node 行为测试和 Vitest/Testing Library 页面测试。浏览器验收脚本启动临时 SQLite 服务，使用离线 Resume、显式 Mock Diagnosis 和真实 Jobs/Analytics，默认通过本机 Edge 执行；不调用付费 AI，也不打开用户数据库。覆盖 1440/1280/390px 的流程、边界与失败恢复，报告写入忽略目录 `.verification/react-product-shell`。真实 AI 效果需单独验证。迁移证据见 [产品前端迁移记录](frontend-product-shell.md)。
+公共检查执行 TypeScript、Node 行为测试和 Vitest/Testing Library 页面测试。浏览器验收脚本启动临时 SQLite 服务，使用离线 Resume、显式 Mock Diagnosis 和真实 Jobs/Analytics，默认通过本机 Edge 执行；不调用付费 AI，也不打开用户数据库。仅维护桌面端，覆盖 1920/1440/1366/1280px 的流程、边界与失败恢复，报告写入忽略目录 `.verification/react-product-shell`。真实 AI 效果需单独验证。迁移证据见 [产品前端迁移记录](frontend-product-shell.md)。
+
+
+## 桌面端支持范围（2026-09-10）
+
+按用户要求停止移动端支持，移除手机专用导航、单列重排及小屏断点。保留桌面侧边栏、常用桌面窗口宽度适配与减少动画偏好；布局最小宽度 1100px。手机布局不再作为验收目标，历史移动端截图与结果仅为历史证据。
+
+## Vitae 品牌与侧栏（2026-09-10）
+
+界面品牌、浏览器标题/图标、页面署名和 API 文档标题改为 Vitae，标志位于 `frontend/src/assets/vitae.svg`。右上角头像及分隔线移除。展开侧栏顶部显示品牌与收起按钮；折叠后同一按钮默认展示品牌标志，悬停或键盘聚焦切换为抽屉图标并显示打开提示，点击或 Enter 展开，延续折叠状态记忆。内部 T5 配置键、数据库名和既有便携包路径保持现有契约。
+
+生产构建、111 项前端测试及 1920/1440/1366/1280px 浏览器验证通过，检查品牌、头像移除、单一折叠按钮、悬停及键盘操作，无页面异常或横向溢出。当前仍为 `refactor/frontend-product-shell` / `38e92fc` 上的本地改动，未提交推送。
+
+图标由 Vite 统一处理：React 导入与 HTML favicon 引用同一源码，构建后使用打包资源，避免依赖后端未开放的根目录静态路径。图标验收需检查实际 HTTP 响应和图片 naturalWidth，不能只判断 img 元素存在。

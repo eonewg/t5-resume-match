@@ -33,9 +33,9 @@ async function run(file, env) {
     const imported = await fetch(base+'/api/v1/analytics/sample-jobs', {method:'POST'});
     if (!imported.ok) throw Error('Test market snapshot import failed');
     const env={...process.env,T5_DESKTOP:desktop?'1':'0',T5_DESKTOP_OUT:path.join(out,'desktop'),T5_SMOKE_URL:base,T5_SMOKE_OUT:path.join(out,'flow'),T5_POLISH_OUT:path.join(out,'boundaries'),T5_RESUME_RECOVERY_OUT:path.join(out,'recovery'),T5_SHELL_OUT:path.join(out,'shell')};
-    const suites = {flow:'task-flow-smoke.cjs', boundaries:'polish-smoke.cjs', recovery:'resume-ai-recovery-smoke.cjs', shell:'shell-boundaries-smoke.cjs', ...(desktop ? {desktop:'desktop-workspace-smoke.cjs', studio:'studio-smoke.cjs'} : {})};
+    const suites = {'diagnosis-layout':'diagnosis-layout-smoke.cjs', assessment:'matching-assessment-smoke.cjs', flow:'task-flow-smoke.cjs', boundaries:'polish-smoke.cjs', recovery:'resume-ai-recovery-smoke.cjs', shell:'shell-boundaries-smoke.cjs', ...(desktop ? {desktop:'desktop-workspace-smoke.cjs', studio:'studio-smoke.cjs'} : {})};
     const requested = process.argv.slice(2).filter(arg=>arg !== '--desktop');
-    if (requested.some(key=>!suites[key])) throw Error('Unknown suite; use flow, boundaries, recovery, shell, or --desktop desktop/studio');
+    if (requested.some(key=>!suites[key])) throw Error('Unknown suite; use diagnosis-layout, assessment, flow, boundaries, recovery, shell, or --desktop desktop/studio');
     for (const file of requested.length ? requested.map(key=>suites[key]) : Object.values(suites)) await run(file,env);
     console.log('PASS: React workflow, boundaries and recovery at requested viewport sizes. Offline AI; no model-quality claim.');
   } finally {server.kill(); if (server.exitCode === null) await once(server,'exit'); fs.closeSync(logfile);}

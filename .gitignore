@@ -16,3 +16,6 @@ data/*.db
 doc/
 # Each member keeps their own role instructions locally.
 /AGENTS.md
+
+# Local external API cache; never bundle job content or transient state.
+.runtime/

@@ -18,7 +18,7 @@ STYLES = {
 PRESETS = {
     "openai": ("openai_responses", "https://api.openai.com/v1", "gpt-4.1"),
     "anthropic": ("anthropic_messages", "https://api.anthropic.com/v1", "claude-sonnet-4-6"),
-    "deepseek": ("openai_chat", "https://api.deepseek.com", "deepseek-v4-flash"),
+    "deepseek": ("openai_chat", "https://api.deepseek.com", "deepseek-flash"),
     "qwen": ("openai_chat", "https://dashscope-intl.aliyuncs.com/compatible-mode/v1", "qwen-plus"),
 }
 ReasoningEffort = Literal["none", "minimal", "low", "medium", "high", "xhigh", "max"]

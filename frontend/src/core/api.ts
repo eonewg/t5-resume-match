@@ -51,7 +51,10 @@ export function createApi({
     const controller = new AbortController();
     const cancel = () => controller.abort();
     signal?.addEventListener('abort', cancel, { once: true });
-    const diagnosis = method === 'POST' && ['/api/v1/diagnoses', '/api/v1/workflow'].includes(path);
+    const diagnosis =
+      method === 'POST' &&
+      (['/api/v1/diagnoses', '/api/v1/workflow'].includes(path) ||
+        /^\/api\/v1\/matches\/[^/]+\/assessment$/.test(path));
     const resume =
       method === 'POST' &&
       [

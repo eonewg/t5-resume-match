@@ -166,6 +166,14 @@ def canonicalize(values: list[str]) -> dict[str, str]:
     return result
 
 
+def confirmed_skills(values: list[str]) -> dict[str, str]:
+    """Recognize terms inside confirmed skill descriptions; never read archived raw text."""
+    from .evidence_filter import filter_clauses
+
+    kept = filter_clauses(values).kept
+    return canonicalize(list(kept) + extract("\n".join(kept)))
+
+
 def extract(text: str) -> list[str]:
     text = unicodedata.normalize("NFKC", text).casefold()
     hits = []

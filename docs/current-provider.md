@@ -1,5 +1,25 @@
 # 当前 AI Provider 与迁移验证
 
+## 2026-09-10：统一使用 deepseek-flash
+
+Resume、Matching 综合评估、Diagnosis 的正式默认与本地配置统一为 `deepseek-flash`，
+endpoint 仍为 `https://api.deepseek.com/chat/completions`。同步更新模型能力校验，
+三个模块均沿用非思考模式和 JSON 输出，密钥优先级、Prompt、事实校验和重试策略保持原样。
+官方当前模型名对应 DeepSeek-V4.1-Flash；旧 `deepseek-v4-flash` 名称目前由官方兼容路由到新模型。
+依据：[官方模型说明](https://api-docs.deepseek.com/quick_start/pricing/)、
+[2026-09-10 更新记录](https://api-docs.deepseek.com/updates/)。
+
+本次修复的是 Diagnosis 本地能力白名单未包含新名称，导致在发送请求前抛出 ConfigurationError。
+下方保留此前迁移时的模型名称与调用证据，不将旧验收记录改写为新模型验证。
+
+本次验证：完整离线后端回归 640 passed、40 skipped，Ruff 检查通过。
+三个模块各做一次合成样本真实调用，均发送 `model=deepseek-flash`：Resume 0.77 秒，
+原文保留且结构化校验通过；Matching 2.28 秒，三个维度及引文校验通过；Diagnosis 4.19 秒，
+生成一条 STAR 且 schema/事实守卫通过。仅诊断探测设置一次尝试、禁用输出重试和缓存，
+生产重试配置未改。没有发送用户简历。本地服务已重启并通过健康检查。
+
+## 2026-09-09 迁移记录
+
 2026-09-09，从最新、干净的 main `f2053e61bba078b42ff04fc7b1c22947133a9606`
 创建 `chore/deepseek-official-unify`。本轮仅收口 Provider、配置、短 Prompt 示例及对应测试/当前文档。
 

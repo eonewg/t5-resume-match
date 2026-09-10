@@ -33,10 +33,10 @@ const os = require('node:os');
     await page.locator('[data-testid="diagnosis-result"]:not([hidden])').waitFor();
     const desktop = path.join(os.tmpdir(), 't5-d-shell-desktop.png');
     await page.screenshot({path: desktop, fullPage: true});
-    await page.setViewportSize({width: 390, height: 844});
+    await page.setViewportSize({width: 1280, height: 800});
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
-    const mobile = path.join(os.tmpdir(), 't5-d-shell-mobile.png');
-    await page.screenshot({path: mobile, fullPage: true});
+    const compactDesktop = path.join(os.tmpdir(), 't5-d-shell-compactDesktop.png');
+    await page.screenshot({path: compactDesktop, fullPage: true});
     // Long hostile model output is rendered as text; no HTML is executed.
     await page.route('**/api/v1/diagnoses', async route => {
       const upstream = await route.fetch();
@@ -61,7 +61,7 @@ const os = require('node:os');
     await page.locator('[data-testid="diagnosis-result"]:not([hidden])').waitFor();
     assert.equal(posts, 1);
     assert.deepEqual(errors, []);
-    console.log(JSON.stringify({status: 'PASS', desktop, mobile, checks: ['public shell preview',
-      'missing selection', 'public pair API', 'Mock label', 'failure/retry', '390px', 'long text/XSS', 'navigation cleanup']}));
+    console.log(JSON.stringify({status: 'PASS', desktop, compactDesktop, checks: ['public shell preview',
+      'missing selection', 'public pair API', 'Mock label', 'failure/retry', '1280px', 'long text/XSS', 'navigation cleanup']}));
   } finally { await browser.close(); }
 })().catch(e => {console.error(e); process.exitCode = 1;});

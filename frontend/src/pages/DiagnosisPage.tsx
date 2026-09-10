@@ -1,10 +1,14 @@
+import PairSelector from '../components/PairSelector';
 import Icon from '../components/Icon';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { connectDiagnosis, type DiagnosisController } from '../modules/diagnosis/controller.ts';
-import { useController, useWorkspace } from '../core/WorkspaceContext';
-import { createApi } from '../core/api';
-import type { JD, Resume } from '../core/contracts';
-import { splitSuggestion } from '../core/presentation.ts';
+import { useController } from '../core/WorkspaceContext';
+import {
+  diagnosisNote,
+  jobSuggestion,
+  naturalRewrite,
+  splitSuggestion,
+} from '../core/presentation.ts';
 import { Button, Empty, Feedback, NextLink, PageHeading } from '../components/ui';
 
 const start = (controller: DiagnosisController) => {
@@ -12,7 +16,8 @@ const start = (controller: DiagnosisController) => {
 };
 function Suggestion({ text }: { text: string }) {
   const parts = splitSuggestion(text);
-  if (!parts) return <p className="suggestion-text">{text.replace(/^【岗位建议】/, '')}</p>;
+  if (!parts)
+    return <p className="suggestion-text">{diagnosisNote(text.replace(/^【岗位建议】/, ''))}</p>;
   return (
     <article className="suggestion-entry">
       <div className="suggestion-compare">
@@ -29,7 +34,7 @@ function Suggestion({ text }: { text: string }) {
             </small>
           </h3>
           <p>
-            {parts.suggested
+            {naturalRewrite(parts.suggested)
               .split(/(【(?:待补充|待核实|待确认)[^】]*】)/g)
               .map((part, i) =>
                 /^【(?:待补充|待核实|待确认)/.test(part) ? (
@@ -46,120 +51,159 @@ function Suggestion({ text }: { text: string }) {
           <Icon name="info" />
           为什么这样改
         </span>
-        {parts.reason}
+        {diagnosisNote(parts.reason)}
       </p>
     </article>
   );
 }
 function SuggestionWorkbench({ suggestions }: { suggestions: string[] }) {
   const unique = [...new Set(suggestions)];
+  const keywords = unique.filter((text) => text.startsWith('【关键词·待核实】'));
+  const reminders = unique.filter(
+    (text) =>
+      !text.startsWith('【岗位建议】') &&
+      !text.startsWith('【关键词·待核实】') &&
+      !splitSuggestion(text),
+  );
   const groups = [
-    { name: '经历表达', items: unique.filter((text) => splitSuggestion(text)) },
+    { kind: 'experience', name: '经历表达', items: unique.filter((text) => splitSuggestion(text)) },
     {
+      kind: 'jobs',
       name: '岗位重点',
       items: unique.filter((text) => text.startsWith('【岗位建议】') && !splitSuggestion(text)),
     },
-    {
-      name: '补充与核实',
-      items: unique.filter((text) => !text.startsWith('【岗位建议】') && !splitSuggestion(text)),
-    },
-  ].filter((group) => group.items.length);
+  ].filter((group) => group.items.length || (group.kind === 'jobs' && keywords.length));
   const [groupIndex, setGroupIndex] = useState(0);
   const [itemIndex, setItemIndex] = useState(0);
   const group = groups[groupIndex];
-  const current = group.items[itemIndex];
+  const current = group?.items[itemIndex];
   return (
     <div className="optimization-workbench">
-      <nav className="suggestion-categories" aria-label="建议分类">
-        {groups.map((entry, index) => (
-          <Button
-            tone="ghost"
-            key={entry.name}
-            aria-pressed={index === groupIndex}
-            onClick={() => {
-              setGroupIndex(index);
-              setItemIndex(0);
-            }}
-          >
-            {entry.name}
-            <span>{entry.items.length}</span>
-          </Button>
-        ))}
-      </nav>
-      <div className="suggestion-workspace">
-        <aside className="suggestion-index" aria-label={`${group.name}建议列表`}>
-          {group.items.map((text, index) => {
-            const preview = splitSuggestion(text)?.original || text.replace(/^【[^】]*】/, '');
-            return (
-              <button
-                type="button"
-                key={index}
-                aria-pressed={index === itemIndex}
-                onClick={() => setItemIndex(index)}
-              >
-                <span className="suggestion-position">{String(index + 1).padStart(2, '0')}</span>
-                <span>{preview.length > 72 ? preview.slice(0, 72) + '…' : preview}</span>
-              </button>
-            );
-          })}
-        </aside>
-        <section className="suggestion-reader" aria-label="当前建议" aria-live="polite">
+      {groups.length > 0 && (
+        <nav className="suggestion-categories" aria-label="建议分类">
+          {groups.map((entry, index) => (
+            <Button
+              tone="ghost"
+              key={entry.name}
+              aria-pressed={index === groupIndex}
+              onClick={() => {
+                setGroupIndex(index);
+                setItemIndex(0);
+              }}
+            >
+              {entry.name}
+              <span>{entry.items.length}</span>
+            </Button>
+          ))}
+        </nav>
+      )}
+      {group?.kind === 'experience' ? (
+        <div className="suggestion-workspace">
+          <aside className="suggestion-index" aria-label={`${group.name}建议列表`}>
+            {group.items.map((text, index) => {
+              const preview = splitSuggestion(text)?.original || text.replace(/^【[^】]*】/, '');
+              return (
+                <button
+                  type="button"
+                  key={index}
+                  aria-pressed={index === itemIndex}
+                  title={preview}
+                  onClick={() => setItemIndex(index)}
+                >
+                  <span className="suggestion-position">{String(index + 1).padStart(2, '0')}</span>
+                  <span className="suggestion-preview">{preview}</span>
+                </button>
+              );
+            })}
+          </aside>
+          <section className="suggestion-reader" aria-label="当前建议" aria-live="polite">
+            <header>
+              <h2>
+                {group.name}{' '}
+                <span className="suggestion-order">{String(itemIndex + 1).padStart(2, '0')}</span>
+              </h2>
+              <span>
+                第 {itemIndex + 1} 条，共 {group.items.length} 条
+              </span>
+            </header>
+            <Suggestion text={current} />
+            <footer className="suggestion-reader-actions">
+              <NextLink to="/resume">返回简历修改 →</NextLink>
+              {itemIndex < group.items.length - 1 && (
+                <Button tone="ghost" onClick={() => setItemIndex(itemIndex + 1)}>
+                  下一条建议 →
+                </Button>
+              )}
+            </footer>
+          </section>
+        </div>
+      ) : group ? (
+        <section className="suggestion-collection" aria-label={group.name}>
           <header>
-            <h2>
-              {group.name}{' '}
-              <span className="suggestion-order">{String(itemIndex + 1).padStart(2, '0')}</span>
-            </h2>
-            <span>
-              第 {itemIndex + 1} 条，共 {group.items.length} 条
-            </span>
-          </header>
-          <Suggestion text={current} />
-          <footer className="suggestion-reader-actions">
+            <div>
+              <h2>{group.name}</h2>
+              <p className="helper-text">先看具体怎么改，展开查看原因和对应经历。</p>
+            </div>
             <NextLink to="/resume">返回简历修改 →</NextLink>
-            {itemIndex < group.items.length - 1 && (
-              <Button tone="ghost" onClick={() => setItemIndex(itemIndex + 1)}>
-                下一条建议 →
-              </Button>
-            )}
-          </footer>
+          </header>
+          {group.items.length > 0 && (
+            <ol className="suggestion-list job-actions">
+              {group.items.map((text) => {
+                const { headline, detail } = jobSuggestion(text);
+                return (
+                  <li key={text}>
+                    {detail ? (
+                      <details>
+                        <summary>
+                          <span>{headline}</span>
+                          <small>展开说明</small>
+                        </summary>
+                        <p>{detail}</p>
+                      </details>
+                    ) : (
+                      <p className="job-action-short">{headline}</p>
+                    )}
+                  </li>
+                );
+              })}
+            </ol>
+          )}
+          {keywords.length > 0 && (
+            <details className="suggestion-keywords suggestion-extra">
+              <summary>岗位相关技能 · {keywords.length} 项</summary>
+              <p className="helper-text">
+                这些词用于对照上面的岗位建议，不代表你已经掌握，也不代表你都缺少。用过的技能可以补一个实际案例；没用过的可以作为学习方向，不必写进简历。
+              </p>
+              <ul>
+                {keywords.map((text) => (
+                  <li key={text}>{text.replace(/^【关键词·待核实】\s*/, '')}</li>
+                ))}
+              </ul>
+            </details>
+          )}
         </section>
-      </div>
+      ) : null}
+      {reminders.length > 0 && (
+        <details className="suggestion-reminders suggestion-extra">
+          <summary>修改前的补充提示 · {reminders.length} 条</summary>
+          <p className="helper-text">
+            这里列出建议中仍需你确认的地方。与自己经历有关的再处理，不需要逐项打勾或把这些话写进简历。
+          </p>
+          <ul className="suggestion-list">
+            {reminders.map((text) => (
+              <li key={text}>
+                <Icon name="info" />
+                <Suggestion text={text.replace(/^【风险提醒】\s*/, '')} />
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
     </div>
   );
 }
 export default function DiagnosisPage() {
   const { state: s, controller } = useController(connectDiagnosis, start, 'diagnosis');
-  const { state: workspace } = useWorkspace();
-  const [selection, setSelection] = useState({ resume: '', education: '', job: '', company: '' });
-  useEffect(() => {
-    const abort = new AbortController();
-    const api = createApi({ signal: abort.signal });
-    setSelection({ resume: '正在读取…', education: '', job: '正在读取…', company: '' });
-    if (workspace.resumeId && workspace.jdId)
-      Promise.all([
-        api.request<Resume>('/api/v1/resumes/' + encodeURIComponent(workspace.resumeId)),
-        api.request<JD>('/api/v1/jobs/' + encodeURIComponent(workspace.jdId)),
-      ])
-        .then(([resume, job]) => {
-          if (!abort.signal.aborted)
-            setSelection({
-              resume: resume.data.name || '我的简历',
-              education: resume.data.education,
-              job: job.data.title,
-              company: job.data.company || '',
-            });
-        })
-        .catch(() => {
-          if (!abort.signal.aborted)
-            setSelection({
-              resume: '已选择简历',
-              education: '名称暂时无法读取',
-              job: '已选择目标岗位',
-              company: '名称暂时无法读取',
-            });
-        });
-    return () => abort.abort();
-  }, [workspace.resumeId, workspace.jdId]);
   if (!s) return <p role="status">正在准备优化页面…</p>;
   const r = s.record;
   return (
@@ -190,39 +234,8 @@ export default function DiagnosisPage() {
           </div>
         )}
       </div>
-      {!s.canRun ? (
-        <Empty title="先选择简历和目标岗位" to="/jobs" cta="去选择目标岗位" />
-      ) : (
-        <section className="diagnosis-header">
-          <div className="pair-context" data-testid="diagnosis-selection">
-            <div>
-              <span className="material-icon">
-                <Icon name="resume" />
-              </span>
-              <span>
-                <small>当前简历</small>
-                <strong>{selection.resume}</strong>
-                <small className="diagnosis-resume-summary" title={selection.education}>
-                  {selection.education}
-                </small>
-              </span>
-            </div>
-            <div>
-              <span className="material-icon">
-                <Icon name="target" />
-              </span>
-              <span>
-                <small>目标岗位</small>
-                <strong>{selection.job}</strong>
-                <small>{selection.company}</small>
-              </span>
-            </div>
-            <NextLink to="/jobs" primary={false}>
-              更换简历/岗位 →
-            </NextLink>
-          </div>
-        </section>
-      )}
+      <PairSelector />
+      {!s.canRun && <Empty title="先选择简历和目标岗位" to="/jobs" cta="去选择目标岗位" />}
       <Feedback error={s.error} busy={s.busy}>
         {s.busy ? '正在分析你的经历与目标岗位……' : ''}
       </Feedback>
@@ -253,7 +266,7 @@ export default function DiagnosisPage() {
       </section>
       {s.canRun && (
         <footer className="diagnosis-footnote">
-          <p>建议不会自动覆盖简历。采用前请核实事实、数字与待补充内容。</p>
+          <p>建议不会自动覆盖简历。选择适合的表达，回到简历中修改并保存。</p>
         </footer>
       )}
     </div>

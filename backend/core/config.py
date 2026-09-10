@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from backend.core.paths import ENV_FILE, RESOURCE_ROOT
@@ -12,3 +14,6 @@ class Settings(BaseSettings):
     jobs_provider: str = "backend.modules.jobs.public:JobsService"
     diagnosis_provider: str = "backend.modules.diagnosis.public:DiagnosisService"
     analytics_provider: str = "backend.modules.analytics.public:AnalyticsService"
+    # Explicit opt-in keeps test apps independent of the user's persisted credentials.
+    ai_settings_file: Path | None = None
+    allow_app_exit: bool = False

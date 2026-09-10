@@ -27,9 +27,14 @@ async function shot(page,name) {
    await page.goto(base);await page.locator('#home-next').waitFor();
    assert.match(await page.locator('#home-next').innerText(),/从导入简历开始/);
    assert.equal(await page.locator('.workflow-steps li').count(),4);
+   await page.waitForFunction(() => { const image = document.querySelector('.brand-mark'); return image?.complete && image.naturalWidth > 0; });
+   const favicon = await page.locator('link[rel=icon]').getAttribute('href');
+   const iconResponse = await page.request.get(new URL(favicon, base).href);
+   assert.equal(iconResponse.status(), 200);
+   assert.match(iconResponse.headers()['content-type'], /image\/svg\+xml/);
    assert.ok(await page.locator('[data-view=analytics]').isVisible());await shot(page,'home-empty-'+width);
    await page.locator('#home-next').click();await page.locator('#resume-dropzone:enabled').waitFor();
-   await page.locator('#resume-history summary').click();await page.locator(`[data-resume-id="${saved.id}"]`).click();await page.locator('#resume-next').waitFor();
+   await page.locator('[data-view="resume/history"]').click();await page.locator('.history-version-list > li').filter({hasText:resumeBody.name}).getByRole('button',{name:'打开简历 →',exact:true}).click();await page.locator('#resume-next').waitFor();
    await page.locator('[data-view=home]').click();await page.locator('#home-next').filter({hasText:'继续选择目标岗位'}).waitFor();await shot(page,'home-resume-'+width);
    await page.locator('#home-next').click();await page.locator(`[data-job-id="${job.id}"]`).click();
    await page.locator('[data-view=home]').click();await page.locator('#home-next').filter({hasText:'查看匹配分析'}).waitFor();await page.locator('#home-next').click();
@@ -50,10 +55,10 @@ async function shot(page,name) {
    assert.deepEqual(await(await page.request.get(base+'/api/v1/resumes/'+saved.id)).json(),saved,'AI never overwrites originals');
    await page.locator('[data-view=home]').click();await page.locator('#home-next').filter({hasText:'查看建议并核实修改'}).waitFor();await shot(page,'home-diagnosed-'+width);
    await page.goBack();await page.locator('.suggestion-compare').waitFor();assert.equal(generated,1,'back/forward keeps current result');
-   await page.locator('[data-view=analytics]').click();await page.locator('#analytics-metrics').waitFor();await page.locator('#analytics-filters summary').click();await page.locator('#analytics-source').selectOption('synthetic');await page.getByRole('button',{name:'应用筛选',exact:true}).click();await page.locator('[data-currency=CNY][data-period=month]').waitFor();await page.locator('[data-currency=EUR][data-period=hour]').waitFor();
+   await page.locator('[data-view=analytics]').click();await page.locator('#analytics-metrics').waitFor();await page.locator('#analytics-filters summary').click();await page.locator('#analytics-source').selectOption('synthetic');await page.getByRole('button',{name:'应用筛选',exact:true}).click();await page.getByRole('tab',{name:'薪资分析'}).click();await page.getByRole('combobox',{name:'薪资口径'}).selectOption('CNY/month');await page.locator('[data-currency=CNY][data-period=month]').waitFor();await page.getByRole('combobox',{name:'薪资口径'}).selectOption('EUR/hour');await page.locator('[data-currency=EUR][data-period=hour]').waitFor();
    assert.ok(await page.locator('.analytics-salary-range').count()>=2);await shot(page,'analytics-groups-'+width);
-   await page.locator('.analytics-library summary').click();await page.locator('#analytics-import').click();await page.locator('#analytics-status').filter({hasText:'已有 5 条'}).waitFor();assert.equal(await page.locator('#analytics-source').inputValue(),'real');
-   assert.deepEqual(errors,[]);report.widths.push({width,home:'all 5 states',navigation:'legacy hash and history',mockHeader:true,matchRecovery:true,salaryGroups:true,snapshotDedup:true});await context.close();
+   assert.equal(await page.locator('.analytics-library').count(),0);await page.route('**/api/v1/analytics/external-jobs*',route=>route.fulfill({status:200,json:{created:0,existing:5,skipped:0,cached:true,fetched_at:'2026-09-10T00:00:00Z'}}));await page.locator('#analytics-external-import').click();await page.locator('#analytics-status').filter({hasText:'已有 5 条'}).waitFor();assert.equal(await page.locator('#analytics-source').inputValue(),'real');
+   assert.deepEqual(errors,[]);report.widths.push({width,home:'all 5 states',navigation:'legacy hash and history',mockHeader:true,matchRecovery:true,salaryGroups:true,externalSyncFixture:true});await context.close();
   }
   report.status='passed';
  }catch(error){report.status='failed';report.error=error.stack;throw error;}

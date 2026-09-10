@@ -5,8 +5,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response,
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
+from backend.core.external_jobs import import_external_jobs
 from backend.core.market_samples import import_sample_jobs
 from backend.core.services import (
+    assessing,
     diagnosing,
     diagnosis_response,
     invoke,
@@ -30,6 +32,7 @@ from backend.schemas.contracts import (
     AnalysisResult,
     AnalysisScope,
     DiagnosisRecord,
+    ExternalImportResult,
     JDCreate,
     MatchRecord,
     PairInput,
@@ -219,6 +222,11 @@ def get_match(identifier: str, db: DB):
     return match_response(require_row(db, MatchRow, identifier))
 
 
+@router.post("/matches/{identifier}/assessment", response_model=MatchRecord, tags=["jobs"])
+def assess_match(identifier: str, request: Request, db: DB):
+    return match_response(assessing(db, request.app.state.providers, identifier))
+
+
 @router.post("/diagnoses", response_model=DiagnosisRecord, status_code=201, tags=["diagnosis"])
 def create_diagnosis(data: PairInput, request: Request, db: DB):
     return diagnosis_response(diagnosing(db, request.app.state.providers, data))
@@ -282,3 +290,10 @@ def analytics(
 @router.post("/analytics/sample-jobs", response_model=SampleImportResult, tags=["analytics"])
 def import_market_jobs(request: Request, db: DB):
     return import_sample_jobs(db, request.app.state.providers["jobs"])
+
+
+@router.post("/analytics/external-jobs", response_model=ExternalImportResult, tags=["analytics"])
+def import_external_market_jobs(
+    request: Request, db: DB, source: Literal["jobicy", "ncss"] = "jobicy"
+):
+    return import_external_jobs(db, request.app.state.providers["jobs"], source)

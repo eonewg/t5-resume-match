@@ -38,6 +38,20 @@ export interface Pair {
 export interface MatchRecord extends Pair {
   id: string;
   score: number;
+  keyword_score?: number | null;
+  ai_assessment?: {
+    score: number;
+    summary: string;
+    model: string;
+    dimensions: {
+      dimension: 'skills' | 'experience' | 'education';
+      applicable: boolean;
+      score: number;
+      reason: string;
+      jd_quotes: string[];
+      resume_quotes: string[];
+    }[];
+  } | null;
   matched_skills: string[];
   missing_skills: string[];
   gap_analysis: string[];

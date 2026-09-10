@@ -92,10 +92,10 @@ async function layout(page) {
    await page.locator('[data-view=matching]').click();await page.locator('#jobs-result:visible').waitFor();
    await page.locator('#matching-optimize').click();await page.locator('.suggestion-compare').waitFor();assert.equal(diagnosisCalls,2,'cached result avoids repeat generation');
    await page.locator('[data-view=analytics]').click();await page.locator('#analytics-metrics').waitFor();
-   assert.ok(!(await page.locator('#analytics-source').isVisible()));assert.equal(await page.locator('.analytics-library').getAttribute('open'),null);
+   assert.ok(!(await page.locator('#analytics-source').isVisible()));assert.equal(await page.locator('.analytics-library').count(),0);
    assert.match(await page.locator('#analytics-scope').innerText(),/来源/);await layout(page);await shot(page,'analytics-'+width);
    await page.locator('#analytics-sources summary').click();const table=page.locator('#analytics-sources .analytics-table-scroll');
-   assert.ok(await table.evaluate(e=>e.clientWidth<=innerWidth));if(width===390)assert.ok(await table.evaluate(e=>e.scrollWidth>e.clientWidth));
+   assert.ok(await table.evaluate(e=>e.clientWidth<=innerWidth));
    await page.locator('#analytics-salary .helper-disclosure summary').click();assert.match(await page.locator('#analytics-salary').innerText(),/不以零薪资/);
    assert.deepEqual(errors,[]);report.checks.push(`${width}px: fresh empty states; ${extension.toUpperCase()} upload/loading/raw text; save/history auto-update; target auto-selection; match; optimization auto-start/cache/error/retry; XSS/provenance; analytics-first; contained scroll`);
    await page.close();

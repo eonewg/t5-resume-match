@@ -30,7 +30,7 @@ def test_official_defaults_and_wire_request(monkeypatch):
     def send(endpoint, payload, headers, timeout):
         calls.append(1)
         assert endpoint == "https://api.deepseek.com/chat/completions"
-        assert payload["model"] == "deepseek-v4-flash"
+        assert payload["model"] == "deepseek-flash"
         assert payload["response_format"] == {"type": "json_object"}
         assert payload["thinking"] == {"type": "disabled"}
         assert payload["max_tokens"] == 4096

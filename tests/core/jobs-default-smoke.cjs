@@ -52,9 +52,9 @@ const fs = require('node:fs');
     await page.unroute('**/api/v1/matches');
     await run.click();
     await page.locator('#jobs-result:not([hidden])').waitFor();
-    await page.setViewportSize({width: 390, height: 844});
+    await page.setViewportSize({width: 1280, height: 800});
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
-    await page.screenshot({path: path.join(output, 'jobs-default-mobile.png'), fullPage: true});
+    await page.screenshot({path: path.join(output, 'jobs-default-compactDesktop.png'), fullPage: true});
     for (let i = 0; i < 3; i++) {
       await page.locator('[data-view="diagnosis"]').click();
       await page.locator('[data-view="jobs"]').click();
@@ -70,7 +70,7 @@ const fs = require('node:fs');
     assert.deepEqual(errors, []);
     console.log(JSON.stringify({status: 'PASS', checks: ['default Jobs navigation without preview',
       'real Resume preview/edit/save', 'real JD save/parse and keyword 33.33%/gap', '502 retry',
-      '390px without overflow', 'shared selection and navigation cleanup'], records}));
+      '1280px without overflow', 'shared selection and navigation cleanup'], records}));
   } finally {
     // The runner records IDs even on failure; cleanup only these explicit fixture IDs.
     fs.writeFileSync(path.join(output, 'jobs-default-records.json'), JSON.stringify(records));

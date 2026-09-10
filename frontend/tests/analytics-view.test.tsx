@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { AnalyticsResult } from '../src/pages/AnalyticsPage';
 import type { AnalysisResponse } from '../src/core/contracts';
@@ -115,4 +115,53 @@ describe('Analytics reading surface', () => {
     expect(screen.getByText('只描述已录入样本。')).toBeTruthy();
     expect(screen.getByRole('cell', { name: 'SQL' })).toBeTruthy();
   });
+});
+
+it('filters source evidence on skill selection without changing chart denominators', () => {
+  const value = result();
+  value.market!.jobs[0].skills = ['技能 1'];
+  show(value);
+  fireEvent.click(screen.getByRole('button', { name: /01技能 1/ }));
+  expect(document.querySelector('#analytics-sources details')?.hasAttribute('open')).toBe(true);
+  expect(document.querySelector('#analytics-sources')?.textContent).toContain(
+    '技能 1 · 1 条相关岗位',
+  );
+  expect(document.querySelector('#analytics-skills')?.textContent).toContain('66.67%');
+  fireEvent.click(screen.getByRole('button', { name: '清除技能筛选' }));
+  expect(document.querySelector('#analytics-sources')?.textContent).toContain('共 1 条岗位来源');
+});
+
+it('salary groups use separate selectable scales', () => {
+  show(result());
+  fireEvent.click(screen.getByRole('tab', { name: '薪资分析' }));
+  fireEvent.change(screen.getByRole('combobox', { name: '薪资口径' }), {
+    target: { value: 'USD/hour' },
+  });
+  expect(document.querySelector('[data-currency="USD"]')?.hasAttribute('hidden')).toBe(false);
+  expect(document.querySelector('[data-currency="CNY"]')?.hasAttribute('hidden')).toBe(true);
+  expect(document.querySelector('[data-currency="USD"]')?.textContent).toContain('0–0');
+});
+
+it('salary histogram counts each selected interval once and labels its midpoint basis', () => {
+  show(result());
+  fireEvent.click(screen.getByRole('tab', { name: '薪资分析' }));
+  const chart = screen.getByRole('img', { name: /CNY 每月薪资区间中点分布/ });
+  const counts = Array.from(chart.querySelectorAll('title')).map((node) =>
+    Number(/：(\d+) 条/.exec(node.textContent || '')![1]),
+  );
+  expect(counts.reduce((sum, value) => sum + value, 0)).toBe(1);
+  expect(screen.getByText(/非实际到手薪资/)).toBeTruthy();
+});
+
+it('shows only one full topic and supports keyboard tab navigation', () => {
+  show(result());
+  expect(screen.getAllByRole('tabpanel')).toHaveLength(1);
+  expect(screen.getByRole('tabpanel').id).toBe('market-panel-skills');
+  fireEvent.keyDown(screen.getByRole('tab', { name: '技能需求' }), { key: 'ArrowRight' });
+  expect(screen.getByRole('tabpanel').id).toBe('market-panel-salary');
+  expect(
+    document.querySelector('[data-currency="CNY"] .analytics-salary-axis')?.children,
+  ).toHaveLength(5);
+  fireEvent.keyDown(screen.getByRole('tab', { name: '薪资分析' }), { key: 'End' });
+  expect(screen.getByRole('tabpanel').id).toBe('market-panel-jobs');
 });

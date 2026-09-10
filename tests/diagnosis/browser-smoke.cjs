@@ -29,10 +29,10 @@ const os = require('node:os');
     await page.locator('#results').waitFor({state: 'visible'});
     const desktop = path.join(os.tmpdir(), 't5-d-diagnosis-desktop.png');
     await page.screenshot({path: desktop, fullPage: true});
-    await page.setViewportSize({width: 390, height: 844});
+    await page.setViewportSize({width: 1280, height: 800});
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
-    const mobile = path.join(os.tmpdir(), 't5-d-diagnosis-mobile.png');
-    await page.screenshot({path: mobile, fullPage: true});
+    const compactDesktop = path.join(os.tmpdir(), 't5-d-diagnosis-compactDesktop.png');
+    await page.screenshot({path: compactDesktop, fullPage: true});
     await page.route('**/api/diagnose', route => route.fulfill({
       status: 502, contentType: 'application/json', body: JSON.stringify({error: '模型服务暂不可用'})
     }));
@@ -41,7 +41,7 @@ const os = require('node:os');
     assert.equal(await page.locator('#results').isVisible(), false);
     assert.equal(await page.locator('#submit').isEnabled(), true);
     assert.deepEqual(errors, []);
-    console.log(JSON.stringify({status: 'PASS', desktop, mobile,
-      checks: ['demo flow', 'STAR rendering', 'XSS text rendering', 'mobile width', 'error recovery']}));
+    console.log(JSON.stringify({status: 'PASS', desktop, compactDesktop,
+      checks: ['demo flow', 'STAR rendering', 'XSS text rendering', 'compactDesktop width', 'error recovery']}));
   } finally { await browser.close(); }
 })().catch(error => {console.error(error); process.exitCode = 1;});

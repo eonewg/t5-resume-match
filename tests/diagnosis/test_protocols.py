@@ -141,7 +141,7 @@ def test_presets_and_wire_request(vendor, style, adapter, endpoint):
         assert body["messages"] == MESSAGES
     if vendor == "deepseek":
         assert settings.base_url == "https://api.deepseek.com"
-        assert body["model"] == "deepseek-v4-flash"
+        assert body["model"] == "deepseek-flash"
         assert body["response_format"] == {"type": "json_object"}
         assert body["thinking"] == {"type": "disabled"}
         assert "reasoning_effort" not in body

@@ -7,7 +7,7 @@ const base = process.env.T5_SMOKE_URL || 'http://127.0.0.1:8770';
 const out = process.env.T5_RESUME_AI_OUT || '.verification/resume-ai';
 const sourcePath = path.resolve(__dirname, '../../tests/resume/fixtures/stefano-user.txt');
 const raw = fs.readFileSync(sourcePath, 'utf8');
-const report = {status: 'running', widths: [1440,390], checks: [], screenshots: [],
+const report = {status: 'running', widths: [1440,1280], checks: [], screenshots: [],
   evidence: 'Resume upload calls the configured live AI. Diagnosis, AI error and retry replay are explicit UI fixtures; no Diagnosis provider call.'};
 fs.mkdirSync(out, {recursive: true});
 const normalize = text => text.toLowerCase().replace(/[\s/／,，()（）._-]/g, '');
@@ -49,7 +49,7 @@ async function save(page) {
   const browser = await chromium.launch({channel:'msedge',headless:true});
   try {
     for (const width of report.widths) {
-      const page = await browser.newPage({viewport:{width,height:width===390?844:1000}});
+      const page = await browser.newPage({viewport:{width,height:width===1280?800:1000}});
       page.setDefaultTimeout(180000); const errors = []; page.on('pageerror', error => errors.push(error.message));
       // Intercept Diagnosis before any navigation can initiate a generation.
       let diagnosisCalls = 0, pair;
@@ -91,7 +91,7 @@ async function save(page) {
       assert.equal(diagnosisCalls,1); assert.match(await page.getByTestId('diagnosis-result-mode').innerText(),/演示数据/);
       assert.equal(await page.locator('#module-view select').count(),0); await layout(page); await screenshot(page,'ai-to-diagnosis-'+width);
       // New page: an AI failure after successful extraction must retain the full original.
-      const recovery = await browser.newPage({viewport:{width,height:width===390?844:1000}});
+      const recovery = await browser.newPage({viewport:{width,height:width===1280?800:1000}});
       recovery.setDefaultTimeout(30000); recovery.on('pageerror',error=>errors.push(error.message));
       await recovery.route('**/api/v1/resumes/upload-preview',route=>route.fulfill({status:503,json:{error:{message:{message:'AI 暂时无法识别这份简历，请重试。',raw_text:raw}}}}));
       await recovery.goto(base+'/#resume'); await recovery.locator('#resume-dropzone:enabled').waitFor();

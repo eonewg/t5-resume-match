@@ -275,6 +275,60 @@ describe('React lifecycle and protected fields', () => {
   });
 });
 describe('matching and diagnosis rendering', () => {
+  it('separates keyword and AI scores, preserves keywords on failure and expands quoted evidence', async () => {
+    const match = {
+      id: 'm',
+      resume_id: 'r',
+      jd_id: 'j',
+      score: 55,
+      keyword_score: 50,
+      matched_skills: ['Python'],
+      missing_skills: ['SQL'],
+      gap_analysis: ['关键词 1/2'],
+      is_mock: false,
+    };
+    let fail = true;
+    handler = (path) => {
+      if (path === '/api/v1/matches') return json(match, 201);
+      if (path.endsWith('/assessment'))
+        return fail
+          ? json({ error: { message: '上游内容过滤，未生成综合评估' } }, 502)
+          : json({
+              ...match,
+              ai_assessment: {
+                score: 75,
+                summary: '项目提供了相关证据',
+                model: 'fixture',
+                dimensions: ['skills', 'experience', 'education'].map((dimension) => ({
+                  dimension,
+                  score: 75,
+                  applicable: true,
+                  reason: '按原文核对',
+                  jd_quotes: ['Python SQL'],
+                  resume_quotes: ['处理课程记录'],
+                })),
+              },
+            });
+    };
+    const store = page('/matching', true);
+    await screen.findByRole('button', { name: '开始匹配' });
+    fireEvent.click(input('jobs-run'));
+    await screen.findByRole('button', { name: '开始综合评估' });
+    expect(input('match-score').textContent).toBe('50%');
+    expect(requests.filter((r) => r.path.endsWith('/assessment'))).toHaveLength(0);
+    fireEvent.click(input('match-assess'));
+    await screen.findByText('上游内容过滤，未生成综合评估');
+    expect(input('match-score').textContent).toBe('50%');
+    fail = false;
+    fireEvent.click(screen.getByRole('button', { name: '重试综合评估' }));
+    await screen.findByText('项目提供了相关证据');
+    expect(store.getState().result?.match?.ai_assessment?.score).toBe(75);
+    expect(input('match-score').textContent).toBe('50%');
+    const details = document.querySelector('.match-ai-dimensions details') as HTMLDetailsElement;
+    fireEvent.click(details.querySelector('summary')!);
+    expect(details.open).toBe(true);
+    expect(within(details).getByText('处理课程记录')).toBeTruthy();
+  });
   it('searches the job collection without changing selection and matches only the chosen job', async () => {
     const second = {
       ...job,
@@ -441,6 +495,96 @@ describe('matching and diagnosis rendering', () => {
 });
 
 describe('desktop workspace operations', () => {
+  it('quick switches both pages in resume/job order and restores successful pairs without another POST', async () => {
+    handler = (path, options) => {
+      if (path.startsWith('/api/v1/resumes?'))
+        return json([resume, { ...resume, id: 'r2', name: '另一版本' }]);
+      if (path.startsWith('/api/v1/jobs?'))
+        return json([job, { ...job, id: 'j2', title: '另一岗位' }]);
+      if (path === '/api/v1/resumes/r2') return json({ ...resume, id: 'r2', name: '另一版本' });
+      if (path === '/api/v1/jobs/j2') return json({ ...job, id: 'j2', title: '另一岗位' });
+      if (path === '/api/v1/matches')
+        return json({
+          id: 'm',
+          ...JSON.parse(options.body as string),
+          score: 50,
+          matched_skills: ['Python'],
+          missing_skills: ['SQL'],
+          gap_analysis: [],
+          is_mock: false,
+        });
+      if (path === '/api/v1/diagnoses')
+        return json({
+          id: 'd',
+          ...JSON.parse(options.body as string),
+          summary: '缓存中的优化建议',
+          suggestions: [],
+          is_mock: false,
+        });
+    };
+    const store = page('/matching', true);
+    await waitFor(() => expect(input('quick-resume').disabled).toBe(false));
+    expect(
+      [...document.querySelectorAll('.pair-selector label')].map((el) => el.textContent),
+    ).toEqual(['当前简历', '目标岗位']);
+    await waitFor(() => expect(input('jobs-run').disabled).toBe(false));
+    fireEvent.click(input('jobs-run'));
+    await screen.findByText('已命中 1 项岗位关键词，还有 1 项未直接命中。');
+    fireEvent.change(input('quick-job'), { target: { value: 'j2' } });
+    expect(document.querySelector('#match-score')).toBeNull();
+    fireEvent.change(input('quick-job'), { target: { value: 'j' } });
+    await waitFor(() => expect(input('match-score').textContent).toBe('50%'));
+    expect(requests.filter((r) => r.path === '/api/v1/matches')).toHaveLength(1);
+    fireEvent.click(document.querySelector('[data-view="diagnosis"]')!);
+    await waitFor(() => expect(input('quick-resume').disabled).toBe(false));
+    expect(
+      [...document.querySelectorAll('.pair-selector label')].map((el) => el.textContent),
+    ).toEqual(['当前简历', '目标岗位']);
+    fireEvent.click(input('diagnosis-run'));
+    await screen.findByText('缓存中的优化建议');
+    fireEvent.change(input('quick-resume'), { target: { value: 'r2' } });
+    expect(screen.queryByText('缓存中的优化建议')).toBeNull();
+    expect(store.getState().resumeId).toBe('r2');
+    fireEvent.change(input('quick-resume'), { target: { value: 'r' } });
+    await screen.findByText('缓存中的优化建议');
+    expect(requests.filter((r) => r.path === '/api/v1/diagnoses')).toHaveLength(1);
+    expect(screen.getByRole('link', { name: '返回简历编辑 →' }).getAttribute('href')).toBe(
+      '/resume',
+    );
+    expect(screen.getByRole('link', { name: '返回岗位管理 →' }).getAttribute('href')).toBe('/jobs');
+  });
+  it.each([
+    ['【风险提醒】确认项目中由你负责的接口', '确认项目中由你负责的接口'],
+    ['【关键词·待核实】Python', 'Python'],
+  ])(
+    'renders a supplement-only response without an empty reader: %s',
+    async (suggestion, content) => {
+      handler = (path) =>
+        path === '/api/v1/diagnoses'
+          ? json(
+              {
+                id: 'only-extra',
+                resume_id: 'r',
+                jd_id: 'j',
+                is_mock: true,
+                summary: '合成边界样本',
+                suggestions: [suggestion],
+              },
+              201,
+            )
+          : undefined;
+      page('/diagnosis', true);
+      await screen.findByRole('button', { name: '生成优化建议' });
+      fireEvent.click(input('diagnosis-run'));
+      await screen.findByText('合成边界样本');
+      expect(document.querySelector('.suggestion-reader')).toBeNull();
+      const extra = document.querySelector('.suggestion-extra')! as HTMLDetailsElement;
+      expect(extra.open).toBe(false);
+      fireEvent.click(extra.querySelector('summary')!);
+      expect(extra.textContent).toContain(content);
+      expect(requests.filter((request) => request.options.method === 'POST')).toHaveLength(1);
+    },
+  );
   it('cancelled clearing preserves edits; explicit clear leaves history untouched and makes no request', async () => {
     page('/resume');
     await settleResume();
@@ -494,6 +638,9 @@ describe('desktop workspace operations', () => {
         (_, i) => `【STAR】原文：原文 ${i}\n优化：建议 ${i}\n理由：明确项目结果 ${i}`,
       ),
       '不要虚构经历',
+      '【关键词·待核实】Redis',
+      '【关键词·待核实】Redis',
+      '【风险提醒】核实项目中的数字',
     ];
     handler = (path) =>
       path === '/api/v1/diagnoses'
@@ -523,18 +670,56 @@ describe('desktop workspace operations', () => {
     expect(reader.textContent).toContain('建议 6');
     expect(reader.textContent).toContain('明确项目结果 6');
     fireEvent.click(screen.getByRole('button', { name: /岗位重点/ }));
-    fireEvent.click(screen.getByRole('button', { name: '下一条建议 →' }));
-    expect(reader.textContent).toContain('完整依据 1');
-    fireEvent.click(
-      within(screen.getByRole('complementary', { name: '岗位重点建议列表' })).getAllByRole(
-        'button',
-      )[5],
-    );
-    expect(reader.textContent).toContain('完整依据 5');
-    fireEvent.click(screen.getByRole('button', { name: /补充与核实/ }));
-    expect(reader.textContent).toContain('不要虚构经历');
+    const jobs = screen.getByRole('region', { name: '岗位重点' });
+    expect(jobs.querySelectorAll('ol > li')).toHaveLength(6);
+    expect(jobs.textContent).toContain('完整依据 1');
+    expect(jobs.textContent).toContain('完整依据 5');
+    expect(screen.queryByRole('complementary', { name: '岗位重点建议列表' })).toBeNull();
+    expect(screen.queryByRole('button', { name: /补充与核实/ })).toBeNull();
+    const keywordDetails = jobs.querySelector('.suggestion-keywords')! as HTMLDetailsElement;
+    expect(keywordDetails.open).toBe(false);
+    fireEvent.click(within(jobs).getByText(/岗位相关技能 ·/));
+    expect(jobs.textContent).toContain('用过的技能可以补一个实际案例');
+    expect(within(jobs).getAllByText('Redis')).toHaveLength(1);
+    const verify = document.querySelector('.suggestion-reminders')! as HTMLDetailsElement;
+    expect(verify.open).toBe(false);
+    fireEvent.click(screen.getByText(/修改前的补充提示 ·/));
+    expect(verify.textContent).toContain('不要虚构经历');
+    expect(verify.textContent).toContain('核实项目中的数字');
+    expect(within(verify).queryByRole('button')).toBeNull();
     expect(document.getElementById('diagnosis-summary')?.textContent).toContain('然后调整表达');
     expect(store.getState().resumeId).toBe('r');
     expect(requests.filter((request) => request.options.method === 'POST')).toHaveLength(1);
   });
+});
+
+it('home recognizes direct diagnosis while keeping unrun matching incomplete', async () => {
+  const store = createWorkspace();
+  store.updateSelection({
+    resumeId: 'r',
+    jdId: 'j',
+    result: {
+      diagnosis: {
+        id: 'd',
+        resume_id: 'r',
+        jd_id: 'j',
+        is_mock: false,
+        summary: '完成',
+        suggestions: [],
+      },
+    },
+  });
+  render(
+    <MemoryRouter initialEntries={['/']}>
+      <WorkspaceProvider workspace={store}>
+        <ProductShell />
+      </WorkspaceProvider>
+    </MemoryRouter>,
+  );
+  await screen.findByText('已生成建议');
+  const items = document.querySelectorAll('.workflow-steps > li');
+  expect(items[2].getAttribute('data-state')).toBe('pending');
+  expect(items[3].getAttribute('data-state')).toBe('complete');
+  expect(document.getElementById('home-next')?.getAttribute('href')).toBe('/diagnosis');
+  expect(requests.filter((r) => r.options.method === 'POST')).toHaveLength(0);
 });

@@ -3,13 +3,14 @@ import { Link } from 'react-router-dom';
 import { createApi } from '../core/api';
 import type { JD, Resume } from '../core/contracts';
 import { useWorkspace } from '../core/WorkspaceContext';
-import { nextStep, steps } from '../core/state';
+import { completedSteps, nextStep, steps } from '../core/state';
 import Icon from '../components/Icon';
 import { NextLink } from '../components/ui';
 
 export default function HomePage() {
   const { state, draft } = useWorkspace();
   const active = nextStep(state);
+  const complete = completedSteps(state);
   const step = steps[Math.min(active, 3)];
   const [names, setNames] = useState({ resume: '', job: '' });
   useEffect(() => {
@@ -73,7 +74,7 @@ export default function HomePage() {
         <blockquote>
           “更好的机会
           <br />
-          从清晰的表达开始。”<cite>—— T5</cite>
+          从清晰的表达开始。”<cite>—— Vitae</cite>
         </blockquote>
       </section>
       <section className="home-progress panel" aria-labelledby="progress-title">
@@ -82,14 +83,21 @@ export default function HomePage() {
           {steps.map((item, i) => (
             <li
               key={item.path}
-              data-state={i < active ? 'complete' : i === active ? 'current' : 'pending'}
+              data-state={complete[i] ? 'complete' : i === active ? 'current' : 'pending'}
             >
               <Link to={item.path}>
-                <span className="step-number">{i < active ? <Icon name="check" /> : i + 1}</span>
+                <span className="step-number">{complete[i] ? <Icon name="check" /> : i + 1}</span>
                 <span>
                   <strong>{['确认简历', '选择岗位', '查看匹配', 'AI 优化'][i]}</strong>
                   <small>
-                    {i < active ? '已就绪' : ['上传或编辑', '设定目标', '发现差距', '生成建议'][i]}
+                    {complete[i]
+                      ? [
+                          '已确认',
+                          '已选择',
+                          state.result?.match?.is_mock ? '已查看演示' : '已生成分析',
+                          state.result?.diagnosis?.is_mock ? '已生成演示建议' : '已生成建议',
+                        ][i]
+                      : ['上传或编辑', '设定目标', '尚未分析', '生成建议'][i]}
                   </small>
                 </span>
               </Link>

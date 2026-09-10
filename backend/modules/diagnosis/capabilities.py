@@ -20,7 +20,7 @@ def reasoning(settings):
     host = urlsplit(settings.endpoint).hostname
     if (
         vendor == "deepseek"
-        and model in {"deepseek-v4-flash", "deepseek-v4-pro"}
+        and model in {"deepseek-flash", "deepseek-v4-flash", "deepseek-v4-pro"}
         and host == "api.deepseek.com"
     ):
         effort = effort or "none"  # Preserve legacy non-thinking behavior.
