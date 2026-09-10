@@ -921,6 +921,20 @@ body {
   margin-left: auto;
 }
 
+.ai-settings-test {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-width: 0;
+}
+.ai-settings-test-success {
+  color: var(--success);
+  font-size: 13px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
 .ai-profile-picker {
   display: flex;
   gap: 10px;

@@ -91,10 +91,15 @@ it('test connection sends only the selected draft and never saves even when appl
   action = () => json({ message: '连接成功，尚未保存。' });
   fireEvent.click(screen.getByLabelText('同时应用到全部 AI 功能'));
   fireEvent.click(screen.getByRole('button', { name: '测试连接' }));
-  await screen.findByText('连接成功，尚未保存。');
+  const result = await screen.findByText('连接成功，尚未保存。');
+  expect(result.getAttribute('role')).toBe('status');
+  expect(result.parentElement).toBe(screen.getByRole('button', { name: '测试连接' }).parentElement);
+  expect(screen.getAllByText('连接成功，尚未保存。')).toHaveLength(1);
   expect(calls[1].path).toBe('/api/v1/settings/ai/test');
   expect(calls[1].body.modules).toEqual(['resume']);
   expect(calls).toHaveLength(2);
+  fireEvent.change(screen.getByLabelText('模型名 Model'), { target: { value: 'changed-model' } });
+  expect(screen.queryByText('连接成功，尚未保存。')).toBeNull();
 });
 
 it('failed save preserves input while closing discards the unsaved key', async () => {

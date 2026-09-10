@@ -48,6 +48,7 @@ export default function AISettingsPanel() {
   const [busy, setBusy] = useState('load');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
+  const [isTestNotice, setIsTestNotice] = useState(false);
   const lifetime = useRef<AbortController | null>(null);
   const pending = useRef(false);
   const revealed = useRef('');
@@ -172,6 +173,7 @@ export default function AISettingsPanel() {
     if (!settings || !lifetime.current || pending.current) return;
     pending.current = true;
     setBusy(action);
+    setIsTestNotice(action === 'test');
     setError('');
     setNotice('');
     const signal = lifetime.current.signal;
@@ -246,7 +248,7 @@ export default function AISettingsPanel() {
         </p>
       )}
       <Feedback error={error} busy={Boolean(busy)}>
-        {busy === 'load' ? '正在加载设置…' : notice}
+        {busy === 'load' ? '正在加载设置…' : isTestNotice ? '' : notice}
       </Feedback>
       {error && (
         <Button
@@ -443,13 +445,20 @@ export default function AISettingsPanel() {
                 >
                   仅保存配置
                 </Button>
-                <Button
-                  onClick={(e) => {
-                    if (e.currentTarget.form?.reportValidity()) void act('test');
-                  }}
-                >
-                  {busy === 'test' ? '正在测试…' : '测试连接'}
-                </Button>
+                <div className="ai-settings-test">
+                  <Button
+                    onClick={(e) => {
+                      if (e.currentTarget.form?.reportValidity()) void act('test');
+                    }}
+                  >
+                    {busy === 'test' ? '正在测试…' : '测试连接'}
+                  </Button>
+                  {isTestNotice && notice && (
+                    <span className="ai-settings-test-success" role="status">
+                      {notice}
+                    </span>
+                  )}
+                </div>
                 <Button
                   className="ai-settings-reset"
                   disabled={!targets.some((key) => settings.modules[key].source === 'custom')}
