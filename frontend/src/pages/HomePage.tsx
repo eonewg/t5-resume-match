@@ -54,38 +54,13 @@ export default function HomePage() {
   ];
   return (
     <div className="home-page" data-module="home">
-      <header className="home-editorial">
-        <div>
-          <p className="eyebrow">THE NEXT CHAPTER / 下一程</p>
-          <h1 tabIndex={-1}>
-            <span className="sr-only">求职准备工作台：</span>你的经历，
-            <br />
-            值得被<span className="editorial-emphasis">看见。</span>
-          </h1>
-          <p className="home-lead">
-            从真实的经历出发，找到适合你的方向。
-            <br />
-            在这里，认真准备下一次机会。
-          </p>
-        </div>
-        <div className="chapter-art" aria-hidden="true">
-          <span className="art-orbit orbit-one" />
-          <span className="art-orbit orbit-two" />
-          <span className="art-orbit orbit-three" />
-          <span className="art-star">✳</span>
-          <span className="art-label">
-            EXPERIENCE
-            <br />
-            MEETS OPPORTUNITY
-          </span>
-          <span className="art-index">01 — ∞</span>
-        </div>
+      <header className="home-overview">
+        <h1 tabIndex={-1}>求职准备工作台</h1>
+        <p className="home-lead">核对简历、选择岗位，基于匹配结果修改经历表达。</p>
       </header>
       <section className="home-next card" aria-labelledby="home-next-title">
         <div>
-          <p className="eyebrow">
-            {active === 4 ? '已完成一次分析' : `下一步 · ${String(active + 1).padStart(2, '0')}`}
-          </p>
+          <p className="eyebrow">{active === 4 ? '已完成一次分析' : '下一步'}</p>
           <h2 id="home-next-title">{active === 4 ? '核实建议，准备下一次匹配' : step.title}</h2>
           <p>{descriptions[active]}</p>
         </div>
@@ -106,7 +81,7 @@ export default function HomePage() {
             >
               <Link to={item.path}>
                 <span className="step-number" aria-hidden="true">
-                  {i < active ? '✓' : `0${i + 1}`}
+                  {i < active ? '✓' : i + 1}
                 </span>
                 <strong>{item.title}</strong>
 
@@ -149,9 +124,8 @@ export default function HomePage() {
       </div>
       <aside className="home-insight">
         <div>
-          <span className="eyebrow">LOOK A LITTLE FURTHER</span>
-          <h2>也看看，机会在哪里发生。</h2>
-          <p>从岗位样本里的技能与薪资，拓宽对下一步的理解。</p>
+          <h2>岗位样本分析</h2>
+          <p>查看已录入岗位的技能要求与薪资分布。</p>
         </div>
         <Link to="/analytics">探索市场洞察 ↗</Link>
       </aside>

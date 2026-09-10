@@ -324,7 +324,7 @@ export default function AnalyticsPage() {
   const c = controller.current!;
   return (
     <div className="analytics-page" data-module="analytics">
-      <PageHeading eyebrow="辅助决策 / 样本视角" title="市场洞察">
+      <PageHeading title="市场洞察">
         从已录入岗位了解技能需求与薪资区间，为求职方向提供参考。
       </PageHeading>
       <details id="analytics-filters" className="analytics-filter-panel">

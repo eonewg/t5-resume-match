@@ -40,7 +40,7 @@ export default function JobsPage() {
   );
   return (
     <div className="product-page jobs-page" data-module="jobs">
-      <PageHeading eyebrow="02 / 找准方向" title="目标岗位">
+      <PageHeading title="目标岗位">
         选择你准备申请的岗位，让后续匹配和优化有一个具体目标。
       </PageHeading>
       {!s.resumeId ? (

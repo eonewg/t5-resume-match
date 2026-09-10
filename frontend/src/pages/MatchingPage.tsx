@@ -16,7 +16,7 @@ export default function MatchingPage() {
   const ready = Boolean(s.resumeId && s.jdId);
   return (
     <div className="product-page matching-page" data-module="matching">
-      <PageHeading eyebrow="03 / 看清差距" title="匹配分析">
+      <PageHeading title="匹配分析">
         看清简历已经体现的能力，找到针对目标岗位的补充重点。
       </PageHeading>
       <Feedback id="jobs-status" error={s.error} busy={s.busy}>

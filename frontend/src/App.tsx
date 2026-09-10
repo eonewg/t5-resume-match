@@ -12,13 +12,13 @@ import AnalyticsPage from './pages/AnalyticsPage';
 import ResumeHistoryPage from './pages/ResumeHistoryPage';
 
 const navigation = [
-  ['home', '首页', '◈'],
-  ['resume', '我的简历', '▤'],
-  ['resume/history', '历史简历', '◷'],
-  ['jobs', '目标岗位', '↗'],
-  ['matching', '匹配分析', '⇄'],
-  ['diagnosis', 'AI 优化', '✳'],
-  ['analytics', '市场洞察', '◒'],
+  ['home', '首页'],
+  ['resume', '我的简历'],
+  ['resume/history', '历史简历'],
+  ['jobs', '目标岗位'],
+  ['matching', '匹配分析'],
+  ['diagnosis', 'AI 优化'],
+  ['analytics', '市场洞察'],
 ];
 class PageBoundary extends Component<{ children: ReactNode }, { error: boolean }> {
   state = { error: false };
@@ -115,7 +115,7 @@ export function ProductShell() {
   const key = location.pathname.slice(1) || 'home';
   const title = navigation.find(([value]) => value === key)?.[1] || '市场洞察';
   useEffect(() => {
-    document.title = `${title} · T5 Career Workspace`;
+    document.title = `${title} · T5 简历与岗位`;
     document.querySelector<HTMLHeadingElement>('h1')?.focus({ preventScroll: true });
     window.scrollTo(0, 0);
   }, [location.pathname, title]);
@@ -133,35 +133,19 @@ export function ProductShell() {
       </a>
       <aside className="sidebar">
         <Link className="brand" to="/">
-          <span className="brand-mark">
-            t5<span>.</span>
-          </span>
+          <span className="brand-mark">T5</span>
           <span>
-            职业编辑室<small>CAREER WORKSPACE</small>
+            简历与岗位<small>求职准备工作台</small>
           </span>
         </Link>
         <p className="nav-caption">你的工作空间</p>
         <nav aria-label="主要导航">
-          {navigation.map(([value, label, icon]) => (
+          {navigation.map(([value, label]) => (
             <NavLink key={value} to={value === 'home' ? '/' : `/${value}`} end data-view={value}>
-              <span className="nav-icon" aria-hidden="true">
-                {icon}
-              </span>
               <span>{label}</span>
             </NavLink>
           ))}
         </nav>
-        <div className="sidebar-footer">
-          <span className="sidebar-flower" aria-hidden="true">
-            ✳
-          </span>
-          <p>
-            把经历写清楚。
-            <br />
-            让下一步有方向。
-          </p>
-          <small>T5 / CAREER STUDIO</small>
-        </div>
       </aside>
       <div className="app-frame">
         <header className="topbar">

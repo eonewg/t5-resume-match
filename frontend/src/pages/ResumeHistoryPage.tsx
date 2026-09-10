@@ -127,12 +127,12 @@ export default function ResumeHistoryPage() {
 
   return (
     <div className="page history-page">
-      <PageHeading eyebrow="YOUR COLLECTION" title="简历档案">
-        每一份经历，都有下一种可能。打开一个版本，继续打磨你的表达。
+      <PageHeading title="简历档案">
+        打开已保存版本继续编辑，或删除不再需要的简历。
       </PageHeading>
       <div className="history-toolbar">
         <div>
-          <span className="eyebrow">SAVED VERSIONS</span>
+          <span className="eyebrow">已保存版本</span>
           <p>
             第 {Math.floor(offset / PAGE_SIZE) + 1} 页 · {rows.length} 份简历
           </p>
@@ -167,9 +167,9 @@ export default function ResumeHistoryPage() {
       )}
       {!rows.length && !busy && !error && (
         <section className="product-empty">
-          <span className="eyebrow">A FRESH PAGE</span>
-          <h2>你的故事，从第一份简历开始</h2>
-          <p>保存后的版本会收在这里，随时回来继续编辑。</p>
+          <span className="eyebrow">暂无历史版本</span>
+          <h2>还没有保存的简历</h2>
+          <p>导入并确认保存后，可在这里查看和管理版本。</p>
           <NextLink to="/resume">创建我的简历 →</NextLink>
         </section>
       )}
@@ -177,7 +177,7 @@ export default function ResumeHistoryPage() {
         {rows.map((row, index) => (
           <article key={row.id} className="history-card" data-selected={row.id === state.resumeId}>
             <div className="history-card-top">
-              <span className="eyebrow">VERSION {String(offset + index + 1).padStart(2, '0')}</span>
+              <span className="eyebrow">版本 {offset + index + 1}</span>
               {row.id === state.resumeId && <span className="chip">当前使用</span>}
             </div>
             <h2>{row.name || '未命名简历'}</h2>

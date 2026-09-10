@@ -90,9 +90,7 @@ export default function DiagnosisPage() {
   ].slice(0, 3);
   return (
     <div className="product-page diagnosis-page" data-module="diagnosis">
-      <PageHeading eyebrow="04 / 打磨表达" title="AI 优化">
-        对照建议修改表达，保留真实经历。
-      </PageHeading>
+      <PageHeading title="AI 优化">对照建议修改表达，保留真实经历。</PageHeading>
       {!s.canRun ? (
         <Empty title="先选择简历和目标岗位" to="/jobs" cta="去选择目标岗位" />
       ) : (

@@ -198,11 +198,9 @@ export default function ResumePage() {
   }
   return (
     <div className="resume-editor" data-module="resume">
-      <PageHeading eyebrow="01 / 确认事实" title="我的简历">
-        导入原文，核对右侧字段，确认后进入岗位分析。
-      </PageHeading>
+      <PageHeading title="我的简历">导入原文，核对右侧字段，确认后进入岗位分析。</PageHeading>
       <div className="resume-page-toolbar">
-        <span>YOUR STORY, IN YOUR WORDS</span>
+        <span>原文保留 · 字段逐项核对</span>
         <Link to="/resume/history">历史简历与版本管理 ↗</Link>
       </div>
       <Feedback id="resume-status" error={s.error ? status : undefined} busy={Boolean(s.busy)}>
@@ -229,7 +227,7 @@ export default function ResumePage() {
           <div className="resume-source-workspace card">
             <div className="section-heading">
               <h2>原文与导入</h2>
-              <span className="folio-label">SOURCE / 01</span>
+              <span className="folio-label">保留原文</span>
             </div>
             <button
               id="resume-dropzone"
