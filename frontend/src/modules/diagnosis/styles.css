@@ -1,7 +1,0 @@
-/* Diagnosis module: keep pre-wrap only where multi-line AI text appears; no blanket spacing. */
-[data-module="diagnosis"] { min-width: 0; overflow-wrap: anywhere; }
-[data-module="diagnosis"] .optimization-summary,
-[data-module="diagnosis"] .suggestion-compare p,
-[data-module="diagnosis"] .suggestion-list li { white-space: pre-wrap; }
-[data-module="diagnosis"] [data-error="true"] { color: var(--danger); }
-[data-module="diagnosis"] [data-testid="diagnosis-result"] { margin-top: 4px; }

@@ -107,6 +107,19 @@ const ready = async () => {
 };
 
 describe('Resume history', () => {
+  it('filters version content locally without changing the selected resume', async () => {
+    records[1].experience = ['整理科研数据'];
+    const store = setup();
+    await ready();
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: '科研' } });
+    expect(screen.queryByText('同学 r1')).toBeNull();
+    expect(screen.getByText('同学 r2')).toBeTruthy();
+    expect(store.getState().resumeId).toBe('r1');
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: '' } });
+    expect(screen.getByText('同学 r1')).toBeTruthy();
+    expect(deleted).toHaveLength(0);
+  });
+
   it('deletes a selected resume and clears associations while retaining unsaved edits', async () => {
     const store = setup(dirtyDraft());
     await ready();
@@ -134,7 +147,7 @@ describe('Resume history', () => {
       ),
     );
     fireEvent.click(screen.getByRole('button', { name: '清空全部' }));
-    await screen.findByText('你的故事，从第一份简历开始');
+    await screen.findByRole('heading', { name: '还没有保存的简历' });
     expect(deleted).toEqual(['/api/v1/resumes']);
     expect(records).toHaveLength(0);
     expect(store.getState().resumeId).toBeNull();

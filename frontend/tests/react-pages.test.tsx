@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { ProductShell } from '../src/App';
 import { WorkspaceProvider } from '../src/core/WorkspaceContext';
@@ -82,7 +82,7 @@ function page(path: string, selected = false) {
 }
 const input = (id: string) => document.getElementById(id) as HTMLInputElement;
 const settleResume = () => waitFor(() => expect(input('resume-dropzone').disabled).toBe(false));
-describe('React routes and workflow dashboard', () => {
+describe('React routes and task workspace', () => {
   it('home explains the flow and changes its CTA when confirmed selection changes', async () => {
     const store = page('/');
     expect(document.getElementById('home-next')?.textContent).toContain('导入简历');
@@ -234,6 +234,82 @@ describe('React lifecycle and protected fields', () => {
   });
 });
 describe('matching and diagnosis rendering', () => {
+  it('searches the job collection without changing selection and matches only the chosen job', async () => {
+    const second = {
+      ...job,
+      id: 'j2',
+      title: '数据工程师',
+      company: '第二家公司',
+      jd_text: '完整岗位要求 SQL',
+      tools: ['dbt'],
+      skills: ['SQL'],
+    };
+    handler = (path, options) => {
+      if (path.startsWith('/api/v1/jobs?')) return json([job, second]);
+      if (path === '/api/v1/matches') {
+        const pair = JSON.parse(options.body as string);
+        return json(
+          {
+            ...pair,
+            id: 'm2',
+            score: 60,
+            is_mock: false,
+            matched_skills: [],
+            missing_skills: ['SQL'],
+            gap_analysis: ['原文中的技能证据'],
+          },
+          201,
+        );
+      }
+    };
+    const store = page('/jobs', true);
+    await screen.findByText('测试同学');
+    fireEvent.change(input('job-search'), { target: { value: '第二家公司' } });
+    expect(document.querySelector('[data-job-id="j"]')).toBeNull();
+    expect(store.getState().jdId).toBe('j');
+    fireEvent.click(document.querySelector('[data-job-id="j2"]')!);
+    expect(store.getState().jdId).toBe('j2');
+    expect(document.getElementById('jobs-original')?.textContent).toBe(second.jd_text);
+    expect(screen.getByTestId('selected-job').textContent).toContain('dbt');
+    fireEvent.change(input('job-search'), { target: { value: '没有结果' } });
+    expect(store.getState().jdId).toBe('j2');
+    expect(requests.some((request) => request.options.method === 'POST')).toBe(false);
+    fireEvent.click(input('jobs-run'));
+    await screen.findByRole('heading', { name: '匹配分析', level: 1 });
+    const sent = requests.find((request) => request.options.method === 'POST')!;
+    expect(JSON.parse(sent.options.body as string)).toEqual({ resume_id: 'r', jd_id: 'j2' });
+    expect(store.getState().result?.match?.jd_id).toBe('j2');
+  });
+
+  it('keeps the job form after a save error and recovers on an explicit retry', async () => {
+    let fail = true;
+    handler = (path, options) =>
+      path === '/api/v1/jobs' && options.method === 'POST'
+        ? fail
+          ? json({ error: { message: '岗位保存失败' } }, 503)
+          : json({ ...job, ...JSON.parse(options.body as string), id: 'saved-job' }, 201)
+        : undefined;
+    const store = page('/jobs', true);
+    await screen.findByText('测试同学');
+    const formPanel = document.querySelector('.job-form') as HTMLDetailsElement;
+    formPanel.scrollIntoView = vi.fn();
+    fireEvent.click(screen.getByRole('button', { name: '添加岗位', exact: true }));
+    expect(formPanel.open).toBe(true);
+    expect(document.activeElement).toBe(input('jobs-title'));
+    fireEvent.change(input('jobs-title'), { target: { value: '我的目标岗位' } });
+    fireEvent.change(input('jobs-text'), { target: { value: '用户提供的岗位原文' } });
+    fireEvent.submit(input('jobs-title').closest('form')!);
+    await screen.findByText('岗位保存失败');
+    expect(input('jobs-title').value).toBe('我的目标岗位');
+    expect(input('jobs-text').value).toBe('用户提供的岗位原文');
+    expect(store.getState().jdId).toBe('j');
+    fail = false;
+    fireEvent.submit(input('jobs-title').closest('form')!);
+    await waitFor(() => expect(store.getState().jdId).toBe('saved-job'));
+    expect(store.getState().result).toBeNull();
+    expect(requests.filter((request) => request.path === '/api/v1/matches')).toHaveLength(0);
+  });
+
   it('shows Mock without a numeric score, safely renders untrusted text and never overwrites resume', async () => {
     const store = page('/matching', true);
     handler = (path) =>
@@ -335,7 +411,7 @@ describe('desktop workspace operations', () => {
       requests.filter((r) => r.path === '/api/v1/resumes' && r.options.method === 'POST'),
     ).toHaveLength(1);
   });
-  it('keeps every suggestion accessible while limiting initial priorities and experience comparisons', async () => {
+  it('lets users read every suggestion and its full evidence without duplicating or applying content', async () => {
     const suggestions = [
       ...Array.from({ length: 6 }, (_, i) => `【岗位建议】补充技能应用 ${i}。完整依据 ${i}。`),
       ...Array.from(
@@ -358,20 +434,32 @@ describe('desktop workspace operations', () => {
             201,
           )
         : undefined;
-    page('/diagnosis', true);
+    // A repeated provider string appears once in the reading index.
+    suggestions.push(suggestions[6]);
+    const store = page('/diagnosis', true);
     await screen.findByRole('button', { name: '生成优化建议' });
     fireEvent.click(input('diagnosis-run'));
-    await screen.findByRole('heading', { name: '优先修改' });
-    expect(document.querySelectorAll('.priority-list li')).toHaveLength(3);
-    expect(document.querySelectorAll('.experience-improvements > .suggestion-entry')).toHaveLength(
-      2,
+    await screen.findByRole('heading', { name: '经历表达' });
+    const index = screen.getByRole('complementary', { name: '经历表达建议列表' });
+    expect(within(index).getAllByRole('button')).toHaveLength(7);
+    fireEvent.click(within(index).getAllByRole('button')[6]);
+    const reader = screen.getByRole('region', { name: '当前建议' });
+    expect(reader.textContent).toContain('原文 6');
+    expect(reader.textContent).toContain('建议 6');
+    expect(reader.textContent).toContain('明确项目结果 6');
+    fireEvent.click(screen.getByRole('button', { name: /岗位重点/ }));
+    fireEvent.click(screen.getByRole('button', { name: '下一条建议 →' }));
+    expect(reader.textContent).toContain('完整依据 1');
+    fireEvent.click(
+      within(screen.getByRole('complementary', { name: '岗位重点建议列表' })).getAllByRole(
+        'button',
+      )[5],
     );
-    expect((document.querySelector('.additional-experiences') as HTMLDetailsElement).open).toBe(
-      false,
-    );
-    expect(document.querySelectorAll('.additional-experiences .suggestion-entry')).toHaveLength(5);
-    expect((document.querySelector('.other-suggestions') as HTMLDetailsElement).open).toBe(false);
-    expect(document.querySelector('.other-suggestions')?.textContent).toContain('完整依据 5');
-    expect(document.querySelector('.summary-full')?.textContent).toContain('然后调整表达');
+    expect(reader.textContent).toContain('完整依据 5');
+    fireEvent.click(screen.getByRole('button', { name: /补充与核实/ }));
+    expect(reader.textContent).toContain('不要虚构经历');
+    expect(document.getElementById('diagnosis-summary')?.textContent).toContain('然后调整表达');
+    expect(store.getState().resumeId).toBe('r');
+    expect(requests.filter((request) => request.options.method === 'POST')).toHaveLength(1);
   });
 });

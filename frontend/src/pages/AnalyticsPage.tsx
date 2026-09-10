@@ -51,7 +51,7 @@ function Table({ headers, rows }: { headers: string[]; rows: ReactNode[][] }) {
     </div>
   );
 }
-function Card({
+function AnalysisSection({
   title,
   help,
   children,
@@ -63,7 +63,7 @@ function Card({
   id?: string;
 }) {
   return (
-    <section id={id} className="card analytics-card">
+    <section id={id} className="analysis-section">
       <h2>{title}</h2>
       {help && <p className="analytics-help">{help}</p>}
       {children}
@@ -76,41 +76,50 @@ export function AnalyticsResult({ result }: { result: AnalysisResponse }) {
     <>
       {result.is_mock && <p className="status-badge">Mock · 演示数据，请勿用于真实市场结论</p>}
       {!data ? (
-        <Card title="市场摘要" help="当前服务未提供完整市场指标。">
+        <AnalysisSection title="市场摘要" help="当前服务未提供完整市场指标。">
           <p>{result.summary}</p>
           <Table
             headers={['技能', '岗位数']}
             rows={Object.entries(result.skills).map(([skill, count]) => [skill, String(count)])}
           />
-        </Card>
+        </AnalysisSection>
       ) : (
         <>
-          <div id="analytics-metrics" className="analytics-metrics">
-            {[
-              [
-                data.sample_size,
-                '岗位样本',
-                `当前筛选 / 已录入 ${result.scope?.available_count ?? data.sample_size} 条`,
-              ],
-              [data.company_count, '已知雇主', `雇主未知 ${data.unknown_company_count} 条`],
-              [
-                data.skill_frequency[0]?.skill || '暂无',
-                '热门技能',
-                `共 ${data.skill_frequency.length} 项技能 / 工具`,
-              ],
-              [
-                data.salary_coverage.comparable_count,
-                '可比较薪资',
-                `未知或单位不明 ${data.salary_coverage.missing_range_count + data.salary_coverage.missing_unit_count} 条`,
-              ],
-            ].map(([value, title, detail]) => (
-              <article className="card analytics-metric" key={title}>
-                <p>{title}</p>
-                <strong>{value}</strong>
-                <small>{detail}</small>
-              </article>
-            ))}
-          </div>
+          <header className="analysis-overview">
+            <div className="analysis-sample">
+              <span>当前样本</span>
+              <h2>
+                {data.sample_size}
+                <small> 个岗位</small>
+              </h2>
+              <p>全库 {result.scope?.available_count ?? data.sample_size} 条记录</p>
+            </div>
+            <dl id="analytics-metrics" className="analysis-facts">
+              <div>
+                <dt>已知雇主</dt>
+                <dd>
+                  {data.company_count} 家 <span> / 未知 {data.unknown_company_count} 条</span>
+                </dd>
+              </div>
+              <div>
+                <dt>技能 / 工具</dt>
+                <dd>{data.skill_frequency.length} 项</dd>
+              </div>
+              <div>
+                <dt>可比较薪资</dt>
+                <dd>
+                  {data.salary_coverage.comparable_count} 条{' '}
+                  <span>
+                    {' '}
+                    / 未知或单位不明{' '}
+                    {data.salary_coverage.missing_range_count +
+                      data.salary_coverage.missing_unit_count}{' '}
+                    条
+                  </span>
+                </dd>
+              </div>
+            </dl>
+          </header>
           <p id="analytics-scope" className="analytics-scope">
             来源：
             {Object.entries(data.source_counts)
@@ -127,15 +136,15 @@ export function AnalyticsResult({ result }: { result: AnalysisResponse }) {
             </p>
           )}
           {!data.sample_size ? (
-            <Card id="analytics-empty" title="还没有可分析的岗位">
+            <AnalysisSection id="analytics-empty" title="还没有可分析的岗位">
               <p>{result.summary}</p>
               <p>添加岗位后即可了解技能需求；已有岗位可在筛选中选择“全部来源”。</p>
               <NextLink to="/jobs">添加目标岗位 →</NextLink>
-            </Card>
+            </AnalysisSection>
           ) : (
             <>
               <div className="analytics-chart-grid">
-                <Card
+                <AnalysisSection
                   title="热门技能"
                   help={`当前 ${data.sample_size} 条岗位中的技能要求分布 · 前 ${Math.min(10, data.skill_frequency.length)} 项`}
                 >
@@ -168,31 +177,29 @@ export function AnalyticsResult({ result }: { result: AnalysisResponse }) {
                       ])}
                     />
                   </details>
-                </Card>
+                </AnalysisSection>
                 <div className="analytics-side">
-                  <details className="analytics-cloud-panel" open>
+                  <details className="analytics-cloud-panel">
                     <summary>热门技能词云</summary>
-                    <Card
-                      title="技能词云"
-                      help={`字号随包含该技能的岗位数量变化 · 前 ${Math.min(30, data.skill_frequency.length)} 项`}
-                    >
-                      <ul id="analytics-cloud" className="analytics-cloud">
-                        {data.skill_frequency.slice(0, 30).map((row) => (
-                          <li
-                            className="analytics-cloud-word"
-                            key={row.skill}
-                            style={{
-                              fontSize: `${14 + (17 * row.job_count) / (data.skill_frequency[0]?.job_count || 1)}px`,
-                            }}
-                            title={`${row.skill}：${row.job_count}/${data.sample_size} 条岗位，${row.share_percent}%`}
-                          >
-                            <span>{row.skill}</span>
-                            <small>{row.job_count} 条</small>
-                          </li>
-                        ))}
-                      </ul>
-                      {!data.skill_frequency.length && <p>尚无已识别或确认的技能关键词。</p>}
-                    </Card>
+                    <p className="analytics-help">
+                      字号随岗位数量变化 · 前 {Math.min(30, data.skill_frequency.length)} 项
+                    </p>
+                    <ul id="analytics-cloud" className="analytics-cloud">
+                      {data.skill_frequency.slice(0, 30).map((row) => (
+                        <li
+                          className="analytics-cloud-word"
+                          key={row.skill}
+                          style={{
+                            fontSize: `${14 + (17 * row.job_count) / (data.skill_frequency[0]?.job_count || 1)}px`,
+                          }}
+                          title={`${row.skill}：${row.job_count}/${data.sample_size} 条岗位，${row.share_percent}%`}
+                        >
+                          <span>{row.skill}</span>
+                          <small>{row.job_count} 条</small>
+                        </li>
+                      ))}
+                    </ul>
+                    {!data.skill_frequency.length && <p>尚无已识别或确认的技能关键词。</p>}
                   </details>
                   <section className="analytics-insight">
                     <h3>如何理解这份分布</h3>
@@ -202,7 +209,7 @@ export function AnalyticsResult({ result }: { result: AnalysisResponse }) {
                   </section>
                 </div>
               </div>
-              <Card
+              <AnalysisSection
                 id="analytics-salary"
                 title="岗位薪资分布"
                 help="原始招聘区间 · 按币种与周期分组"
@@ -264,15 +271,15 @@ export function AnalyticsResult({ result }: { result: AnalysisResponse }) {
                     起画，不同币种、周期各用独立刻度，不折汇、不跨周期换算，不求跨组平均值。
                   </p>
                 </details>
-              </Card>
-              <Card id="analytics-observations" title="样本观察与使用边界">
+              </AnalysisSection>
+              <AnalysisSection id="analytics-observations" title="样本观察与使用边界">
                 <ul>
                   {data.observations.map((text, i) => (
                     <li key={i}>{text}</li>
                   ))}
                 </ul>
-              </Card>
-              <Card
+              </AnalysisSection>
+              <AnalysisSection
                 id="analytics-sources"
                 title="岗位与来源明细"
                 help="统计单位是已保存岗位记录；重复手动录入分别计数，固定快照导入会去重。来源标签来自录入资料，不等于独立事实核验。"
@@ -309,7 +316,7 @@ export function AnalyticsResult({ result }: { result: AnalysisResponse }) {
                     ])}
                   />
                 </details>
-              </Card>
+              </AnalysisSection>
             </>
           )}
         </>
@@ -324,13 +331,11 @@ export default function AnalyticsPage() {
   const c = controller.current!;
   return (
     <div className="analytics-page" data-module="analytics">
-      <PageHeading title="市场洞察">
-        从已录入岗位了解技能需求与薪资区间，为求职方向提供参考。
-      </PageHeading>
-      <details id="analytics-filters" className="analytics-filter-panel">
+      <PageHeading title="市场洞察">已录入岗位的技能与薪资分布。</PageHeading>
+      <details id="analytics-filters" className="analytics-filter-panel" open>
         <summary>筛选来源与日期</summary>
         <form
-          className="card analytics-filters"
+          className="analytics-filters"
           onSubmit={(e) => {
             e.preventDefault();
             void c.load(filters);

@@ -1,8 +1,7 @@
 import { Component, useEffect, useState, type ReactNode } from 'react';
 import { HashRouter, Link, NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom';
-import { WorkspaceProvider, useWorkspace } from './core/WorkspaceContext';
+import { WorkspaceProvider } from './core/WorkspaceContext';
 import { createApi } from './core/api';
-import { nextStep, steps } from './core/state';
 import HomePage from './pages/HomePage';
 import ResumePage from './pages/ResumePage';
 import JobsPage from './pages/JobsPage';
@@ -110,8 +109,6 @@ function ServiceStatus() {
 }
 export function ProductShell() {
   const location = useLocation();
-  const { state } = useWorkspace();
-  const active = nextStep(state);
   const key = location.pathname.slice(1) || 'home';
   const title = navigation.find(([value]) => value === key)?.[1] || '市场洞察';
   useEffect(() => {
@@ -138,41 +135,29 @@ export function ProductShell() {
             简历与岗位<small>求职准备工作台</small>
           </span>
         </Link>
-        <p className="nav-caption">你的工作空间</p>
         <nav aria-label="主要导航">
           {navigation.map(([value, label]) => (
-            <NavLink key={value} to={value === 'home' ? '/' : `/${value}`} end data-view={value}>
+            <NavLink
+              key={value}
+              to={value === 'home' ? '/' : `/${value}`}
+              end
+              data-view={value}
+              className={
+                value === 'resume/history'
+                  ? 'nav-subpage'
+                  : value === 'analytics'
+                    ? 'nav-secondary'
+                    : ''
+              }
+            >
               <span>{label}</span>
             </NavLink>
           ))}
         </nav>
+        <ServiceStatus />
       </aside>
       <div className="app-frame">
-        <header className="topbar">
-          <div className="breadcrumb">
-            <span>工作空间</span>
-            <span>/</span>
-            <strong id="page-label">{title}</strong>
-          </div>
-          <ServiceStatus />
-        </header>
         <main id="main-content" tabIndex={-1}>
-          {steps.some((step) => step.path === location.pathname) && (
-            <ol className="process-strip" aria-label="求职准备流程">
-              {steps.map((step, i) => (
-                <li
-                  key={step.path}
-                  data-current={step.path === location.pathname}
-                  data-complete={i < active}
-                >
-                  <Link to={step.path}>
-                    <span aria-hidden="true">{i < active ? '✓' : i + 1}</span>
-                    {step.title}
-                  </Link>
-                </li>
-              ))}
-            </ol>
-          )}
           <section id="module-view" aria-label="模块页面">
             <PageBoundary key={location.pathname}>
               <Routes>

@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 export function Button({
-  tone = 'secondary',
+  tone = 'ghost',
   className = '',
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -21,7 +21,7 @@ export function NextLink({
   primary?: boolean;
 }) {
   return (
-    <Link id={id} className={`button ${primary ? 'primary' : 'secondary'}`} to={to}>
+    <Link id={id} className={primary ? 'button primary' : 'text-link'} to={to}>
       {children}
     </Link>
   );
@@ -66,7 +66,7 @@ export function Chips({
     <div id={id} className={`chips ${className}`}>
       {values.length ? (
         values.map((value, index) => (
-          <span className="chip" key={index}>
+          <span className="keyword" key={index}>
             {value}
           </span>
         ))
@@ -76,11 +76,11 @@ export function Chips({
     </div>
   );
 }
-export function PageHeading({ title, children }: { title: string; children: ReactNode }) {
+export function PageHeading({ title, children }: { title: string; children?: ReactNode }) {
   return (
     <header className="page-heading">
       <h1 tabIndex={-1}>{title}</h1>
-      <p className="page-intro">{children}</p>
+      {children && <p className="page-intro">{children}</p>}
     </header>
   );
 }
@@ -98,8 +98,10 @@ export function Empty({
   return (
     <section className="product-empty">
       <h2>{title}</h2>
-      <p>{children}</p>
-      <NextLink to={to}>{cta} →</NextLink>
+      {children && <p>{children}</p>}
+      <Link className="text-link" to={to}>
+        {cta} →
+      </Link>
     </section>
   );
 }

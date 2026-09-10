@@ -99,7 +99,7 @@ export default function ResumePage() {
     const candidate = newSuggestion(s!, key);
     const differs = candidate !== null;
     return (
-      <section className="resume-field" key={key}>
+      <section id={`field-${key}`} className="resume-field" key={key}>
         <div className="resume-label-row">
           {key === 'experience' ? (
             <h3>{labels[key]}</h3>
@@ -107,7 +107,7 @@ export default function ResumePage() {
             <label htmlFor={`resume-${key}`}>{labels[key]}</label>
           )}
           <span
-            className="resume-field-badge"
+            className="field-state"
             data-state={badge.tone}
             data-protected={s!.protectedFields.includes(key)}
           >
@@ -198,10 +198,9 @@ export default function ResumePage() {
   }
   return (
     <div className="resume-editor" data-module="resume">
-      <PageHeading title="我的简历">导入原文，核对右侧字段，确认后进入岗位分析。</PageHeading>
-      <div className="resume-page-toolbar">
-        <span>原文保留 · 字段逐项核对</span>
-        <Link to="/resume/history">历史简历与版本管理 ↗</Link>
+      <div className="page-title-row">
+        <PageHeading title="我的简历" />
+        <Link to="/resume/history">查找历史版本 →</Link>
       </div>
       <Feedback id="resume-status" error={s.error ? status : undefined} busy={Boolean(s.busy)}>
         {status}
@@ -224,15 +223,13 @@ export default function ResumePage() {
       </p>
       <div className={`resume-grid ${imported ? 'is-reviewing' : ''}`}>
         <section className="resume-import">
-          <div className="resume-source-workspace card">
+          <div className="resume-source-workspace">
             <div className="section-heading">
-              <h2>原文与导入</h2>
-              <span className="folio-label">保留原文</span>
+              <h2>简历原文</h2>
             </div>
             <button
               id="resume-dropzone"
               type="button"
-              hidden={imported || s.aiStatus === 'failed'}
               disabled={Boolean(s.busy)}
               className={`resume-dropzone ${dragging ? 'drag-over' : ''}`}
               onClick={() => file.current?.click()}
@@ -247,9 +244,8 @@ export default function ResumePage() {
                 if (!s.busy) void c.upload(e.dataTransfer.files[0]);
               }}
             >
-              <span className="resume-upload-title">上传简历</span>
-              <span>拖入简历，或点击选择文件</span>
-              <small>PDF / DOCX / TXT · 最大 10 MB</small>
+              <span className="resume-upload-title">{imported ? '导入其他文件' : '上传简历'}</span>
+              <span>也可将文件拖到这里</span>
             </button>
             <input
               id="resume-file"
@@ -269,8 +265,10 @@ export default function ResumePage() {
               open={sourceOpen}
               onToggle={(e) => setSourceOpen(e.currentTarget.open)}
             >
-              <summary>{imported ? '简历原文与重新整理' : '或直接粘贴简历文本'}</summary>
-              <label htmlFor="resume-raw">粘贴完整原文</label>
+              <summary>{imported ? '查看与编辑原文' : '粘贴简历文本'}</summary>
+              <label className="sr-only" htmlFor="resume-raw">
+                粘贴完整原文
+              </label>
               <textarea
                 id="resume-raw"
                 rows={10}
@@ -284,26 +282,18 @@ export default function ResumePage() {
               <Button
                 id="resume-parse"
                 hidden={s.aiStatus === 'failed'}
-                tone="secondary"
+                tone="primary"
                 disabled={Boolean(s.busy)}
                 onClick={() => void c.parse()}
               >
                 {s.busy === 'parse' ? 'AI 识别中…' : imported ? '重新识别原文' : '用 AI 识别简历'}
-              </Button>
-              <Button
-                id="resume-replace-file"
-                tone="ghost"
-                disabled={Boolean(s.busy)}
-                onClick={() => file.current?.click()}
-              >
-                改用文件导入
               </Button>
               <details className="helper-disclosure">
                 <summary>原文与解析说明</summary>
                 <p>
                   AI
                   只从原文提取信息。原文逐字保留，包括未单独展示的奖项等内容；不会自动补充经历或替换已保护字段。扫描
-                  PDF 暂不支持，请粘贴文字。
+                  PDF 暂不支持，请粘贴文字。文件支持 PDF / DOCX / TXT，最大 10 MB。
                 </p>
               </details>
             </details>
@@ -400,9 +390,9 @@ export default function ResumePage() {
             </details>
           </div>
         </section>
-        <section className="card resume-fields">
+        <section className="resume-fields" aria-label="简历编辑区">
           <div className="section-heading">
-            <h2>核对简历</h2>
+            <h2>确认内容</h2>
             <span
               id="resume-stage"
               className="status-badge"
@@ -411,6 +401,23 @@ export default function ResumePage() {
               {stage}
             </span>
           </div>
+          <nav className="field-navigation" aria-label="简历字段">
+            {(Object.keys(labels) as ResumeField[]).map((key) => (
+              <a
+                key={key}
+                href={`#field-${key}`}
+                onClick={(event) => {
+                  event.preventDefault();
+                  document.getElementById(`field-${key}`)?.scrollIntoView({ block: 'start' });
+                  document
+                    .getElementById(key === 'experience' ? 'resume-experience-0' : `resume-${key}`)
+                    ?.focus({ preventScroll: true });
+                }}
+              >
+                {labels[key]}
+              </a>
+            ))}
+          </nav>
           {saved && (
             <div className="resume-confirmed-action">
               <NextLink id="resume-next" to="/jobs">
@@ -438,7 +445,7 @@ export default function ResumePage() {
             <div className="resume-actions">
               <Button
                 id="resume-save"
-                tone="secondary"
+                tone="ghost"
                 disabled={Boolean(s.busy) || !s.reviewed || !s.values.raw_text.trim()}
                 onClick={() => void c.save()}
               >

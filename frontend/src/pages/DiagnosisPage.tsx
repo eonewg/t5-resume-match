@@ -11,7 +11,7 @@ const start = (controller: DiagnosisController) => {
 };
 function Suggestion({ text }: { text: string }) {
   const parts = splitSuggestion(text);
-  if (!parts) return <li>{text}</li>;
+  if (!parts) return <p className="suggestion-text">{text.replace(/^【岗位建议】/, '')}</p>;
   return (
     <article className="suggestion-entry">
       <div className="suggestion-compare">
@@ -41,6 +41,83 @@ function Suggestion({ text }: { text: string }) {
     </article>
   );
 }
+function SuggestionWorkbench({ suggestions }: { suggestions: string[] }) {
+  const unique = [...new Set(suggestions)];
+  const groups = [
+    { name: '经历表达', items: unique.filter((text) => splitSuggestion(text)) },
+    {
+      name: '岗位重点',
+      items: unique.filter((text) => text.startsWith('【岗位建议】') && !splitSuggestion(text)),
+    },
+    {
+      name: '补充与核实',
+      items: unique.filter((text) => !text.startsWith('【岗位建议】') && !splitSuggestion(text)),
+    },
+  ].filter((group) => group.items.length);
+  const [groupIndex, setGroupIndex] = useState(0);
+  const [itemIndex, setItemIndex] = useState(0);
+  const group = groups[groupIndex];
+  const current = group.items[itemIndex];
+  return (
+    <div className="optimization-workbench">
+      <nav className="suggestion-categories" aria-label="建议分类">
+        {groups.map((entry, index) => (
+          <Button
+            tone="ghost"
+            key={entry.name}
+            aria-pressed={index === groupIndex}
+            onClick={() => {
+              setGroupIndex(index);
+              setItemIndex(0);
+            }}
+          >
+            {entry.name}
+            <span>{entry.items.length}</span>
+          </Button>
+        ))}
+      </nav>
+      <div className="suggestion-workspace">
+        <aside className="suggestion-index" aria-label={`${group.name}建议列表`}>
+          {group.items.map((text, index) => {
+            const preview = splitSuggestion(text)?.original || text.replace(/^【[^】]*】/, '');
+            return (
+              <button
+                type="button"
+                key={index}
+                aria-pressed={index === itemIndex}
+                onClick={() => setItemIndex(index)}
+              >
+                <span className="suggestion-position">
+                  {index + 1} / {group.items.length}
+                </span>
+                <span>{preview.length > 72 ? preview.slice(0, 72) + '…' : preview}</span>
+              </button>
+            );
+          })}
+        </aside>
+        <section className="suggestion-reader" aria-label="当前建议" aria-live="polite">
+          <header>
+            <h2>{group.name}</h2>
+            <span>
+              第 {itemIndex + 1} 条，共 {group.items.length} 条
+            </span>
+          </header>
+          <Suggestion text={current} />
+          <footer className="suggestion-reader-actions">
+            <NextLink to="/resume" primary={false}>
+              返回简历修改 →
+            </NextLink>
+            {itemIndex < group.items.length - 1 && (
+              <Button tone="ghost" onClick={() => setItemIndex(itemIndex + 1)}>
+                下一条建议 →
+              </Button>
+            )}
+          </footer>
+        </section>
+      </div>
+    </div>
+  );
+}
 export default function DiagnosisPage() {
   const { state: s, controller } = useController(connectDiagnosis, start, 'diagnosis');
   const { state: workspace } = useWorkspace();
@@ -67,30 +144,9 @@ export default function DiagnosisPage() {
   }, [workspace.resumeId, workspace.jdId]);
   if (!s) return <p role="status">正在准备优化页面…</p>;
   const r = s.record;
-  const targeted = r?.suggestions.filter((t) => t.startsWith('【岗位建议】')) || [];
-  const comparisons = r?.suggestions.filter((t) => splitSuggestion(t)) || [];
-  const other =
-    r?.suggestions.filter((t) => !t.startsWith('【岗位建议】') && !splitSuggestion(t)) || [];
-  // Condense for scanning only; complete source text remains available below.
-  const sentence = (text: string) => {
-    const cleaned = text.replace(/^【[^】]*】\s*/, '').trim();
-    const first = cleaned.split(/(?<=[。！？])|\n/)[0];
-    return first.length > 90 ? first.slice(0, 90) + '…' : first;
-  };
-  const priorities = [
-    ...new Set(
-      [
-        ...targeted.map(sentence),
-        ...comparisons.map((text) => sentence(splitSuggestion(text)!.reason)),
-        ...other
-          .filter((text) => !/^(?:【[^】]*】)?(?:请核实|注意|提醒|风险)/.test(text))
-          .map(sentence),
-      ].filter(Boolean),
-    ),
-  ].slice(0, 3);
   return (
     <div className="product-page diagnosis-page" data-module="diagnosis">
-      <PageHeading title="AI 优化">对照建议修改表达，保留真实经历。</PageHeading>
+      <PageHeading title="AI 优化" />
       {!s.canRun ? (
         <Empty title="先选择简历和目标岗位" to="/jobs" cta="去选择目标岗位" />
       ) : (
@@ -98,23 +154,10 @@ export default function DiagnosisPage() {
           <p className="selected-context" data-testid="diagnosis-selection">
             {selection}
           </p>
-          {r && (
-            <>
-              <p id="diagnosis-summary" className="optimization-summary">
-                {sentence(r.summary)}
-              </p>
-              {sentence(r.summary) !== r.summary && (
-                <details className="summary-full">
-                  <summary>查看完整总结</summary>
-                  <p>{r.summary}</p>
-                </details>
-              )}
-            </>
-          )}
           <div className="inline-actions">
             <Button
               id="diagnosis-run"
-              tone="primary"
+              tone={r ? 'ghost' : 'primary'}
               disabled={s.busy}
               onClick={() => void controller.current?.run()}
             >
@@ -126,9 +169,11 @@ export default function DiagnosisPage() {
                     ? '重新生成建议'
                     : '生成优化建议'}
             </Button>
-            <NextLink to="/resume" primary={false}>
-              返回简历修改
-            </NextLink>
+            {!r?.suggestions.length && (
+              <NextLink to="/resume" primary={false}>
+                返回简历修改
+              </NextLink>
+            )}
           </div>
         </section>
       )}
@@ -150,68 +195,11 @@ export default function DiagnosisPage() {
             >
               Mock · 演示数据，仅用于体验
             </p>
-            {priorities.length > 0 && (
-              <section className="priority-panel" aria-labelledby="priority-title">
-                <div className="section-heading">
-                  <h2 id="priority-title">优先修改</h2>
-                  <span className="helper-text">先从这 {priorities.length} 项开始</span>
-                </div>
-                <ol className="priority-list">
-                  {priorities.map((text, i) => (
-                    <li key={i}>
-                      <span aria-hidden="true">{i + 1}</span>
-                      <p>{text}</p>
-                    </li>
-                  ))}
-                </ol>
-              </section>
-            )}
-            {comparisons.length > 0 && (
-              <section className="experience-improvements" aria-labelledby="experience-title">
-                <div className="section-heading">
-                  <h2 id="experience-title">经历优化</h2>
-                  <span className="helper-text">共 {comparisons.length} 条对照建议</span>
-                </div>
-                {comparisons.slice(0, 2).map((text, i) => (
-                  <Suggestion key={text + i} text={text} />
-                ))}
-                {comparisons.length > 2 && (
-                  <details className="additional-experiences">
-                    <summary>查看其余 {comparisons.length - 2} 条经历建议</summary>
-                    {comparisons.slice(2).map((text, i) => (
-                      <Suggestion key={text + i} text={text} />
-                    ))}
-                  </details>
-                )}
-              </section>
-            )}
-            {(targeted.length > 0 || other.length > 0) && (
-              <details className="other-suggestions">
-                <summary>
-                  其他建议与完整说明{' '}
-                  <span className="count-label">{targeted.length + other.length}</span>
-                </summary>
-                {targeted.length > 0 && (
-                  <section>
-                    <h3>岗位重点</h3>
-                    <ul className="suggestion-list">
-                      {targeted.map((text, i) => (
-                        <li key={i}>{text.slice(6)}</li>
-                      ))}
-                    </ul>
-                  </section>
-                )}
-                {other.length > 0 && (
-                  <section>
-                    <h3>补充建议与核实提醒</h3>
-                    <ul id="diagnosis-suggestions" className="suggestion-list">
-                      {other.map((text, i) => (
-                        <li key={i}>{text}</li>
-                      ))}
-                    </ul>
-                  </section>
-                )}
-              </details>
+            <p id="diagnosis-summary" className="optimization-summary">
+              {r.summary}
+            </p>
+            {r.suggestions.length > 0 && (
+              <SuggestionWorkbench key={r.id} suggestions={r.suggestions} />
             )}
             {!r.suggestions.length && <p className="compact-empty">当前结果暂无具体建议。</p>}
           </>

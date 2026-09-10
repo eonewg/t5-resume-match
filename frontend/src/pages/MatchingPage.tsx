@@ -16,9 +16,7 @@ export default function MatchingPage() {
   const ready = Boolean(s.resumeId && s.jdId);
   return (
     <div className="product-page matching-page" data-module="matching">
-      <PageHeading title="匹配分析">
-        看清简历已经体现的能力，找到针对目标岗位的补充重点。
-      </PageHeading>
+      <PageHeading title="匹配分析" />
       <Feedback id="jobs-status" error={s.error} busy={s.busy}>
         {s.busy ? '正在对照简历与岗位技能…' : s.notice}
       </Feedback>
@@ -39,8 +37,8 @@ export default function MatchingPage() {
       )}
       {r && (
         <section id="jobs-result" className="match-result">
-          <div className="match-hero">
-            <div>
+          <header className="match-overview">
+            <div className="match-score-column">
               <h2>匹配度</h2>
               <p id="match-score" className="match-score">
                 {r.is_mock ? '—' : r.score}
@@ -51,7 +49,7 @@ export default function MatchingPage() {
               </p>
             </div>
             <div className="match-target">
-              <p className="eyebrow">本次目标</p>
+              <p className="eyebrow">与目标岗位对照</p>
               <h3>{job?.title || '已选择岗位'}</h3>
               <p>{job?.company || '公司暂未提供'}</p>
               <p className="match-conclusion">
@@ -61,51 +59,46 @@ export default function MatchingPage() {
               </p>
               <Link to="/jobs">更换目标岗位</Link>
             </div>
-          </div>
-
-          <div className="ability-grid">
-            {(
-              [
-                ['已体现能力', r.matched_skills, 'matched', 'matched-skills'],
-                ['简历尚未体现', r.missing_skills, 'missing', 'missing-skills'],
-              ] as const
-            ).map(([label, values, tone, id]) => (
-              <section className={tone} key={id}>
-                <h3>
-                  {label} <span className="count-label">{values.length}</span>
-                </h3>
-                <ul id={id} className="skill-list">
-                  {values.length ? (
-                    values.map((value, i) => (
-                      <li className="chip" key={i}>
-                        {value}
-                      </li>
-                    ))
-                  ) : (
-                    <li className="helper-text">暂无</li>
-                  )}
-                </ul>
-              </section>
-            ))}
-          </div>
-          <section className="match-evidence">
-            <h3>差距分析与评分依据</h3>
-            <ul id="gap-analysis">
-              {r.gap_analysis.slice(0, 3).map((value, i) => (
-                <li key={i}>{value}</li>
+          </header>
+          <div className="match-reading-layout">
+            <section className="match-evidence">
+              <h3>差距分析与评分依据</h3>
+              <ul id="gap-analysis">
+                {r.gap_analysis.slice(0, 3).map((value, i) => (
+                  <li key={i}>{value}</li>
+                ))}
+              </ul>
+              {r.gap_analysis.length > 3 && (
+                <details className="more-evidence">
+                  <summary>展开其余 {r.gap_analysis.length - 3} 条依据</summary>
+                  <ul>
+                    {r.gap_analysis.slice(3).map((value, i) => (
+                      <li key={i}>{value}</li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+            </section>
+            <div className="ability-grid">
+              {(
+                [
+                  ['已体现能力', r.matched_skills, 'matched', 'matched-skills'],
+                  ['简历尚未体现', r.missing_skills, 'missing', 'missing-skills'],
+                ] as const
+              ).map(([label, values, tone, id]) => (
+                <section className={tone} key={id}>
+                  <h3>{label}</h3>
+                  <ul id={id} className="skill-list">
+                    {values.length ? (
+                      values.map((value, i) => <li key={i}>{value}</li>)
+                    ) : (
+                      <li className="helper-text">暂无</li>
+                    )}
+                  </ul>
+                </section>
               ))}
-            </ul>
-            {r.gap_analysis.length > 3 && (
-              <details className="more-evidence">
-                <summary>展开其余 {r.gap_analysis.length - 3} 条依据</summary>
-                <ul>
-                  {r.gap_analysis.slice(3).map((value, i) => (
-                    <li key={i}>{value}</li>
-                  ))}
-                </ul>
-              </details>
-            )}
-          </section>
+            </div>
+          </div>
           <p id="match-context-note" className="helper-text">
             简历未体现不代表你不会；请按真实经历补充。分数反映能力覆盖，不代表录用概率。
           </p>
@@ -122,7 +115,7 @@ export default function MatchingPage() {
             >
               针对这个岗位优化简历 →
             </Link>
-            <Button disabled={s.busy} onClick={() => void c.match()}>
+            <Button tone="ghost" disabled={s.busy} onClick={() => void c.match()}>
               重新匹配
             </Button>
           </div>

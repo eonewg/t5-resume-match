@@ -4,7 +4,7 @@ import { createApi } from '../core/api';
 import type { JD, Resume } from '../core/contracts';
 import { useWorkspace } from '../core/WorkspaceContext';
 import { nextStep, steps } from '../core/state';
-import { NextLink } from '../components/ui';
+import { NextLink, PageHeading } from '../components/ui';
 
 export default function HomePage() {
   const { state, draft } = useWorkspace();
@@ -54,80 +54,72 @@ export default function HomePage() {
   ];
   return (
     <div className="home-page" data-module="home">
-      <header className="home-overview">
-        <h1 tabIndex={-1}>求职准备工作台</h1>
-        <p className="home-lead">核对简历、选择岗位，基于匹配结果修改经历表达。</p>
-      </header>
-      <section className="home-next card" aria-labelledby="home-next-title">
-        <div>
-          <p className="eyebrow">{active === 4 ? '已完成一次分析' : '下一步'}</p>
+      <PageHeading title="求职准备工作台" />
+      <div className="home-working-state">
+        <section className="home-next" aria-labelledby="home-next-title">
+          <p className="eyebrow">{active === 4 ? '分析已完成' : '接下来'}</p>
           <h2 id="home-next-title">{active === 4 ? '核实建议，准备下一次匹配' : step.title}</h2>
           <p>{descriptions[active]}</p>
-        </div>
-        <NextLink id="home-next" to={step.path}>
-          {ctas[active]} →
-        </NextLink>
-      </section>
-      <section className="home-progress" aria-labelledby="progress-title">
-        <div className="section-heading">
-          <h2 id="progress-title">本次准备进度</h2>
-          <span className="helper-text">{active} / 4 步就绪</span>
-        </div>
-        <ol className="workflow-steps">
-          {steps.map((item, i) => (
-            <li
-              key={item.path}
-              data-state={i < active ? 'complete' : i === active ? 'current' : 'pending'}
-            >
-              <Link to={item.path}>
-                <span className="step-number" aria-hidden="true">
-                  {i < active ? '✓' : i + 1}
-                </span>
-                <strong>{item.title}</strong>
-
-                <span className="step-status">
-                  {i < active ? '已就绪' : i === active ? '进行这一步' : '待进行'}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ol>
-      </section>
-      <div className="home-context-grid">
-        <section className="card context-card">
-          <p className="eyebrow">当前简历</p>
-          <h2>
-            {names.resume ||
-              (state.resumeId
-                ? '正在读取…'
-                : draft.current?.values.raw_text
-                  ? '有待核对的简历草稿'
-                  : '尚未确认简历')}
-          </h2>
-          <p>
-            {state.resumeId ? '已确认，可用于岗位分析。' : '支持 PDF、DOCX、TXT 或直接粘贴原文。'}
-          </p>
-          <Link to="/resume">{state.resumeId ? '查看确认版本' : '导入或选择历史简历'} →</Link>
+          <NextLink id="home-next" to={step.path}>
+            {ctas[active]} →
+          </NextLink>
         </section>
-        <section className="card context-card">
-          <p className="eyebrow">当前目标</p>
-          <h2>{names.job || (state.jdId ? '正在读取…' : '尚未选择目标岗位')}</h2>
-          <p>
-            {state.result?.match
-              ? state.result.match.is_mock
-                ? 'Mock · 本次匹配为演示结果，不提供真实评分。'
-                : `当前匹配度 ${state.result.match.score}% · ${state.result.match.missing_skills.length} 项技能尚未在简历中体现。`
-              : '选择准备申请的岗位。'}
-          </p>
-          <Link to="/jobs">{state.jdId ? '查看或更换目标' : '选择准备申请的岗位'} →</Link>
+        <section className="home-progress" aria-labelledby="progress-title">
+          <h2 id="progress-title">准备状态</h2>
+          <ol className="workflow-steps">
+            {steps.map((item, i) => (
+              <li
+                key={item.path}
+                data-state={i < active ? 'complete' : i === active ? 'current' : 'pending'}
+              >
+                <Link to={item.path}>
+                  <span>{item.title}</span>
+                  <span className="step-status">
+                    {i < active ? '已就绪' : i === active ? '继续 →' : '待进行'}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ol>
         </section>
       </div>
-      <aside className="home-insight">
-        <div>
-          <h2>岗位样本分析</h2>
-          <p>查看已录入岗位的技能要求与薪资分布。</p>
+      <section className="home-materials" aria-labelledby="home-materials-title">
+        <h2 id="home-materials-title">正在使用</h2>
+        <div className="home-material-row">
+          <span className="material-label">简历</span>
+          <div>
+            <h2>
+              {names.resume ||
+                (state.resumeId
+                  ? '正在读取…'
+                  : draft.current?.values.raw_text
+                    ? '有待核对的简历草稿'
+                    : '尚未确认简历')}
+            </h2>
+            <p>
+              {state.resumeId ? '已确认，可用于岗位分析。' : '支持 PDF、DOCX、TXT 或直接粘贴原文。'}
+            </p>
+          </div>
+          <Link to="/resume">{state.resumeId ? '查看确认版本' : '导入或选择历史简历'} →</Link>
         </div>
-        <Link to="/analytics">探索市场洞察 ↗</Link>
+        <div className="home-material-row">
+          <span className="material-label">目标岗位</span>
+          <div>
+            <h2>{names.job || (state.jdId ? '正在读取…' : '尚未选择目标岗位')}</h2>
+            <p>
+              {state.result?.match
+                ? state.result.match.is_mock
+                  ? 'Mock · 本次匹配为演示结果，不提供真实评分。'
+                  : `当前匹配度 ${state.result.match.score}% · ${state.result.match.missing_skills.length} 项技能尚未在简历中体现。`
+                : '选择准备申请的岗位。'}
+            </p>
+          </div>
+          <Link to="/jobs">{state.jdId ? '查看或更换目标' : '选择准备申请的岗位'} →</Link>
+        </div>
+      </section>
+      <aside className="home-insight">
+        <Link to="/analytics">查看岗位样本分析 ↗</Link>
+        <p>技能要求与薪资分布</p>
       </aside>
     </div>
   );
