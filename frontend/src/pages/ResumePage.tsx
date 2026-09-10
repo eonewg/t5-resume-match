@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { connectResume, type ResumeController } from '../modules/resume/controller.ts';
-import { useNavigate } from 'react-router-dom';
+import {
+  connectResume,
+  newSuggestion,
+  type ResumeController,
+} from '../modules/resume/controller.ts';
+import { Link, useNavigate } from 'react-router-dom';
 import { useController, useWorkspace } from '../core/WorkspaceContext';
 import type { ResumeField } from '../core/controller-types';
 import { fieldStatus } from '../core/ui.ts';
@@ -92,8 +96,8 @@ export default function ResumePage() {
   }
   function field(key: ResumeField) {
     const badge = fieldStatus(s!.values[key], s!.protectedFields.includes(key), s!.reviewed);
-    const candidate = s!.candidate?.[key];
-    const differs = s!.candidate && JSON.stringify(candidate) !== JSON.stringify(s!.values[key]);
+    const candidate = newSuggestion(s!, key);
+    const differs = candidate !== null;
     return (
       <section className="resume-field" key={key}>
         <div className="resume-label-row">
@@ -197,6 +201,10 @@ export default function ResumePage() {
       <PageHeading eyebrow="01 / 确认事实" title="我的简历">
         导入原文，核对右侧字段，确认后进入岗位分析。
       </PageHeading>
+      <div className="resume-page-toolbar">
+        <span>YOUR STORY, IN YOUR WORDS</span>
+        <Link to="/resume/history">历史简历与版本管理 ↗</Link>
+      </div>
       <Feedback id="resume-status" error={s.error ? status : undefined} busy={Boolean(s.busy)}>
         {status}
       </Feedback>
@@ -219,7 +227,10 @@ export default function ResumePage() {
       <div className={`resume-grid ${imported ? 'is-reviewing' : ''}`}>
         <section className="resume-import">
           <div className="resume-source-workspace card">
-            <h2>原文与导入</h2>
+            <div className="section-heading">
+              <h2>原文与导入</h2>
+              <span className="folio-label">SOURCE / 01</span>
+            </div>
             <button
               id="resume-dropzone"
               type="button"
@@ -342,6 +353,9 @@ export default function ResumePage() {
             </details>
             <details id="resume-history" className="resume-history" ref={history}>
               <summary>历史简历</summary>
+              <Link className="history-manage-link" to="/resume/history">
+                查看全部 / 删除与清空 ↗
+              </Link>
               <div className="resume-history-list">
                 {s.rows.map((row) => (
                   <button

@@ -54,8 +54,33 @@ export default function HomePage() {
   ];
   return (
     <div className="home-page" data-module="home">
-      <h1 tabIndex={-1}>求职准备工作台</h1>
-      <p className="home-lead">确认简历，选定岗位，完成一次有针对性的准备。</p>
+      <header className="home-editorial">
+        <div>
+          <p className="eyebrow">THE NEXT CHAPTER / 下一程</p>
+          <h1 tabIndex={-1}>
+            <span className="sr-only">求职准备工作台：</span>你的经历，
+            <br />
+            值得被<span className="editorial-emphasis">看见。</span>
+          </h1>
+          <p className="home-lead">
+            从真实的经历出发，找到适合你的方向。
+            <br />
+            在这里，认真准备下一次机会。
+          </p>
+        </div>
+        <div className="chapter-art" aria-hidden="true">
+          <span className="art-orbit orbit-one" />
+          <span className="art-orbit orbit-two" />
+          <span className="art-orbit orbit-three" />
+          <span className="art-star">✳</span>
+          <span className="art-label">
+            EXPERIENCE
+            <br />
+            MEETS OPPORTUNITY
+          </span>
+          <span className="art-index">01 — ∞</span>
+        </div>
+      </header>
       <section className="home-next card" aria-labelledby="home-next-title">
         <div>
           <p className="eyebrow">
@@ -123,8 +148,12 @@ export default function HomePage() {
         </section>
       </div>
       <aside className="home-insight">
-        <span>探索其他方向</span>
-        <Link to="/analytics">市场洞察 ↗</Link>
+        <div>
+          <span className="eyebrow">LOOK A LITTLE FURTHER</span>
+          <h2>也看看，机会在哪里发生。</h2>
+          <p>从岗位样本里的技能与薪资，拓宽对下一步的理解。</p>
+        </div>
+        <Link to="/analytics">探索市场洞察 ↗</Link>
       </aside>
     </div>
   );

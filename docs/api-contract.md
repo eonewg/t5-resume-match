@@ -18,6 +18,8 @@
 | `POST /api/v1/resumes` | ResumeData | 201，保存结构化简历，Resume |
 | `GET /api/v1/resumes` | `limit=20&offset=0&order=asc` | Resume 数组；可用 order=desc 读最新记录 |
 | `GET /api/v1/resumes/{id}` | 无 | Resume |
+| `DELETE /api/v1/resumes/{id}` | 无 | 200，`{"deleted_count":1}`；不存在返回 404 |
+| `DELETE /api/v1/resumes` | 无 | 200，`{"deleted_count":N}`；清空全部历史简历，空库为 0 |
 | `POST /api/v1/jobs` | JDCreate（兼容原 JDInput 请求） | 201，JD |
 | `GET /api/v1/jobs` | `limit=20&offset=0` | JD 数组 |
 | `GET /api/v1/jobs/{id}` | 无 | JD |
@@ -40,6 +42,8 @@ ResumeData：
 ```
 
 `raw_text` 必填且逐字保留（含首尾空白和换行），纯空白拒绝；其余字段有默认值，未知 name 为 null。Resume 在其上增加服务端 `id=resume_<uuid>`。结构化保存不进行技能推断。preview 用于编辑前草稿，POST /resumes 保存确认后的新版本；不覆盖历史记录。
+
+删除简历在同一数据库事务内删除对应 MatchRecord、DiagnosisRecord 与简历本身；PostgreSQL 的 document_vectors、fragment_vectors 使用现有外键级联删除对应简历向量。任何步骤失败整体回滚；JD、JD 向量和其他简历不受单条删除影响。全部清空不受列表分页限制，清除请求选中的全部历史简历及其关联记录，保留岗位库。删除后对应记录 GET 返回 404；客户端应同步清除已删除的当前简历选择和关联匹配/诊断结果。
 
 文件预览仅增加输入适配：提取文本后复用相同 provider、ResumeData 和 `X-T5-Mock` 响应头。不会直接覆盖已确认字段或创建记录；用户核对后仍通过 `POST /resumes` 保存。提取的全文逐字进入 parser 并作为 raw_text 返回，不承诺恢复 PDF 的原始排版。
 

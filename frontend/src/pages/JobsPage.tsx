@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { connectJobs, type JobsController } from '../modules/jobs/controller.ts';
 import { useController, useWorkspace } from '../core/WorkspaceContext';
 import {
@@ -23,6 +23,8 @@ export default function JobsPage() {
   const navigate = useNavigate();
   const { store } = useWorkspace();
   const [formOpen, setFormOpen] = useState(false);
+  const formPanel = useRef<HTMLDetailsElement>(null);
+  const [query, setQuery] = useState('');
   const [form, setForm] = useState({ title: '', company: '', jd_text: '' });
   const [demo, setDemo] = useState(false);
   const [operation, setOperation] = useState('load');
@@ -30,6 +32,12 @@ export default function JobsPage() {
   const c = controller.current!;
   const job = s.jobs.find((row) => row.id === s.jdId);
   const resume = s.resumes.find((row) => row.id === s.resumeId);
+  const visibleJobs = s.jobs.filter((row) =>
+    [row.title, row.company, ...row.skills]
+      .join(' ')
+      .toLocaleLowerCase()
+      .includes(query.trim().toLocaleLowerCase()),
+  );
   return (
     <div className="product-page jobs-page" data-module="jobs">
       <PageHeading eyebrow="02 / 找准方向" title="目标岗位">
@@ -42,14 +50,25 @@ export default function JobsPage() {
       ) : (
         <>
           <section className="current-resume">
-            <div>
-              <span className="eyebrow">当前简历</span>
-              <strong>{resume?.name || '我的简历'}</strong>
-              <span className="helper-text">已确认</span>
+            <div className="resume-monogram" aria-hidden="true">
+              {resume?.name?.slice(0, 1) || '简'}
             </div>
-            <NextLink to="/resume" primary={false}>
-              更换简历
-            </NextLink>
+            <div className="resume-identity">
+              <span className="eyebrow">以这份经历，寻找下一站</span>
+              <div>
+                <strong>{resume?.name || '我的简历'}</strong>
+                <span className="status-badge" data-state="success">
+                  已确认简历
+                </span>
+              </div>
+              <p>{resume?.education || '从你的真实经历出发'}</p>
+            </div>
+            <div className="resume-skill-preview">
+              <Chips values={resume?.skills.slice(0, 4) || []} empty="在简历中补充你的技能" />
+            </div>
+            <Link className="resume-switch" to="/resume/history">
+              更换简历 <span aria-hidden="true">⇄</span>
+            </Link>
           </section>
           {job && (
             <section className="next-action card selected-job" data-testid="selected-job">
@@ -83,10 +102,37 @@ export default function JobsPage() {
           <section aria-labelledby="job-choice-title">
             <div className="section-heading">
               <h2 id="job-choice-title">选择目标岗位</h2>
-              <span className="helper-text">{s.jobs.length} 个已录入岗位</span>
+              <div className="job-collection-tools">
+                <span className="helper-text">{s.jobs.length} 个已录入岗位</span>
+                <Button
+                  onClick={() => {
+                    setFormOpen(true);
+                    if (formPanel.current) {
+                      formPanel.current.open = true;
+                      formPanel.current.scrollIntoView({ block: 'center' });
+                    }
+                  }}
+                  disabled={s.busy}
+                >
+                  ＋ 添加岗位
+                </Button>
+              </div>
             </div>
+            {s.jobs.length > 3 && (
+              <div className="job-search">
+                <label htmlFor="job-search">在已录入岗位中查找</label>
+                <input
+                  id="job-search"
+                  type="search"
+                  placeholder="搜索岗位、公司或技能…"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                />
+                <span>{visibleJobs.length} 个结果</span>
+              </div>
+            )}
             <div className="job-options" aria-label="选择目标岗位">
-              {s.jobs.map((row) => (
+              {visibleJobs.map((row) => (
                 <button
                   type="button"
                   className="job-option"
@@ -107,6 +153,9 @@ export default function JobsPage() {
                 </button>
               ))}
             </div>
+            {s.jobs.length > 0 && !visibleJobs.length && (
+              <p className="compact-empty">没有找到相符的岗位。试试其他关键词，或添加新的目标。</p>
+            )}
             {!s.jobs.length && !s.busy && (
               <p className="compact-empty">
                 还没有目标岗位。展开“添加岗位”，粘贴你想申请的岗位要求。
@@ -114,6 +163,7 @@ export default function JobsPage() {
             )}
           </section>
           <details
+            ref={formPanel}
             className="job-form"
             open={formOpen}
             onToggle={(e) => setFormOpen(e.currentTarget.open)}

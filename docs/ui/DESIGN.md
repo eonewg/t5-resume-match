@@ -1,6 +1,8 @@
 # T5 Resume Match UI Refresh
 Project: 4839069813519735528
 
+> 2026-09-10：当前桌面视觉与交互以 [职业编辑室重设计](career-studio.md) 为准；以下保留为早期设计记录。
+
 > 2026-09-09：下列早期 Stitch 规范保留作设计来源；当前 UI Polish 的尺寸、状态和实际浏览器取舍以 [Polish 交付说明](polish.md) 为准。当前实现使用统一深青绿、紧凑表单和技能 chip，不再采用早期“技能仅纯文本列表”的建议。
 
 ## 1. Visual Theme & Atmosphere

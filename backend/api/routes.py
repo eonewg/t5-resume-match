@@ -2,7 +2,7 @@ from datetime import date
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, UploadFile
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
 from backend.core.market_samples import import_sample_jobs
@@ -152,6 +152,34 @@ def get_resume(identifier: str, response: Response, db: DB):
     row = require_row(db, ResumeRow, identifier)
     mark_mock(response, row.is_mock)
     return Resume(id=row.id, **row.payload)
+
+
+def remove_resumes(db: Session, identifier: str | None = None):
+    # Lock parents before removing children so concurrent PostgreSQL pair writes
+    # cannot leave new references between child deletion and parent deletion.
+    query = select(ResumeRow.id).order_by(ResumeRow.id).with_for_update()
+    if identifier is not None:
+        query = query.where(ResumeRow.id == identifier)
+    identifiers = db.scalars(query).all()
+    if identifier is not None and not identifiers:
+        raise HTTPException(404, "记录不存在")
+    if identifiers:
+        # Existing pair foreign keys are restrictive; all work shares the request
+        # transaction. PostgreSQL vector foreign keys already use ON DELETE CASCADE.
+        for model in (MatchRow, DiagnosisRow):
+            db.execute(delete(model).where(model.resume_id.in_(identifiers)))
+        db.execute(delete(ResumeRow).where(ResumeRow.id.in_(identifiers)))
+    return {"deleted_count": len(identifiers)}
+
+
+@router.delete("/resumes", response_model=dict[str, int], tags=["resume"])
+def clear_resumes(db: DB):
+    return remove_resumes(db)
+
+
+@router.delete("/resumes/{identifier}", response_model=dict[str, int], tags=["resume"])
+def delete_resume(identifier: str, db: DB):
+    return remove_resumes(db, identifier)
 
 
 @router.post("/jobs", response_model=JD, status_code=201, tags=["jobs"])

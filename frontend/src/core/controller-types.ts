@@ -19,6 +19,7 @@ export interface ResumeDraft {
   protectedFields: ResumeField[];
   reviewed: boolean;
   candidate: ResumeValues | null;
+  acceptedSuggestions?: Partial<Record<ResumeField, string[]>>;
   aiStatus: 'idle' | 'success' | 'failed' | 'mock' | 'manual';
   imported: boolean;
   parseMock: boolean | null;

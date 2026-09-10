@@ -63,6 +63,33 @@ function fingerprint(data: ResumeData) {
   });
 }
 
+// Compare presentation differences without rewriting the user's stored text.
+const normalized = (value: string) => value.trim().replace(/\s+/g, ' ').toLocaleLowerCase();
+function suggestionItems(field: ResumeField, value: string | string[]): string[] {
+  const items = Array.isArray(value) ? value : field === 'skills' ? value.split(/\r?\n/) : [value];
+  return items.filter((item) => normalized(item));
+}
+
+export function newSuggestion(state: ResumeDraft, field: ResumeField): string | string[] | null {
+  if (!state.candidate) return null;
+  const known = new Set([
+    ...suggestionItems(field, state.values[field]).map(normalized),
+    ...(state.acceptedSuggestions?.[field] ?? []),
+  ]);
+  const fresh = suggestionItems(field, state.candidate[field]).filter((item) => {
+    const key = normalized(item);
+    if (known.has(key)) return false;
+    known.add(key);
+    return true;
+  });
+  if (!fresh.length) return null;
+  return field === 'experience' ? fresh : fresh.join('\n');
+}
+
+export function hasNewSuggestion(state: ResumeDraft, field: ResumeField): boolean {
+  return newSuggestion(state, field) !== null;
+}
+
 export function connectResume(
   context: ControllerContext,
   render: (state: ResumeState) => void,
@@ -74,6 +101,7 @@ export function connectResume(
     protectedFields: [],
     reviewed: false,
     candidate: null,
+    acceptedSuggestions: {},
     aiStatus: 'idle',
     imported: false,
     parseMock: null,
@@ -274,8 +302,27 @@ export function connectResume(
   }
   function apply(field: ResumeField) {
     if (!active() || state.busy || !fields.includes(field) || !state.candidate) return;
+    const suggestion = newSuggestion(state, field);
+    if (suggestion === null) return;
+    state.acceptedSuggestions ??= {};
+    state.acceptedSuggestions[field] = [
+      ...new Set([
+        ...(state.acceptedSuggestions[field] ?? []),
+        ...suggestionItems(field, suggestion).map(normalized),
+      ]),
+    ];
     // Only an explicit per-field action may replace a protected value.
-    edit(field, state.candidate[field]);
+    if (field === 'skills') {
+      const existing = state.values.skills;
+      edit(
+        field,
+        existing
+          ? `${existing}${existing.endsWith('\n') ? '' : '\n'}${suggestion}`
+          : String(suggestion),
+      );
+    } else if (field === 'experience') {
+      edit(field, [...state.values.experience, ...(suggestion as string[])]);
+    } else edit(field, suggestion as string);
     state.notice = '已采用此项解析建议，请重新核对后保存。';
     show();
   }
@@ -314,6 +361,7 @@ export function connectResume(
       if (!valid()) return;
       const data = checked(response.data, true);
       if (data.id !== identifier) throw Error('服务返回了另一份简历，当前内容已保留。');
+      if (state.savedId !== identifier) state.acceptedSuggestions = {};
       acceptSaved(data, response.isMock === true);
       state.notice = '已打开历史简历，确认过的内容会保留。';
     });
@@ -374,6 +422,7 @@ export function connectResume(
       protectedFields: [],
       reviewed: false,
       candidate: null,
+      acceptedSuggestions: {},
       aiStatus: 'idle',
       imported: false,
       parseMock: null,
@@ -413,6 +462,7 @@ export function connectResume(
       protectedFields,
       reviewed,
       candidate,
+      acceptedSuggestions,
       parseMock,
       savedId,
       savedSnapshot,
@@ -425,6 +475,7 @@ export function connectResume(
       protectedFields,
       reviewed,
       candidate,
+      acceptedSuggestions,
       parseMock,
       savedId,
       savedSnapshot,

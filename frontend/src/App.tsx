@@ -9,13 +9,16 @@ import JobsPage from './pages/JobsPage';
 import MatchingPage from './pages/MatchingPage';
 import DiagnosisPage from './pages/DiagnosisPage';
 import AnalyticsPage from './pages/AnalyticsPage';
+import ResumeHistoryPage from './pages/ResumeHistoryPage';
 
 const navigation = [
-  ['home', '首页', '⌂'],
-  ['resume', '我的简历', '01'],
-  ['jobs', '目标岗位', '02'],
-  ['matching', '匹配分析', '03'],
-  ['diagnosis', 'AI 优化', '04'],
+  ['home', '首页', '◈'],
+  ['resume', '我的简历', '▤'],
+  ['resume/history', '历史简历', '◷'],
+  ['jobs', '目标岗位', '↗'],
+  ['matching', '匹配分析', '⇄'],
+  ['diagnosis', 'AI 优化', '✳'],
+  ['analytics', '市场洞察', '◒'],
 ];
 class PageBoundary extends Component<{ children: ReactNode }, { error: boolean }> {
   state = { error: false };
@@ -112,7 +115,7 @@ export function ProductShell() {
   const key = location.pathname.slice(1) || 'home';
   const title = navigation.find(([value]) => value === key)?.[1] || '市场洞察';
   useEffect(() => {
-    document.title = `${title} · T5 简历与岗位`;
+    document.title = `${title} · T5 Career Workspace`;
     document.querySelector<HTMLHeadingElement>('h1')?.focus({ preventScroll: true });
     window.scrollTo(0, 0);
   }, [location.pathname, title]);
@@ -130,11 +133,14 @@ export function ProductShell() {
       </a>
       <aside className="sidebar">
         <Link className="brand" to="/">
-          <span className="brand-mark">简</span>
+          <span className="brand-mark">
+            t5<span>.</span>
+          </span>
           <span>
-            简历与岗位<small>让下一步更清晰</small>
+            职业编辑室<small>CAREER WORKSPACE</small>
           </span>
         </Link>
+        <p className="nav-caption">你的工作空间</p>
         <nav aria-label="主要导航">
           {navigation.map(([value, label, icon]) => (
             <NavLink key={value} to={value === 'home' ? '/' : `/${value}`} end data-view={value}>
@@ -145,21 +151,28 @@ export function ProductShell() {
             </NavLink>
           ))}
         </nav>
+        <div className="sidebar-footer">
+          <span className="sidebar-flower" aria-hidden="true">
+            ✳
+          </span>
+          <p>
+            把经历写清楚。
+            <br />
+            让下一步有方向。
+          </p>
+          <small>T5 / CAREER STUDIO</small>
+        </div>
       </aside>
       <div className="app-frame">
         <header className="topbar">
-          <strong id="page-label">{title}</strong>
+          <div className="breadcrumb">
+            <span>工作空间</span>
+            <span>/</span>
+            <strong id="page-label">{title}</strong>
+          </div>
           <ServiceStatus />
         </header>
         <main id="main-content" tabIndex={-1}>
-          <div className="auxiliary-row">
-            <span>{active === 4 ? '建议待人工核实' : `当前进度：${steps[active].title}`}</span>
-            <nav aria-label="辅助导航">
-              <NavLink to="/analytics" data-view="analytics">
-                市场洞察 ↗
-              </NavLink>
-            </nav>
-          </div>
           {steps.some((step) => step.path === location.pathname) && (
             <ol className="process-strip" aria-label="求职准备流程">
               {steps.map((step, i) => (
@@ -182,6 +195,7 @@ export function ProductShell() {
                 <Route path="/" element={<HomePage />} />
                 <Route path="/home" element={<Navigate to="/" replace />} />
                 <Route path="/resume" element={<ResumePage />} />
+                <Route path="/resume/history" element={<ResumeHistoryPage />} />
                 <Route path="/jobs" element={<JobsPage />} />
                 <Route path="/matching" element={<MatchingPage />} />
                 <Route path="/diagnosis" element={<DiagnosisPage />} />
