@@ -6,10 +6,10 @@
 
 | 模块 | Owner | 公开入口 | 测试目录 |
 | --- | --- | --- | --- |
-| resume | A | `backend.modules.resume.public:ResumeService` | `tests/resume/` |
-| jobs（含 matching） | D | `backend.modules.jobs.public:JobsService` | `tests/jobs/` |
+| resume | B | `backend.modules.resume.public:ResumeService` | `tests/resume/` |
+| jobs（含 matching） | C | `backend.modules.jobs.public:JobsService` | `tests/jobs/` |
 | diagnosis | D | `backend.modules.diagnosis.public:DiagnosisService` | `tests/diagnosis/` |
-| analytics | A | `backend.modules.analytics.public:AnalyticsService` | `tests/analytics/` |
+| analytics | E | `backend.modules.analytics.public:AnalyticsService` | `tests/analytics/` |
 
 类无参构造、同步实例方法，签名见 `backend/core/ports.py`。实例可能被多请求共享，不保存单次请求输入。公共层只依赖公开入口，不调用其他模块内部实现。
 
@@ -23,7 +23,7 @@ uv run --locked python -m scripts.check_member diagnosis --examples
 uv run --locked python -m scripts.check_member analytics --examples
 ```
 
-实现后对自己的模块去掉 `--examples`；D 必须分别自检 jobs 和 diagnosis。合成输入来自 `examples/fixtures/team.json`，示例明确标记 Mock，不能作为真实交付。
+实现后对自己的模块去掉 `--examples`；C 自检 jobs，D 自检 diagnosis。合成输入来自 `examples/fixtures/team.json`，示例明确标记 Mock，不能作为真实交付。
 
 真实检查拒绝 Mock/示例入口，验证公开输出和保留字段，运行模块测试及公共测试。缺少测试、全部跳过、没有实际通过用例或调用超时均失败。工具不改 .env、分支或公共数据库。公开调用默认 45 秒，模块/公共测试各至少给 180 秒，可用 `--timeout` 调整。
 
@@ -33,7 +33,7 @@ MODULE_CHECK_PASS 仅表示自动自检通过，不替代 T5 功能、效果与�
 
 ## 范围与 CI
 
-可选的本地 D-owner 自检（保留开发期模块路径约束）：
+可选的历史 D-owner 自检（旧 jobs + diagnosis 路径约束，与当前五人 D 角色无关）：
 
 ```powershell
 git fetch origin

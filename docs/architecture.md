@@ -1,10 +1,10 @@
-# A 公共架构与集成记录
+# Vitae 系统架构
 
 ## 目标与当前边界
 
-依据本地实验指导要求 T5：Level 1 简历编辑/文本解析与关键词匹配；Level 2 STAR 与定向 AI 优化；Level 3 就业市场分析。A 负责公共平台、数据库、resume 编辑器与 analytics；D 负责 JD/匹配算法及诊断 Prompt。完整要求见 [T5 对照表](../T5_REQUIREMENTS_MATRIX.md)。
+依据本地实验指导要求 T5：Level 1 简历编辑/文本解析与关键词匹配；Level 2 STAR 与定向 AI 优化；Level 3 就业市场分析。A 负责公共平台与集成，B 负责 Resume，C 负责 Jobs/Matching，D 负责 Diagnosis，E 负责 Analytics；详见[五人分工](../T5_FIVE_PERSON_ALLOCATION.md)。完整要求见 [T5 对照表](../T5_REQUIREMENTS_MATRIX.md)。
 
-已集成 PR #5、#6、#7。Resume/Jobs/Analytics 默认使用真实实现，Diagnosis 默认仍为显式 Mock，配置真实 provider 后调用模型。Resume 编辑器支持预览、字段保护、确认、保存和读回；UI 专项重构由 D 接续。`/ready` 判断配置是否全部替换了 Mock，不对算法质量或外部 AI 服务可用性作保证。
+当前启动模板的四个 provider 均为正式实现；Resume 与 Diagnosis 使用配置的模型，缺少密钥时明确报错，不自动回退 Mock。Resume 支持字段保护、确认、保存和历史读回，前端使用 React + TypeScript。`/ready` 检查数据库与 provider 就绪情况，不保证外部 AI 密钥有效性或输出质量。历史集成结果见验收台账。
 
 ## 分层与责任映射
 
@@ -17,10 +17,10 @@
 | `tests/core/`、`scripts/smoke.py` | A，公共集成验证 |
 | `examples/`、`scripts/check_member.py`、`scripts/check_scope.py` | A，合成样例、成员接入自检与范围检查 |
 | `frontend/index.html`、`frontend/src/core/`、`frontend/src/App.tsx`、`frontend/src/pages/`、全局样式 | A，同源公共壳、API 客户端、React 页面、导航、状态及流程编排 |
-| `backend/modules/resume/` | A，保守规则解析；编辑保存通过公共 API，编辑器已接入并验证 |
-| `backend/modules/jobs/` | D，已集成 JD 关键词与可解释匹配 |
+| `backend/modules/resume/` | B，AI 结构化解析、字段保护与编辑保存 |
+| `backend/modules/jobs/` | C，JD 关键词、可解释匹配与语义增强 |
 | `backend/modules/diagnosis/` | D，已集成诊断实现，custom/openai_chat 真实模型已验证；其他协议有离线测试 |
-| `backend/modules/analytics/` | A，已录入 JD 的来源、技能和分组薪资统计 |
+| `backend/modules/analytics/` | E，已录入 JD 的来源、技能和分组薪资统计 |
 
 业务目录由成员创建。业务模块可以导入公共 Schema/ports；A 只导入成员发布的公开入口，不导入内部函数。现有标准路由保持稳定，接入模块时替换 provider；需要额外路由时提交集成请求，由 A 挂载到 v1。
 
@@ -32,19 +32,19 @@
 
 | 成员 | 方法 | 输入 → 输出 |
 | --- | --- | --- |
-| A / resume | `parse` | `TextInput` → `ResumeData` |
-| D / jobs | `parse` | `JDInput` → `JDData` |
-| D / jobs | `match` | `Resume, JD` → `MatchResult` |
+| B / resume | `parse` | `TextInput` → `ResumeData` |
+| C / jobs | `parse` | `JDInput` → `JDData` |
+| C / jobs | `match` | `Resume, JD` → `MatchResult` |
 | D / diagnosis | `diagnose` | `DiagnosisInput` → `DiagnosisResult` |
-| A / analytics | `analyze` | `list[JD]` → `AnalysisResult` |
+| E / analytics | `analyze` | `list[JD]` → `AnalysisResult` |
 
-例如 A 实现 `backend.modules.resume.public:ResumeService` 后，设置 `T5_RESUME_PROVIDER=backend.modules.resume.public:ResumeService`。A 在 `core` 中添加必要 adapter，将旧实现输出转换为公共模型，再配置 adapter 的路径；不修改成员内部实现。
+例如 B 实现 `backend.modules.resume.public:ResumeService` 后，设置 `T5_RESUME_PROVIDER=backend.modules.resume.public:ResumeService`。A 在 `core` 中添加必要 adapter，将旧实现输出转换为公共模型，再配置 adapter 的路径；不修改成员内部实现。
 
 所有 provider 输出重新校验：字段类型、score 范围、关联 ID 不一致或异常均返回 502，不持久化失败结果。禁止静默使用 Mock 掩盖真实模块错误。
 
 ## 数据库与事务
 
-SQLite 保留为零服务演示默认方案；PostgreSQL + pgvector 已落地并真实测试。D 提供模型/维度/距离，A 提供空间隔离、vector 字段、索引、VectorRepository 和显式版本迁移，详见 [数据库契约](postgres.md)。基础公共表：
+SQLite 保留为零服务演示默认方案；PostgreSQL + pgvector 已落地并真实测试。C 提供模型/维度/距离，A 提供空间隔离、vector 字段、索引、VectorRepository 和显式版本迁移，详见 [数据库契约](postgres.md)。基础公共表：
 
 | 表 | 字段与关系 |
 | --- | --- |
@@ -67,4 +67,4 @@ SQLite 保留为零服务演示默认方案；PostgreSQL + pgvector 已落地并
 
 依赖由 uv.lock 固定。数据库提交在 HTTP 成功响应前完成，错误回滚；公共测试验证事务、外键与输出契约。当前测试和环境限制见 [验证记录](validation.md)，完整模块验收见 [台账](acceptance.md)。
 
-D 负责 jobs 内的 Matching/Embedding 和 Diagnosis；A 负责公共数据存取与适配，避免模块直接依赖对方内部实现。
+C 负责 jobs 内的 Matching/Embedding，D 负责 Diagnosis；A 负责公共数据存取与适配，避免模块直接依赖对方内部实现。

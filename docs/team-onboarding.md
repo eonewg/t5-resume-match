@@ -1,7 +1,7 @@
 # 团队维护上手
 
 PR #9 已合入 main。当前统一从最新 main 开始维护；旧 A/D 集成分支不再使用或恢复。
-功能与模块职责见 [T5 需求](../T5_REQUIREMENTS_MATRIX.md)、[A](roles/A.md)、[D](roles/D.md)，
+功能与模块职责见 [T5 需求](../T5_REQUIREMENTS_MATRIX.md)、[五人分工](../T5_FIVE_PERSON_ALLOCATION.md)，
 当前流程以 [团队约定](team-rules.md) 为准。
 
 ## 获取与创建维护分支
@@ -22,7 +22,7 @@ git switch -c fix/your-topic
 
 ## 开发、验证与交付
 
-A 继续协作维护公共平台、Resume、Analytics、数据库与质量；D 继续协作维护 Jobs/Matching、Embedding、Diagnosis。
+A 负责总架构与集成，B 负责 Resume，C 负责 Jobs/Matching/Embedding，D 负责 Diagnosis，E 负责 Analytics 与市场数据验证。
 这些职责用于审查，不再通过现代 PR 的分支后缀强制限定路径。
 按 [模块自检指南](member-development.md) 验证公开契约、相关业务与边界，再运行完整检查。
 

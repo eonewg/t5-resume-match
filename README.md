@@ -1,56 +1,85 @@
-# Vitae · AI 简历诊断与岗位匹配系统
+<div align="center">
 
-本地运行的 AI 求职辅助工具：将简历原文整理为可编辑的结构化数据，与目标岗位进行关键词匹配和能力缺口分析，生成 STAR 优化建议，并对已录入的岗位记录做市场统计。默认 SQLite 开箱即用，AI 能力由 DeepSeek 官方接口驱动。
+# Vitae
 
-## 核心功能
+### 从一份简历，到有依据的求职行动。
 
-- **Resume 结构化** — 粘贴简历原文，自动抽取姓名、教育、技能与经历；字段核对修改后保存为版本，手动确认的字段在重新解析时受保护。
-- **JD 管理与匹配** — 录入目标岗位要求，得到关键词匹配分数与可解释的能力缺口。
-- **Diagnosis / STAR 优化** — 基于 JD 生成 STAR 改写与定向建议，逐项核实后采用；失败可重试，不自动采用生成内容。
-- **Analytics** — 按来源和采集日期筛选，统计已入库 JD 的技能频率、词云、逐岗技能与薪资区间。
+**AI 简历结构化 · 可解释岗位匹配 · STAR 定向优化 · 就业市场洞察**
 
-## 技术栈
+![Python](https://img.shields.io/badge/Python-3.11–3.13-3776AB?logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-API-009688?logo=fastapi&logoColor=white)
+![React](https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-typed-3178C6?logo=typescript&logoColor=white)
+![Database](https://img.shields.io/badge/Database-SQLite%20%7C%20pgvector-4169E1)
 
-| 层 | 技术 |
-| --- | --- |
-| 后端 | Python 3.11–3.13、FastAPI、SQLAlchemy 2、Pydantic v2、Uvicorn（[uv](https://docs.astral.sh/uv/getting-started/installation/) 管理依赖） |
-| 前端 | React 19 + TypeScript + Vite，React Router 导航，构建后由 FastAPI 同源托管 |
-| 数据库 | 默认 SQLite；可选 PostgreSQL 17 + pgvector |
-| AI | DeepSeek 官方 API（OpenAI Chat Completions 协议） |
+[快速开始](#快速开始) · [产品能力](#产品能力) · [系统架构](#系统架构) · [开发与验证](#开发与验证) · [五人分工](T5_FIVE_PERSON_ALLOCATION.md)
 
-## 当前 AI 配置
+</div>
 
-- Provider：DeepSeek 官方（`https://api.deepseek.com`），模型 `deepseek-flash`
-- Resume 与 Diagnosis 共用同一密钥：在 `.env` 中配置 `DEEPSEEK_API_KEY`
-- 需要分开时，可用 `T5_RESUME_LLM_API_KEY`、`T5_DIAGNOSIS_API_KEY` 分别覆盖
-- 密钥仅保存在本地 `.env`（不提交 Git）；未配置密钥可以启动，AI 功能会返回明确配置错误，不会静默回退到 Mock
+---
 
-## 快速启动
+Vitae 是一个本地运行的 AI 求职工作台，围绕「确认简历 → 选择目标岗位 → 理解匹配与能力缺口 → 针对岗位优化」组织完整流程。它保留简历原文和人工修改，把匹配依据、缺失技能与优化建议放在同一条工作链路中，帮助用户判断下一步该补充什么、突出什么。
+
+项目对应课程 T5「AI 简历诊断与岗位匹配系统」，覆盖结构化编辑与关键词匹配、AI 诊断、就业市场分析三个层级。[严格需求对照表](T5_REQUIREMENTS_MATRIX.md)定义验收目标，实际验证结果见[验收台账](docs/acceptance.md)。
+
+## 产品能力
+
+| 工作区 | 可以做什么 | 设计重点 |
+| --- | --- | --- |
+| **我的简历** | 粘贴文本、导入 PDF / DOCX / TXT 或识别截图；核对结构化字段、编辑、保存与查看历史 | 保留原文；重解析保护人工编辑；保存形成可读回的版本 |
+| **目标岗位** | 录入 JD 或从截图识别，整理技能、职责、学历、经验和薪资 | 识别结果先核对再保存；来源与原文可追溯 |
+| **匹配分析** | 查看 0–100 关键词匹配分数、已匹配技能、缺失技能与可选 AI 综合评估 | 关键词基线可解释；向量增强需显式配置 |
+| **AI 优化** | 按目标岗位生成 STAR 建议、关键词强化和量化补充提示 | 建议由用户核实；缺少事实时提示补充，不自动采用 |
+| **市场洞察** | 技能词云、薪资与逐岗技能分布；按来源和日期筛选；桌面大屏展示 | 统计基于入库 JD，展示样本口径；支持同步外部岗位 |
+| **模型设置** | 保存多份供应商配置，为不同功能分配模型，测试连接并持久化设置 | 用户自行提供密钥；缺少配置和模型失败明确反馈 |
+
+```mermaid
+flowchart LR
+    A[导入简历] --> B[核对 · 编辑 · 保存]
+    B --> C[选择目标岗位]
+    C --> D[匹配分数与技能缺口]
+    D --> E[STAR 与 JD 定向建议]
+    E --> F[人工核实与完善简历]
+    C --> G[岗位样本聚合]
+    G --> H[市场洞察与职业规划]
+```
+
+### 为什么这样设计
+
+- **编辑与 AI 分工明确。** AI 负责提取和建议，用户负责确认事实；解析失败后仍能保留输入、编辑并显式重新运行。
+- **结果能够解释。** 关键词匹配给出命中与缺失项，语义能力作为增强；市场图表保留来源、日期和缺失值口径。
+- **本地部署路径完整。** 源码启动使用 SQLite，另提供 PostgreSQL + pgvector 接入与 Windows 便携包构建方式。
+- **验证覆盖业务边界。** 公共契约、事务、模块行为与前端流程分别检查，离线测试与真实模型验证分别留档。
+
+## 快速开始
 
 ### Windows 便携版
 
-解压整个 `Vitae` 文件夹 → 双击 `Vitae.exe` → 在侧栏“设置”新建模型配置并填写自己的 API Key → 测试连接后保存，再勾选要使用的功能。最终用户无需安装 Python、uv、Git 或 Node，也无需手动编辑 `.env`。保留整个目录（包括 `_internal`），不能只复制 EXE。详细步骤见包内 `使用说明.txt` 或 [Windows 上手说明](docs/windows-quickstart.txt)。
+获取已构建的便携包后，解压完整 `Vitae` 文件夹，双击 `Vitae.exe`。在侧栏 **设置** 中新建模型配置、填入自己的 API Key、测试并保存，再勾选要使用的功能。最终用户无需安装 Python、Node.js、Git 或 uv。
 
-启动后仅监听 `127.0.0.1:8000`，成功后自动打开浏览器；关闭控制台或按 Ctrl+C 停止。端口已占用时启动失败，不自动换端口，请先停止占用 8000 的程序后重试。`.env` 从 EXE 同目录读取，SQLite 默认保存在 EXE 同目录的 `data/t5.db`；请解压到可写目录。移动整个文件夹即可保留配置与数据，不使用 LocalAppData。AI 功能需要有效密钥和联网；未配置密钥仍可启动，但 AI 请求会明确失败。`/ready` 表示数据库和四个正式 provider 已加载，不检测密钥有效性。
+程序默认打开 [本地工作台](http://127.0.0.1:8000/)。请保留 `_internal` 等完整目录，并解压到可写位置；数据库位于包内 `data/t5.db`，模型设置位于 `.runtime/ai-settings.json`。移动整个目录可保留数据与配置。8000 端口被占用时需要先解决占用再启动。
 
-开发机在 Windows 上运行 `powershell -ExecutionPolicy Bypass -File scripts/build_windows.ps1`，使用已有 uv 安装锁定的构建依赖，以 PyInstaller **onedir** 生成 `dist/Vitae/`。构建资源采用白名单，不复制开发机 `.env` 或数据库；构建产物不提交 Git。资源与 EXE 目录分离遵循 [PyInstaller 运行时路径规则](https://pyinstaller.org/en/stable/runtime-information.html)。开发验证可对全新构建运行 `uv run python -m scripts.verify_windows dist/Vitae`（需空闲 8000，会创建测试数据库并打开浏览器）；EXE 的 `--check-config` 仅输出配置路径和两模块密钥是否已配置，不输出密钥。实测结果见 [便携版验证记录](docs/windows-portable.md)。
+参阅[用户上手说明](docs/windows-quickstart.txt)与[便携版构建及验证记录](docs/windows-portable.md)。
 
-### 源码运行
+### 从源码启动
 
-需要 Git、Python 3.11–3.13、Node.js 22+（含 npm）和 [uv](https://docs.astral.sh/uv/getting-started/installation/)。便携版最终用户无需这些开发工具。
+准备 Python **3.11–3.13**、Node.js **22+**（含 npm）、Git 和 [uv](https://docs.astral.sh/uv/getting-started/installation/)。
 
 ```powershell
 git clone https://github.com/eonewg/t5-resume-match.git
 cd t5-resume-match
-copy .env.example .env
+Copy-Item .env.example .env
 powershell -ExecutionPolicy Bypass -File .\start.ps1
 ```
 
-复制 `.env.example` 为 `.env` 并填入 `DEEPSEEK_API_KEY=你的密钥`；未配置密钥也能启动，但 AI 功能会返回配置错误。
+启动后访问 [http://127.0.0.1:8000/](http://127.0.0.1:8000/)，交互式 API 文档在 [/docs](http://127.0.0.1:8000/docs)。首次启动会准备依赖并构建缺失的前端产物；修改前端后使用 `./start.ps1 -RebuildFrontend`，更换端口使用 `./start.ps1 -Port 8001`，按 `Ctrl+C` 停止服务。
 
-启动后打开 <http://127.0.0.1:8000/>，默认进入首页工作台，按「我的简历 → 目标岗位 → 匹配分析 → AI 优化」推进；市场洞察在辅助入口。交互式接口文档在 `/docs`。`Ctrl+C` 停止，`start.ps1 -Port 8001` 可更换端口。首次启动自动构建缺失的前端产物；更新前端源码后运行 `start.ps1 -RebuildFrontend`。脚本记录依赖清单和锁文件指纹；两者未变且依赖检查通过时，重建复用现有依赖。首次安装、清单变更或依赖不完整时执行 `npm ci`；Windows 原生模块被占用时提前停止，请先关闭本项目的 Vite/测试进程再重试，避免依赖被部分删除。热更新开发见 [前端接入说明](docs/frontend-integration.md)。
+未配置密钥也能启动界面；使用 AI 前，在设置页保存配置，或在 `.env` 填写 `DEEPSEEK_API_KEY`。仓库启动模板使用 DeepSeek 官方地址与 `deepseek-flash`；实际可用模型由所选供应商决定。不同功能的协议支持见 [AI 设置说明](docs/ai-settings.md)。
 
-其他系统或手动启动：
+<details>
+<summary><strong>其他系统 / 手动启动</strong></summary>
+
+先复制 `.env.example` 为 `.env`，再执行：
 
 ```sh
 uv sync --locked
@@ -59,67 +88,123 @@ npm --prefix frontend run build
 uv run --locked python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 ```
 
-默认在 `data/t5.db` 创建 SQLite 数据库，重启保留数据，不自动录入样例。
+默认创建 `data/t5.db`，重启保留已保存记录，不自动录入样例。Vite 热更新开发见[前端接入说明](docs/frontend-integration.md)。
 
-常用环境变量（完整列表见 `.env.example`）：
+</details>
 
-| 环境变量 | 默认值 | 说明 |
-| --- | --- | --- |
-| `T5_DATABASE_URL` | `sqlite:///data/t5.db` | 数据库连接，PostgreSQL 配置见[数据库文档](docs/postgres.md) |
-| `DEEPSEEK_API_KEY` | 空 | Resume + Diagnosis 共用的 DeepSeek 密钥 |
-| `T5_RESUME_LLM_API_KEY` | 空 | 可选，覆盖 Resume 模块密钥 |
-| `T5_DIAGNOSIS_API_KEY` | 空 | 可选，覆盖 Diagnosis 模块密钥 |
+<details>
+<summary><strong>常用配置与数据位置</strong></summary>
 
-## 项目结构
+| 配置 | 默认值 / 用途 |
+| --- | --- |
+| `T5_DATABASE_URL` | `sqlite:///data/t5.db`；PostgreSQL 见[数据库指南](docs/postgres.md) |
+| `DEEPSEEK_API_KEY` | 共享模型密钥，默认空 |
+| `T5_RESUME_LLM_API_KEY` | 可选，覆盖简历识别密钥 |
+| `T5_MATCHING_API_KEY` | 可选，覆盖匹配综合评估密钥 |
+| `T5_DIAGNOSIS_API_KEY` | 可选，覆盖 AI 诊断密钥 |
+| `.runtime/ai-settings.json` | 设置页保存的本机配置，包含密钥；不提交 Git、不放入便携分发包 |
 
+设置页分配的配置优先于启动配置；恢复启动配置不改写 `.env`。完整变量见 [.env.example](.env.example)。
+
+</details>
+
+## 系统架构
+
+React + TypeScript 负责页面与交互，FastAPI 提供同源 API 和静态资源服务。四个业务模块通过公开 provider、Pydantic Schema 与 ports 接入公共层；公共层负责持久化、事务和输出校验。
+
+```mermaid
+flowchart TB
+    UI[React 19 · TypeScript · Vite] --> API[FastAPI · API / Schema / 事务编排]
+    API --> R[Resume · 结构化简历]
+    API --> J[Jobs · JD 与匹配]
+    API --> D[Diagnosis · STAR 诊断]
+    API --> A[Analytics · 市场统计]
+    API --> DB[(SQLite / PostgreSQL)]
+    J -. 显式启用语义增强 .-> V[(pgvector)]
+    R --> LLM[配置的模型 API]
+    D --> LLM
+    J -. AI 综合评估 .-> LLM
 ```
+
+| 层次 | 技术与职责 |
+| --- | --- |
+| 前端 | React 19、TypeScript、React Router、Vite；页面、共享状态与 API 客户端 |
+| 服务端 | Python、FastAPI、Pydantic v2、SQLAlchemy 2、Uvicorn |
+| 数据 | SQLite 默认本地存储；PostgreSQL + pgvector 支持向量空间、索引与迁移 |
+| AI | 按模块配置供应商；结构化输出校验与事实保护；支持范围以模块契约为准 |
+| 工程 | uv / npm 锁定依赖、pytest、Ruff、Vitest、Playwright、GitHub Actions、PyInstaller |
+
+```text
 backend/
-  core/               配置、数据库、模块加载等公共设施
-  modules/            resume / jobs / diagnosis / analytics 业务模块
-  api/  schemas/  models/
-frontend/             React + TypeScript 页面、状态与 API 客户端；Vite 构建
-scripts/              启动、构建便携版、smoke、数据导入与校验脚本
-docs/                 详细文档
-tests/  examples/     自动化测试与合成样例
-data/                 SQLite 数据库与已归档的 JD / 简历样本（运行时生成）
+  api/ · core/ · schemas/ · models/    公共接口、配置、事务与数据模型
+  modules/
+    resume/                           简历解析
+    jobs/                             JD、关键词匹配与语义增强
+    diagnosis/                        STAR 与定向优化
+    analytics/                        岗位样本统计
+frontend/src/                         React 页面、交互状态与样式
+tests/ · frontend/tests/              后端、前端与浏览器验证
+scripts/                             启动、构建、迁移、数据导入与检查
+examples/                            明确标注的合成样例
+data/                                样本与评估材料；本地数据库被 Git 忽略
+docs/                                架构、契约、协作与验收证据
 ```
 
-## 测试
+更多设计见[架构说明](docs/architecture.md)、[API 契约](docs/api-contract.md)和[数据库与 pgvector](docs/postgres.md)。
 
-保持服务运行，在另一个终端执行：
+## 开发与验证
+
+在安装依赖后执行以下检查。前端先构建，供完整后端测试使用；这些命令本身不表示当前版本已通过全部真实环境验收。
 
 ```powershell
-uv run --locked python scripts/smoke.py    # 端到端冒烟：简历 → 岗位 → 匹配 → 诊断 → 读回
-uv run --locked pytest -q                  # 单元与集成测试（使用独立临时数据库）
+npm --prefix frontend run build
+uv run --locked pytest -q
 uv run --locked ruff check backend tests scripts examples
 uv run --locked ruff format --check backend tests scripts examples
-node scripts/check_frontend.mjs            # TypeScript、行为和 React 页面测试
-npm --prefix frontend run build            # 生产构建（完整 pytest 前先构建）
-npm --prefix frontend run test:e2e          # 隔离服务 + 本机 Edge，离线 AI 浏览器验收
+node scripts/check_frontend.mjs
+npm --prefix frontend run test:e2e
 ```
 
-## 已知限制
+浏览器验收使用隔离服务与本机 Edge，AI 为离线替身。真实服务冒烟可运行 `uv run --locked python scripts/smoke.py`，它会创建记录并调用当前配置的 AI，需单独准备可用服务和密钥。PostgreSQL、模型质量与全新安装分别依据对应记录判断。
 
-- 面向本地单用户使用：没有登录、多用户隔离或面向公网的部署设计
-- 默认 SQLite；已有数据不会自动迁移到 PostgreSQL
-- AI 生成的结构化结果与优化建议需人工核实后采用
-- 语义增强默认关闭
+Windows 开发机构建便携版：
 
-## 文档
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/build_windows.ps1
+```
 
-- [架构说明](docs/architecture.md) — 分层结构、模块边界与数据库设计
-- [API 契约](docs/api-contract.md) — REST 接口定义
-- [数据库与 pgvector](docs/postgres.md) — PostgreSQL 启动、迁移与向量查询
-- [AI Provider 配置](docs/current-provider.md) — 模型与密钥配置细节
-- [Windows 便携版](docs/windows-portable.md) — 构建与实测验证记录
-- [验证记录](docs/validation.md)、[验收台账](docs/acceptance.md)
-- [团队协作约定](docs/team-rules.md)、[前端接入说明](docs/frontend-integration.md)
+产物位于 `dist/Vitae/`，以完整目录分发。详细检查与条件见[便携版文档](docs/windows-portable.md)。
 
+## 五人职责分工
 
-### 桌面界面与市场数据
+按照系统实际模块划分五个工作包，A 承担更多跨模块架构、数据库、工程与集成责任。比例是**计划工作量权重**，用于分配和复核，不作为历史贡献统计。
 
-当前仅维护桌面端，验收宽度为 1280/1366/1440/1920px；已移除手机专用布局。市场洞察按技能、薪资、岗位来源三个页签阅读，支持大屏模式和可折叠侧栏。点击“同步外部岗位”可选择国家大学生就业服务平台国内岗位或 Jobicy 全球远程岗位，无需 Key，缓存 1 小时。来源是累计采集记录，不保证岗位仍开放；详细口径见 [市场大屏接入记录](docs/ui/market-dashboard-api.md)。
+| 成员 | 主要职责 | 计划权重 |
+| --- | --- | ---: |
+| **A · 总架构与集成负责人** | 总体设计、公共 API / 数据库、前端公共壳、配置、CI、集成与交付 | **35%** |
+| **B · 简历工作台负责人** | 简历解析、字段保护、编辑保存、历史与文档导入 | **18%** |
+| **C · 岗位与匹配负责人** | JD 管理、关键词评分、gap、语义增强与匹配评估 | **18%** |
+| **D · AI 诊断负责人** | STAR、JD 定向建议、事实保护与模型失败恢复 | **16%** |
+| **E · 市场分析负责人** | 市场样本、统计图表、数据口径与市场模块测试 | **13%** |
 
-### AI 供应商与退出
+每个业务模块由一人独立负责前后端与模块测试，公共层及系统 E2E 统一归 A；跨模块修改交给文件负责人实施。具体独占文件范围、交接关系与验收标准见[五人分工方案](T5_FIVE_PERSON_ALLOCATION.md)。成员以 A–E 占位；姓名与实际完成项由成员确认后填写，历史提交和验证记录保留原始归属。
 
-侧栏「设置」可保存多份供应商配置，自定义 API 地址、模型与 API Key，并为简历识别、匹配分析和 AI 优化分别切换或统一应用。密钥可显示/隐藏，配置保存在本机供下次启动读取。「保存并退出」写入配置后正常结束服务进程。用法、协议范围与验收见 [AI 设置说明](docs/ai-settings.md)。
+## 使用边界
+
+- 面向本地单用户、桌面浏览器使用，当前验收宽度为 1280 / 1366 / 1440 / 1920 px；没有登录和多用户隔离设计。
+- 数据保存在本机；使用 AI 时，相关文本或主动提交的截图会发送给配置的模型服务。AI 结果需要人工核实。
+- 默认 SQLite；切换 PostgreSQL 不会自动搬迁已有 SQLite 数据。语义增强默认关闭。
+- 市场洞察反映已采集样本，不代表整个就业市场；外部岗位记录不保证仍在招聘。
+- 模型请求失败会明确返回错误，不静默伪装为 Mock 成功。`/ready` 不验证模型密钥有效性或输出质量。
+
+## 文档导航
+
+| 我想了解 | 文档 |
+| --- | --- |
+| 产品要求与演示 | [T5 需求](T5_REQUIREMENTS_MATRIX.md) · [演示脚本](docs/final/demo-script.md) · [合成样例](docs/demo-samples.md) |
+| 部署与模型 | [Windows 上手](docs/windows-quickstart.txt) · [AI 设置](docs/ai-settings.md) · [Provider 配置](docs/current-provider.md) |
+| 工程设计 | [架构](docs/architecture.md) · [API 契约](docs/api-contract.md) · [前端接入](docs/frontend-integration.md) |
+| 团队分工 | [五人分工](T5_FIVE_PERSON_ALLOCATION.md) · [团队约定](docs/team-rules.md) · [开发上手](docs/team-onboarding.md) |
+| 验证依据 | [验证记录](docs/validation.md) · [验收台账](docs/acceptance.md) · [交付状态记录](docs/final/delivery-status.md) |
+
+验收材料按记录时间和提交版本理解；历史截图、模型配置和测试数量不自动代表当前版本。
