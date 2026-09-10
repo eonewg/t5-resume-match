@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { connectJobs, type JobsController } from '../modules/jobs/controller.ts';
 import { useController, useWorkspace } from '../core/WorkspaceContext';
@@ -16,7 +16,9 @@ export default function JobsPage() {
   const navigate = useNavigate();
   const { store } = useWorkspace();
   const [formOpen, setFormOpen] = useState(false);
-  const formPanel = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    if (formOpen) document.getElementById('jobs-title')?.focus();
+  }, [formOpen]);
   const [params] = useSearchParams();
   const [query, setQuery] = useState(params.get('q') || '');
   useEffect(() => setQuery(params.get('q') || ''), [params]);
@@ -39,22 +41,14 @@ export default function JobsPage() {
         <PageHeading title="目标岗位">
           选择你准备申请的岗位，让后续匹配和优化有一个具体目标。
         </PageHeading>
-        {
-          <Button
-            tone="primary"
-            disabled={s.busy}
-            onClick={() => {
-              setFormOpen(true);
-              if (formPanel.current) {
-                formPanel.current.open = true;
-                formPanel.current.scrollIntoView({ block: 'nearest' });
-              }
-              document.getElementById('jobs-title')?.focus();
-            }}
-          >
-            添加岗位
-          </Button>
-        }
+        <Button
+          id="jobs-add"
+          tone="primary"
+          disabled={s.busy || formOpen}
+          onClick={() => setFormOpen(true)}
+        >
+          添加岗位
+        </Button>
       </div>
       <Feedback id="jobs-status" error={s.error} busy={s.busy}>
         {s.busy
@@ -113,7 +107,7 @@ export default function JobsPage() {
                   className="job-option"
                   key={row.id}
                   data-job-id={row.id}
-                  aria-pressed={row.id === s.jdId}
+                  aria-pressed={!formOpen && row.id === s.jdId}
                   disabled={s.busy}
                   onClick={() => {
                     c.choose('jdId', row.id);
@@ -122,7 +116,7 @@ export default function JobsPage() {
                 >
                   <span className="job-option-title">
                     <strong>{row.title}</strong>
-                    <span aria-hidden="true">{row.id === s.jdId ? '→' : ''}</span>
+                    <span aria-hidden="true">{!formOpen && row.id === s.jdId ? '→' : ''}</span>
                   </span>
                   <span>{row.company || '公司暂未提供'}</span>
                   <span className="job-option-skills">
@@ -214,14 +208,13 @@ export default function JobsPage() {
                 <p>从左侧打开岗位，阅读完整要求后开始匹配。</p>
               </div>
             )}
-            <details
-              ref={formPanel}
-              className="job-form"
-              open={formOpen}
-              onToggle={(e) => setFormOpen(e.currentTarget.open)}
-            >
-              <summary>{formOpen ? '收起岗位表单' : '添加岗位'}</summary>
-              <h2>录入岗位要求</h2>
+            <section className="job-form" hidden={!formOpen} aria-labelledby="jobs-form-heading">
+              <div className="section-heading">
+                <h2 id="jobs-form-heading">添加新岗位</h2>
+                <Button id="jobs-cancel-add" disabled={s.busy} onClick={() => setFormOpen(false)}>
+                  返回浏览
+                </Button>
+              </div>
               <form
                 onSubmit={async (e) => {
                   e.preventDefault();
@@ -236,6 +229,7 @@ export default function JobsPage() {
                     setFormOpen(false);
                     setForm({ title: '', company: '', jd_text: '' });
                     setDemo(false);
+                    setQuery('');
                   }
                 }}
               >
@@ -273,17 +267,6 @@ export default function JobsPage() {
                 <Button type="submit" tone="primary" disabled={s.busy}>
                   {s.busy && operation === 'create' ? '正在整理并保存…' : '保存并选中'}
                 </Button>
-                {operation === 'create' && s.notice && !s.error && (
-                  <Button
-                    onClick={() => {
-                      setFormOpen(false);
-                      setForm({ title: '', company: '', jd_text: '' });
-                      setDemo(false);
-                    }}
-                  >
-                    完成添加，继续匹配
-                  </Button>
-                )}
                 <details className="job-demo-options full-field">
                   <summary>使用合成示例</summary>
                   <p>仅填入表单；保存、匹配与优化均需主动发起。</p>
@@ -310,7 +293,7 @@ export default function JobsPage() {
                   </div>
                 </details>
               </form>
-            </details>
+            </section>
           </div>
         </div>
       </>

@@ -821,18 +821,8 @@
   justify-content: center;
   color: var(--muted);
 }
-.job-form {
-  margin-top: 14px;
-}
-.job-form[open] {
-  margin-top: 0;
-}
-.job-form > summary {
-  color: var(--accent);
-  font-weight: 550;
-}
 .job-form h2 {
-  margin-top: 20px;
+  margin: 0;
 }
 .job-form form {
   display: grid;

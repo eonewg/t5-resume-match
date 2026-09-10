@@ -327,10 +327,10 @@ describe('matching and diagnosis rendering', () => {
         : undefined;
     const store = page('/jobs', true);
     await screen.findByText('测试同学');
-    const formPanel = document.querySelector('.job-form') as HTMLDetailsElement;
-    formPanel.scrollIntoView = vi.fn();
+    const formPanel = document.querySelector('.job-form') as HTMLElement;
+    fireEvent.change(input('job-search'), { target: { value: '后端' } });
     fireEvent.click(screen.getByRole('button', { name: '添加岗位', exact: true }));
-    expect(formPanel.open).toBe(true);
+    expect(formPanel.hidden).toBe(false);
     expect(document.activeElement).toBe(input('jobs-title'));
     fireEvent.change(input('jobs-title'), { target: { value: '我的目标岗位' } });
     fireEvent.change(input('jobs-text'), { target: { value: '用户提供的岗位原文' } });
@@ -339,11 +339,45 @@ describe('matching and diagnosis rendering', () => {
     expect(input('jobs-title').value).toBe('我的目标岗位');
     expect(input('jobs-text').value).toBe('用户提供的岗位原文');
     expect(store.getState().jdId).toBe('j');
+    expect(formPanel.hidden).toBe(false);
+    expect(document.querySelector('.job-option[aria-pressed="true"]')).toBeNull();
     fail = false;
     fireEvent.submit(input('jobs-title').closest('form')!);
     await waitFor(() => expect(store.getState().jdId).toBe('saved-job'));
+    expect(formPanel.hidden).toBe(true);
+    expect(input('job-search').value).toBe('');
+    expect(
+      document.querySelector('.job-option[aria-pressed="true"]')?.getAttribute('data-job-id'),
+    ).toBe('saved-job');
     expect(store.getState().result).toBeNull();
     expect(requests.filter((request) => request.path === '/api/v1/matches')).toHaveLength(0);
+  });
+
+  it('adding a job leaves the old detail inactive and returning restores browsing with the draft retained', async () => {
+    const store = page('/jobs', true);
+    await screen.findByText('测试同学');
+    const selected = document.querySelector('[data-job-id="j"]')!;
+    const detail = screen.getByTestId('selected-job');
+    const formPanel = document.querySelector('.job-form') as HTMLElement;
+    expect(selected.getAttribute('aria-pressed')).toBe('true');
+    expect(formPanel.hidden).toBe(true);
+    expect(screen.getAllByRole('button', { name: '添加岗位', exact: true })).toHaveLength(1);
+    fireEvent.click(input('jobs-add'));
+    expect(selected.getAttribute('aria-pressed')).toBe('false');
+    expect(detail.hidden).toBe(true);
+    expect(formPanel.hidden).toBe(false);
+    fireEvent.change(input('jobs-title'), { target: { value: '未保存的岗位' } });
+    fireEvent.click(input('jobs-cancel-add'));
+    expect(selected.getAttribute('aria-pressed')).toBe('true');
+    expect(detail.hidden).toBe(false);
+    expect(formPanel.hidden).toBe(true);
+    fireEvent.click(input('jobs-add'));
+    expect(input('jobs-title').value).toBe('未保存的岗位');
+    fireEvent.click(selected);
+    expect(formPanel.hidden).toBe(true);
+    expect(detail.hidden).toBe(false);
+    expect(store.getState().jdId).toBe('j');
+    expect(requests.some((request) => request.options.method === 'POST')).toBe(false);
   });
 
   it('shows Mock without a numeric score, safely renders untrusted text and never overwrites resume', async () => {
