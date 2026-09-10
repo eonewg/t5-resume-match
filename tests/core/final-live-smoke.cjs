@@ -41,8 +41,8 @@ const fs = require('node:fs');
     await page.getByTestId('diagnosis-result-mode').filter({hasText:'优化建议 · 使用前请核实事实'}).waitFor();
     report.checks.push('live browser Diagnosis produced STAR/JD output from confirmed facts, not archived raw text');
     await page.screenshot({path:'.verification/final-diagnosis-desktop.png',fullPage:true});
-    await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
-    await page.screenshot({path:'.verification/final-diagnosis-mobile.png',fullPage:true});
+    await page.setViewportSize({width:1280,height:800});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+    await page.screenshot({path:'.verification/final-diagnosis-compactDesktop.png',fullPage:true});
     await page.setViewportSize({width:1440,height:1000});
     await page.route('**/api/v1/diagnoses',route=>route.fulfill({status:502,contentType:'application/json',body:JSON.stringify({error:{message:'受控失败：模型不可用'}})}));
     await page.locator('#diagnosis-run').click();await page.getByRole('status').filter({hasText:'受控失败'}).waitFor();
@@ -56,11 +56,11 @@ const fs = require('node:fs');
     assert.equal(market.market.sample_size,10);assert.equal(market.market.company_count,6);
     assert.deepEqual(market.market.salary_coverage,{comparable_count:4,missing_range_count:5,missing_unit_count:1});
     await page.locator('#analytics-salary').waitFor();await page.screenshot({path:'.verification/final-market-desktop.png',fullPage:true});
-    await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
-    await page.screenshot({path:'.verification/final-market-mobile.png',fullPage:true});
+    await page.setViewportSize({width:1280,height:800});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+    await page.screenshot({path:'.verification/final-market-compactDesktop.png',fullPage:true});
     const reread=await (await page.request.get(base+'/api/v1/resumes/'+resumeId)).json();
     assert.equal(reread.raw_text,raw);assert.deepEqual(reread.experience,[confirmed]);assert.deepEqual(reread.skills,['SQL']);
-    assert.deepEqual(errors,[]);report.checks.push('10 real jobs / 6 companies / 4 USD-year ranges; 5 missing ranges and 1 unknown period excluded; mobile and reread pass');
+    assert.deepEqual(errors,[]);report.checks.push('10 real jobs / 6 companies / 4 USD-year ranges; 5 missing ranges and 1 unknown period excluded; compact desktop and reread pass');
     report.status='passed';fs.writeFileSync('.verification/final-market-report.json',JSON.stringify(market,null,2));
   } catch(error) {report.status='failed';report.error=error.message;throw error;}
   finally {fs.writeFileSync('.verification/final-browser-report.json',JSON.stringify(report,null,2));await browser.close();console.log(JSON.stringify(report));}

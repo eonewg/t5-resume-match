@@ -18,7 +18,7 @@ Prompt 明确只提取原文已有信息，不润色、不补充、不猜测；�
 
 生产流程已删除事实守卫及其字符串匹配、技能拆分、计划关键词和数字/文本相似度规则。合法 JSON 经字段类型及 ResumeData 校验后直接返回核对草稿；技能漏抽、合并表达或语义质量问题由用户核对，不使整份解析失败，也不阻断手动保存。不新增替代规则或 warning 判定器。
 
-流程：文件/文本 → 提取 raw_text → DeepSeek 官方 deepseek-v4-flash 结构化抽取→ Pydantic ResumeData 校验 → 用户核对 → 保存。Prompt 请求全部四字段；本地校验对省略字段提供空值，模型不得返回 raw_text。原始输入始终由服务端注入。
+流程：文件/文本 → 提取 raw_text → DeepSeek 官方 deepseek-flash 结构化抽取→ Pydantic ResumeData 校验 → 用户核对 → 保存。Prompt 请求全部四字段；本地校验对省略字段提供空值，模型不得返回 raw_text。原始输入始终由服务端注入。
 
 官方 DeepSeek Chat 请求显式发送 `thinking={"type":"disabled"}`、`max_tokens=4096`。旧 custom Ling 配置仅保留显式兼容，不是正式默认或自动回退。
 
@@ -30,7 +30,7 @@ Prompt 明确只提取原文已有信息，不润色、不补充、不猜测；�
 | --- | --- |
 | AI_ENABLED | 默认 true；关闭时明确报错，不进入规则解析 |
 | LLM_VENDOR | 默认 deepseek（官方） |
-| LLM_MODEL / LLM_API_KEY / LLM_BASE_URL | 默认 deepseek-v4-flash / 回退 DEEPSEEK_API_KEY / https://api.deepseek.com；模块密钥优先 |
+| LLM_MODEL / LLM_API_KEY / LLM_BASE_URL | 默认 deepseek-flash / 回退 DEEPSEEK_API_KEY / https://api.deepseek.com；模块密钥优先 |
 | API_STYLE | chat_completions 或 responses |
 | STRUCTURED_OUTPUT | 默认 json_object；legacy/custom 可显式使用 json_schema，不自动降级 |
 | LLM_TIMEOUT | 默认 30 秒，可配置至 120 秒；单次请求，无自动重试 |

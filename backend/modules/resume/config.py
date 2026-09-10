@@ -19,7 +19,7 @@ class ResumeSettings(BaseSettings):
     )
     ai_enabled: bool = True
     llm_vendor: str = "deepseek"
-    llm_model: str = "deepseek-v4-flash"
+    llm_model: str = "deepseek-flash"
     llm_api_key: SecretStr = SecretStr("")
     shared_api_key: SecretStr = Field(
         default=SecretStr(""), validation_alias="DEEPSEEK_API_KEY", exclude=True, repr=False
@@ -43,7 +43,7 @@ class ResumeSettings(BaseSettings):
         return (
             self.llm_vendor == "deepseek"
             and urlsplit(self.endpoint).hostname == "api.deepseek.com"
-            and self.llm_model in {"deepseek-v4-flash", "deepseek-v4-pro"}
+            and self.llm_model in {"deepseek-flash", "deepseek-v4-flash", "deepseek-v4-pro"}
         ) or (self.llm_vendor == "custom" and self.llm_model.casefold() == "ling-3.0-flash")
 
     @property

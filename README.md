@@ -1,4 +1,4 @@
-# T5 AI 简历诊断与岗位匹配系统
+# Vitae · AI 简历诊断与岗位匹配系统
 
 本地运行的 AI 求职辅助工具：将简历原文整理为可编辑的结构化数据，与目标岗位进行关键词匹配和能力缺口分析，生成 STAR 优化建议，并对已录入的岗位记录做市场统计。默认 SQLite 开箱即用，AI 能力由 DeepSeek 官方接口驱动。
 
@@ -14,13 +14,13 @@
 | 层 | 技术 |
 | --- | --- |
 | 后端 | Python 3.11–3.13、FastAPI、SQLAlchemy 2、Pydantic v2、Uvicorn（[uv](https://docs.astral.sh/uv/getting-started/installation/) 管理依赖） |
-| 前端 | 原生 JavaScript ES modules，由 FastAPI 同源托管，无构建步骤 |
+| 前端 | React 19 + TypeScript + Vite，React Router 导航，构建后由 FastAPI 同源托管 |
 | 数据库 | 默认 SQLite；可选 PostgreSQL 17 + pgvector |
 | AI | DeepSeek 官方 API（OpenAI Chat Completions 协议） |
 
 ## 当前 AI 配置
 
-- Provider：DeepSeek 官方（`https://api.deepseek.com`），模型 `deepseek-v4-flash`
+- Provider：DeepSeek 官方（`https://api.deepseek.com`），模型 `deepseek-flash`
 - Resume 与 Diagnosis 共用同一密钥：在 `.env` 中配置 `DEEPSEEK_API_KEY`
 - 需要分开时，可用 `T5_RESUME_LLM_API_KEY`、`T5_DIAGNOSIS_API_KEY` 分别覆盖
 - 密钥仅保存在本地 `.env`（不提交 Git）；未配置密钥可以启动，AI 功能会返回明确配置错误，不会静默回退到 Mock
@@ -37,7 +37,7 @@
 
 ### 源码运行
 
-需要 Git、Python 3.11–3.13 和 [uv](https://docs.astral.sh/uv/getting-started/installation/)。
+需要 Git、Python 3.11–3.13、Node.js 22+（含 npm）和 [uv](https://docs.astral.sh/uv/getting-started/installation/)。便携版最终用户无需这些开发工具。
 
 ```powershell
 git clone https://github.com/eonewg/t5-resume-match.git
@@ -48,12 +48,14 @@ powershell -ExecutionPolicy Bypass -File .\start.ps1
 
 复制 `.env.example` 为 `.env` 并填入 `DEEPSEEK_API_KEY=你的密钥`；未配置密钥也能启动，但 AI 功能会返回配置错误。
 
-启动后打开 <http://127.0.0.1:8000/>，默认进入「我的简历」；交互式接口文档在 `/docs`。`Ctrl+C` 停止，`start.ps1 -Port 8001` 可更换端口。
+启动后打开 <http://127.0.0.1:8000/>，默认进入首页工作台，按「我的简历 → 目标岗位 → 匹配分析 → AI 优化」推进；市场洞察在辅助入口。交互式接口文档在 `/docs`。`Ctrl+C` 停止，`start.ps1 -Port 8001` 可更换端口。首次启动自动构建缺失的前端产物；更新前端源码后运行 `start.ps1 -RebuildFrontend`。脚本记录依赖清单和锁文件指纹；两者未变且依赖检查通过时，重建复用现有依赖。首次安装、清单变更或依赖不完整时执行 `npm ci`；Windows 原生模块被占用时提前停止，请先关闭本项目的 Vite/测试进程再重试，避免依赖被部分删除。热更新开发见 [前端接入说明](docs/frontend-integration.md)。
 
 其他系统或手动启动：
 
 ```sh
 uv sync --locked
+npm --prefix frontend ci
+npm --prefix frontend run build
 uv run --locked python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
 ```
 
@@ -75,7 +77,7 @@ backend/
   core/               配置、数据库、模块加载等公共设施
   modules/            resume / jobs / diagnosis / analytics 业务模块
   api/  schemas/  models/
-frontend/             原生 JS 前端页面
+frontend/             React + TypeScript 页面、状态与 API 客户端；Vite 构建
 scripts/              启动、构建便携版、smoke、数据导入与校验脚本
 docs/                 详细文档
 tests/  examples/     自动化测试与合成样例
@@ -91,7 +93,9 @@ uv run --locked python scripts/smoke.py    # 端到端冒烟：简历 → 岗位
 uv run --locked pytest -q                  # 单元与集成测试（使用独立临时数据库）
 uv run --locked ruff check backend tests scripts examples
 uv run --locked ruff format --check backend tests scripts examples
-node scripts/check_frontend.mjs            # 前端静态检查
+node scripts/check_frontend.mjs            # TypeScript、行为和 React 页面测试
+npm --prefix frontend run build            # 生产构建（完整 pytest 前先构建）
+npm --prefix frontend run test:e2e          # 隔离服务 + 本机 Edge，离线 AI 浏览器验收
 ```
 
 ## 已知限制
@@ -110,3 +114,12 @@ node scripts/check_frontend.mjs            # 前端静态检查
 - [Windows 便携版](docs/windows-portable.md) — 构建与实测验证记录
 - [验证记录](docs/validation.md)、[验收台账](docs/acceptance.md)
 - [团队协作约定](docs/team-rules.md)、[前端接入说明](docs/frontend-integration.md)
+
+
+### 桌面界面与市场数据
+
+当前仅维护桌面端，验收宽度为 1280/1366/1440/1920px；已移除手机专用布局。市场洞察按技能、薪资、岗位来源三个页签阅读，支持大屏模式和可折叠侧栏。点击“同步外部岗位”可选择国家大学生就业服务平台国内岗位或 Jobicy 全球远程岗位，无需 Key，缓存 1 小时。来源是累计采集记录，不保证岗位仍开放；详细口径见 [市场大屏接入记录](docs/ui/market-dashboard-api.md)。
+
+### AI 供应商与退出
+
+侧栏「设置」可保存多份供应商配置，自定义 API 地址、模型与 API Key，并为简历识别、匹配分析和 AI 优化分别切换或统一应用。密钥可显示/隐藏，配置保存在本机供下次启动读取。「保存并退出」写入配置后正常结束服务进程。用法、协议范围与验收见 [AI 设置说明](docs/ai-settings.md)。

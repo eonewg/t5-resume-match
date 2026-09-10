@@ -1,42 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { runWorkflow } from "../src/core/workflow.js";
-import { createWorkspace } from "../src/core/workspace.js";
-
-const input = { resumeText: " Python ", title: " 分析师 ", company: "", jdText: " SQL " };
-
-test("workflow uses returned IDs and propagates upstream Mock provenance", async () => {
-  const calls = [];
-  const api = {
-    createResume: async (text) => { calls.push(text); return { data: { id: "resume_new" }, isMock: true }; },
-    createJob: async (data) => { calls.push(data); return { data: { id: "jd_new" }, isMock: false }; },
-    workflow: async (pair) => { calls.push(pair); return { data: {
-      match: { is_mock: false }, diagnosis: { is_mock: false },
-    } }; },
-  };
-  const result = await runWorkflow(api, input);
-  assert.deepEqual(calls, ["Python", { title: "分析师", company: null, jd_text: "SQL" },
-    { resume_id: "resume_new", jd_id: "jd_new" }]);
-  assert.equal(result.isMock, true);
-});
-
-test("workflow stops when resume creation fails", async () => {
-  let downstream = false;
-  const api = {
-    createResume: async () => { throw new Error("parse failed"); },
-    createJob: async () => { downstream = true; },
-  };
-  await assert.rejects(runWorkflow(api, input), /parse failed/);
-  assert.equal(downstream, false);
-});
-
-test("whitespace input does not create records", async () => {
-  await assert.rejects(runWorkflow({}, { ...input, title: "  " }), /请填写/);
-});
-
-test("missing IDs stop the workflow before sending a broken pair", async () => {
-  await assert.rejects(runWorkflow({ createResume: async () => ({ data: {} }) }, input), /有效编号/);
-});
+import { createWorkspace } from "../src/core/state.ts";
 
 test("workspace subscriptions are disposable and snapshots are isolated", () => {
   const workspace = createWorkspace();
@@ -49,4 +13,30 @@ test("workspace subscriptions are disposable and snapshots are isolated", () => 
   unsubscribe();
   workspace.updateSelection({ resumeId: "r2" });
   assert.equal(count, 1);
+});
+
+test("changing the resume or job selection clears a stale result", () => {
+  const workspace = createWorkspace();
+  workspace.updateSelection({ resumeId: "r1", jdId: "j1", result: { match: { score: 50 } } });
+  assert.equal(workspace.getState().result.match.score, 50);
+  workspace.updateSelection({ jdId: "j2" });
+  assert.equal(workspace.getState().result, null);
+});
+
+test('successful pair results restore within 30 minutes and expire without carrying run intent', () => {
+  let now = 0;
+  const workspace = createWorkspace({now: () => now});
+  workspace.updateSelection({resumeId:'r1',jdId:'j1'});
+  workspace.updateSelection({result:{match:{resume_id:'r1',jd_id:'j1',score:50,is_mock:false,ai_assessment:{score:65}},diagnosis:{resume_id:'r1',jd_id:'j1',summary:'saved',is_mock:false},diagnosisRequested:true}});
+  workspace.updateSelection({jdId:'j2'});
+  assert.equal(workspace.getState().result,null);
+  workspace.updateSelection({jdId:'j1'});
+  assert.equal(workspace.getState().result.match.ai_assessment.score,65);
+  assert.equal(workspace.getState().result.diagnosis.summary,'saved');
+  assert.equal(workspace.getState().result.diagnosisRequested,undefined);
+  workspace.updateSelection({resumeId:'r2'});
+  assert.equal(workspace.getState().result,null);
+  now = 30*60*1000;
+  workspace.updateSelection({resumeId:'r1'});
+  assert.equal(workspace.getState().result,null);
 });

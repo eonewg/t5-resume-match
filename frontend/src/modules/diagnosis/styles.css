@@ -1,6 +1,0 @@
-[data-module="diagnosis"] { min-width: 0; padding: 24px; overflow-wrap: anywhere; }
-[data-module="diagnosis"] p, [data-module="diagnosis"] li { white-space: pre-wrap; line-height: 1.8; }
-[data-module="diagnosis"] li { margin-block: 1rem; }
-[data-module="diagnosis"] [data-error="true"] { color: #a32a28; }
-[data-module="diagnosis"] [data-testid="diagnosis-result"] { border-top: 1px solid #dbe4dc; margin-top: 1.5rem; }
-[data-module="diagnosis"] .button { margin-block: 1rem; }

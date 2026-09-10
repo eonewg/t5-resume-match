@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createApi, ApiError } from "../src/core/api.js";
+import { createApi, ApiError } from "../src/core/api.ts";
 
 test("JSON requests preserve input and carry Mock provenance", async () => {
   let recorded;
@@ -49,10 +49,12 @@ test("diagnosis and workflow can finish beyond the normal deadline and still hav
   await assert.rejects(api.modules(), /请求超时/);
   assert.equal((await api.workflow({ resume_id: "r", jd_id: "j" })).data.is_mock, false);
   assert.equal((await api.request("/api/v1/diagnoses", { method: "POST", body: {} })).data.is_mock, false);
+  assert.equal((await api.request("/api/v1/matches/m/assessment", { method: "POST" })).data.is_mock, false);
   const slow = createApi({ diagnosisTimeoutMs: 5, fetchImpl: (_, { signal }) => new Promise((resolve, reject) => {
     signal.addEventListener("abort", () => reject(new Error("aborted")), { once: true });
   }) });
   await assert.rejects(slow.workflow({}), /请求超时/);
+  await assert.rejects(slow.request('/api/v1/matches/m/assessment', { method: 'POST' }), /请求超时/);
 });
 
 test('Resume AI upload failure exposes original text only on its own route', async () => {

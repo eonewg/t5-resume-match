@@ -1,3 +1,4 @@
+import signal
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
@@ -8,19 +9,29 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from backend.api.ai_settings import router as settings_router
 from backend.api.routes import router
+from backend.core.ai_settings import AISettings
 from backend.core.config import ROOT, Settings
 from backend.core.database import build_engine
 from backend.core.migrations import migrate
+from backend.core.paths import RUNTIME_ROOT
 from backend.core.providers import load_providers
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
-    settings = settings or Settings()
+def create_app(settings: Settings | None = None, *, shutdown_callback=None) -> FastAPI:
+    settings = (
+        settings
+        if settings is not None
+        else Settings(
+            ai_settings_file=RUNTIME_ROOT / ".runtime" / "ai-settings.json", allow_app_exit=True
+        )
+    )
 
     @asynccontextmanager
     async def lifespan(app):
         app.state.providers = load_providers(settings)
+        app.state.ai_settings = AISettings(app, settings.ai_settings_file)
         engine = build_engine(settings.database_url)
         app.state.engine = engine
         try:
@@ -28,10 +39,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             yield
         finally:
             engine.dispose()
+            app.state.ai_settings.close()
 
-    app = FastAPI(title="T5 AI 简历诊断与岗位匹配", version="0.1.0", lifespan=lifespan)
+    app = FastAPI(title="Vitae · AI 简历诊断与岗位匹配", version="0.1.0", lifespan=lifespan)
+    app.state.exiting = False
+    app.state.allow_app_exit = settings.allow_app_exit
+    app.state.shutdown_callback = shutdown_callback or (lambda: signal.raise_signal(signal.SIGINT))
     app.include_router(router)
-    app.mount("/assets", StaticFiles(directory=ROOT / "frontend/src"), name="frontend-assets")
+    app.include_router(settings_router)
+    frontend = ROOT / "frontend/dist"
+    app.mount(
+        "/assets",
+        StaticFiles(directory=frontend / "assets", check_dir=False),
+        name="frontend-assets",
+    )
 
     @app.exception_handler(StarletteHTTPException)
     async def http_error(request: Request, error):
@@ -69,7 +90,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/", include_in_schema=False)
     def home():
-        return FileResponse(ROOT / "frontend/index.html")
+        if not (frontend / "index.html").is_file():
+            raise HTTPException(503, "前端尚未构建，请先在 frontend 运行 npm ci 和 npm run build。")
+        return FileResponse(frontend / "index.html", headers={"Cache-Control": "no-cache"})
 
     @app.get("/demo/sample.json", include_in_schema=False)
     def demo_sample():

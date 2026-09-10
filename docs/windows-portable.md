@@ -1,5 +1,7 @@
 # Windows 便携版验证
 
+当前 React/Vite 迁移后的构建与运行验证见 [产品前端迁移记录](frontend-product-shell.md)。当前脚本先构建前端，只打包 `frontend/dist`，最终用户仍无需 Node.js；以下保留最初便携版的历史事实。
+
 2026-09-09，从最新 `origin/main` 的 `83608917b60194e7f0d20bb414ede7b91fd23058`
 创建 `feat/windows-portable`；本次为打包与启动适配，不修改业务算法或 UI，`start.ps1` 未改动。
 

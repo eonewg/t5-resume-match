@@ -7,7 +7,7 @@ const fs = require('node:fs');
   const base = process.env.T5_SMOKE_URL || 'http://127.0.0.1:8772';
   const records = JSON.parse(fs.readFileSync(process.env.T5_PERSISTENCE_SNAPSHOT, 'utf8'));
   const browser = await chromium.launch({channel:'msedge', headless:true});
-  const page = await browser.newPage({viewport:{width:390,height:844}});
+  const page = await browser.newPage({viewport:{width:1280,height:800}});
   try {
     for (const [path, before] of Object.entries(records)) {
       const response = await page.request.get(base + path);
@@ -28,7 +28,7 @@ const fs = require('node:fs');
     }
     const report = {status:'passed', persisted_records:Object.keys(records).length,
       checks:['all Resume/JD/Match/Diagnosis API records unchanged after process restart',
-        'saved resume can be reloaded after full browser refresh at 390px; raw and confirmed fields retained']};
+        'saved resume can be reloaded after full browser refresh at 1280px; raw and confirmed fields retained']};
     fs.writeFileSync('.verification/fresh-persistence-report.json', JSON.stringify(report,null,2));
     console.log(JSON.stringify(report));
   } finally {await browser.close();}

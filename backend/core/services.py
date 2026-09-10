@@ -16,6 +16,7 @@ from backend.schemas.contracts import (
     JDData,
     JDFields,
     JDInput,
+    MatchAssessment,
     MatchResult,
     PairInput,
     Resume,
@@ -124,6 +125,26 @@ def diagnosing(session, providers, pair):
 
 def match_response(row):
     return dict(id=row.id, is_mock=row.is_mock, **row.payload)
+
+
+def assessing(session, providers, identifier):
+    row = require_row(session, MatchRow, identifier)
+    if row.payload.get("ai_assessment"):
+        return row
+    resume, jd, input_mock = load_pair(session, PairInput(resume_id=row.resume_id, jd_id=row.jd_id))
+    provider = providers["jobs"]
+    if row.is_mock or input_mock or provider.is_mock:
+        raise HTTPException(409, "演示匹配不调用真实 AI，请先保存并匹配已确认内容。")
+    method = getattr(provider.service, "assess", None)
+    if not callable(method):
+        raise HTTPException(503, "当前匹配模块尚未提供 AI 综合评估。")
+    try:
+        result = MatchAssessment.model_validate(method(resume, jd).model_dump())
+    except Exception as error:
+        message = getattr(error, "public_message", None)
+        raise HTTPException(502, message or "AI 综合评估失败，关键词结果已保留。") from None
+    row.payload = {**row.payload, "ai_assessment": result.model_dump()}
+    return row
 
 
 def diagnosis_response(row):

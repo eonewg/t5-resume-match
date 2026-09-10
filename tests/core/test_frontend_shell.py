@@ -1,3 +1,5 @@
+import re
+
 from fastapi.testclient import TestClient
 
 from backend.core.config import Settings
@@ -10,12 +12,16 @@ def test_shell_assets_and_shared_fixture_are_available():
     ) as client:
         page = client.get("/")
         assert page.status_code == 200
-        assert 'id="workflow-form"' in page.text
-        assert "/assets/app.js" in page.text
-        script = client.get("/assets/app.js")
+        assert 'id="root"' in page.text
+        scripts = re.findall(r'src="(/assets/[^\"]+\.js)"', page.text)
+        styles = re.findall(r'href="(/assets/[^\"]+\.css)"', page.text)
+        assert scripts and styles, "Run npm --prefix frontend run build before pytest"
+        script = client.get(scripts[0])
         assert script.status_code == 200
         assert "javascript" in script.headers["content-type"]
-        assert client.get("/assets/styles.css").status_code == 200
+        assert client.get(styles[0]).status_code == 200
+        assert page.headers["cache-control"] == "no-cache"
+        assert client.get("/assets/main.tsx").status_code == 404
         sample = client.get("/demo/sample.json").json()
         assert sample["resume"]["id"] == "resume_demo"
         # Serving the frontend must not expose files elsewhere in the project.

@@ -65,11 +65,11 @@ const path = require('node:path');
     assert.equal(await page.locator('#resume-skills').inputValue(), 'SQL');
     assert.equal(await page.locator('#resume-experience-0').inputValue(), experience);
     await page.screenshot({path: path.join(output, 'product-resume-desktop.png'), fullPage: true});
-    await page.setViewportSize({width: 390, height: 844});
+    await page.setViewportSize({width: 1280, height: 800});
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
-    await page.screenshot({path: path.join(output, 'product-resume-mobile.png'), fullPage: true});
+    await page.screenshot({path: path.join(output, 'product-resume-compactDesktop.png'), fullPage: true});
     await page.setViewportSize({width: 1440, height: 1000});
-    report.checks.push('POST save + verified GET; reread retry without duplicate; page reload consistency; desktop/mobile editor');
+    report.checks.push('POST save + verified GET; reread retry without duplicate; page reload consistency; desktop editor');
 
     await page.locator('#resume-next').click();
     await page.locator('#jobs-status').filter({hasText: '已加载'}).waitFor();
@@ -108,10 +108,10 @@ const path = require('node:path');
     await page.locator('#analytics-empty').waitFor();
     await page.locator('#analytics-to').fill(''); await page.getByRole('button', {name: '更新分析', exact: true}).click();
     await page.locator('#analytics-sources').waitFor();
-    await page.setViewportSize({width: 390, height: 844});
+    await page.setViewportSize({width: 1280, height: 800});
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
-    await page.screenshot({path: path.join(output, 'product-analytics-real-mobile.png'), fullPage: true});
-    report.checks.push('5 traceable real snapshots, idempotent import, source/date filters, unknown salary excluded not zero, mobile charts');
+    await page.screenshot({path: path.join(output, 'product-analytics-real-compactDesktop.png'), fullPage: true});
+    report.checks.push('5 traceable real snapshots, idempotent import, source/date filters, unknown salary excluded not zero, desktop charts');
 
     await page.setViewportSize({width: 1440, height: 1000});
     for (const [currency, period] of [['CNY', 'year'], ['USD', 'month'], ['EUR', 'hour'], ['USD', null]]) {

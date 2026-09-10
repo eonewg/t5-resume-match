@@ -1,8 +1,0 @@
-.current-resume{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1rem 0;border-block:1px solid var(--line,#dbe4dc)}
-.current-resume>div{display:grid;gap:.35rem}.job-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:.75rem;margin:1rem 0}
-.job-option{display:grid;gap:.45rem;text-align:left;padding:1rem;background:var(--surface,#fff);border:1px solid var(--line,#ccd9d3);border-radius:10px;font:inherit;color:inherit;cursor:pointer;min-width:0;overflow-wrap:anywhere}
-.job-option[aria-pressed="true"]{border:2px solid var(--accent,#146452);background:#f0f7f3}.job-option:hover{border-color:#146452}.job-option:focus-visible{outline:3px solid #80b8a5;outline-offset:3px}.job-option:disabled{opacity:.6;cursor:wait}.job-original{margin-block:1rem}.current-resume .button{flex-shrink:0}
-@media(max-width:480px){.current-resume{align-items:flex-start}.current-resume .button{padding-inline:.25rem}}
-
-.jobs-page .selected-job{padding-block:1rem .25rem}.jobs-page .selected-job h2{margin:.3rem 0}.jobs-page .selected-job p{margin:.25rem 0 .65rem}.jobs-page .job-picker{margin-block:.75rem}.jobs-page #jobs-run{margin-block:.75rem 1rem}
-.job-demo-options{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin-block:.75rem}

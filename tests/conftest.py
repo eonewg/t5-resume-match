@@ -12,6 +12,9 @@ def isolate_resume_network(request, monkeypatch):
 
     # A local .env must never turn a unit/integration test into a paid AI request.
     monkeypatch.setattr(ai, "transport", unexpected_transport)
+    from backend.modules.jobs import assessment
+
+    monkeypatch.setattr(assessment, "transport", unexpected_transport)
     # Existing Diagnosis protocol and Jobs cache harnesses assumed Resume was offline.
     # Preserve their original purpose without changing D's implementation or assertions.
     # Resume AI itself is covered with explicit transports in tests/resume/test_ai*.py.

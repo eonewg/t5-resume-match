@@ -2,11 +2,13 @@ from datetime import date
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, UploadFile
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 
+from backend.core.external_jobs import import_external_jobs
 from backend.core.market_samples import import_sample_jobs
 from backend.core.services import (
+    assessing,
     diagnosing,
     diagnosis_response,
     invoke,
@@ -30,6 +32,7 @@ from backend.schemas.contracts import (
     AnalysisResult,
     AnalysisScope,
     DiagnosisRecord,
+    ExternalImportResult,
     JDCreate,
     MatchRecord,
     PairInput,
@@ -154,6 +157,34 @@ def get_resume(identifier: str, response: Response, db: DB):
     return Resume(id=row.id, **row.payload)
 
 
+def remove_resumes(db: Session, identifier: str | None = None):
+    # Lock parents before removing children so concurrent PostgreSQL pair writes
+    # cannot leave new references between child deletion and parent deletion.
+    query = select(ResumeRow.id).order_by(ResumeRow.id).with_for_update()
+    if identifier is not None:
+        query = query.where(ResumeRow.id == identifier)
+    identifiers = db.scalars(query).all()
+    if identifier is not None and not identifiers:
+        raise HTTPException(404, "记录不存在")
+    if identifiers:
+        # Existing pair foreign keys are restrictive; all work shares the request
+        # transaction. PostgreSQL vector foreign keys already use ON DELETE CASCADE.
+        for model in (MatchRow, DiagnosisRow):
+            db.execute(delete(model).where(model.resume_id.in_(identifiers)))
+        db.execute(delete(ResumeRow).where(ResumeRow.id.in_(identifiers)))
+    return {"deleted_count": len(identifiers)}
+
+
+@router.delete("/resumes", response_model=dict[str, int], tags=["resume"])
+def clear_resumes(db: DB):
+    return remove_resumes(db)
+
+
+@router.delete("/resumes/{identifier}", response_model=dict[str, int], tags=["resume"])
+def delete_resume(identifier: str, db: DB):
+    return remove_resumes(db, identifier)
+
+
 @router.post("/jobs", response_model=JD, status_code=201, tags=["jobs"])
 def create_job(data: JDCreate, request: Request, response: Response, db: DB):
     provider = request.app.state.providers["jobs"]
@@ -189,6 +220,11 @@ def create_match(data: PairInput, request: Request, db: DB):
 @router.get("/matches/{identifier}", response_model=MatchRecord, tags=["jobs"])
 def get_match(identifier: str, db: DB):
     return match_response(require_row(db, MatchRow, identifier))
+
+
+@router.post("/matches/{identifier}/assessment", response_model=MatchRecord, tags=["jobs"])
+def assess_match(identifier: str, request: Request, db: DB):
+    return match_response(assessing(db, request.app.state.providers, identifier))
 
 
 @router.post("/diagnoses", response_model=DiagnosisRecord, status_code=201, tags=["diagnosis"])
@@ -254,3 +290,10 @@ def analytics(
 @router.post("/analytics/sample-jobs", response_model=SampleImportResult, tags=["analytics"])
 def import_market_jobs(request: Request, db: DB):
     return import_sample_jobs(db, request.app.state.providers["jobs"])
+
+
+@router.post("/analytics/external-jobs", response_model=ExternalImportResult, tags=["analytics"])
+def import_external_market_jobs(
+    request: Request, db: DB, source: Literal["jobicy", "ncss"] = "jobicy"
+):
+    return import_external_jobs(db, request.app.state.providers["jobs"], source)

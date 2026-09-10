@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {connectJobs} from './controller.js';
+import {connectJobs} from './controller.ts';
 function fixture(request, initial = {resumeId:'r',jdId:'j'}) {
   const abort = new AbortController(); let listener, disposed = 0; const views = [];
   const c = connectJobs({api:{request},getState:()=>initial,updateSelection:s=>listener(s),
@@ -49,4 +49,60 @@ test('matching navigation restores the pair result without running it again',asy
  const match=result(false).data;let shared={resumeId:'r',jdId:'j',result:{match}};let listener;const paths=[],views=[];
  const c=connectJobs({view:'matching',api:{request:async path=>{paths.push(path);return {data:{id:path.endsWith('/j')?'j':'r'}};}},getState:()=>shared,updateSelection:change=>{shared={...shared,...change};listener(shared);},subscribe:fn=>{listener=fn;return()=>{};},signal:new AbortController().signal},state=>views.push(state));
  await c.load();assert.deepEqual(paths,['/api/v1/jobs/j','/api/v1/resumes/r']);assert.equal(views.at(-1).result.score,50);c.dispose();
+});
+
+test('AI assessment failure preserves keywords; explicit retry saves only the assessment', async () => {
+  const base = { ...result(false).data, id: 'm' };
+  const ai = {
+    score: 75,
+    summary: '有项目证据',
+    model: 'fixture',
+    dimensions: ['skills', 'experience', 'education'].map((dimension) => ({
+      dimension,
+      applicable: true,
+      score: 75,
+      reason: '证据',
+      jd_quotes: ['SQL'],
+      resume_quotes: ['SQL'],
+    })),
+  };
+  let attempts = 0;
+  const f = fixture(async (path) => {
+    if (path === '/api/v1/matches') return { data: base };
+    assert.equal(path, '/api/v1/matches/m/assessment');
+    if (++attempts === 1) throw Error('上游内容过滤');
+    return { data: { ...base, score: 99, ai_assessment: ai } };
+  });
+  await f.match();
+  await f.assess();
+  assert.equal(f.views.at(-1).result.score, 50);
+  assert.match(f.views.at(-1).assessmentError, /内容过滤/);
+  assert.equal(attempts, 1);
+  await f.assess();
+  assert.equal(f.views.at(-1).result.score, 50);
+  assert.equal(f.views.at(-1).result.ai_assessment.score, 75);
+  await f.assess();
+  assert.equal(attempts, 2);
+  f.dispose();
+});
+
+test('pending AI assessment suppresses duplicate calls and discards a changed pair', async () => {
+  let resolve;
+  const f = fixture(async (path) =>
+    path === '/api/v1/matches'
+      ? { data: { ...result(false).data, id: 'm' } }
+      : new Promise((done) => {
+          resolve = done;
+        }),
+  );
+  await f.match();
+  const pending = f.assess();
+  assert.equal(f.views.at(-1).result.score, 50);
+  await f.assess();
+  f.choose('resumeId', 'new');
+  resolve({ data: { ...result(false).data, id: 'm', ai_assessment: {} } });
+  await pending;
+  assert.equal(f.views.at(-1).result, null);
+  assert.equal(f.views.at(-1).assessmentBusy, false);
+  f.dispose();
 });

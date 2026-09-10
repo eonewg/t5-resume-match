@@ -114,8 +114,31 @@ class PairInput(Contract):
     jd_id: Label
 
 
+# Evidence is a verbatim text fragment, not a short label. The assessment input
+# itself is bounded at 60,000 characters; quotes cannot exceed their source.
+AssessmentQuote = Annotated[str, StringConstraints(min_length=1, max_length=60000)]
+
+
+class AssessmentDimension(Contract):
+    dimension: Literal["skills", "experience", "education"]
+    applicable: bool
+    score: int = Field(ge=0, le=100, strict=True)
+    reason: Annotated[str, StringConstraints(min_length=1, max_length=2000)]
+    jd_quotes: list[AssessmentQuote] = Field(max_length=5)
+    resume_quotes: list[AssessmentQuote] = Field(max_length=5)
+
+
+class MatchAssessment(Contract):
+    score: float = Field(ge=0, le=100, allow_inf_nan=False)
+    summary: Annotated[str, StringConstraints(min_length=1, max_length=2000)]
+    dimensions: list[AssessmentDimension] = Field(min_length=3, max_length=3)
+    model: Label
+
+
 class MatchResult(PairInput):
     score: float = Field(ge=0, le=100, allow_inf_nan=False)
+    keyword_score: float | None = Field(default=None, ge=0, le=100, allow_inf_nan=False)
+    ai_assessment: MatchAssessment | None = None
     matched_skills: list[Label]
     missing_skills: list[Label]
     gap_analysis: list[Text]
@@ -216,6 +239,13 @@ class SampleImportResult(Contract):
     created: int = Field(ge=0)
     existing: int = Field(ge=0)
     jd_ids: list[Label]
+
+
+class ExternalImportResult(SampleImportResult):
+    skipped: int = Field(ge=0)
+    fetched_at: str
+    cached: bool
+    source: str
 
 
 class WorkflowResult(Contract):

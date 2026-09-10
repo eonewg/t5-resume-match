@@ -40,9 +40,9 @@ const path = require('node:path');
     assert.equal(await page.locator('#jobs-result').isVisible(),false);assert.equal(await match.isEnabled(),true);
     await page.unroute('**/api/v1/matches');await match.click();await page.locator('#jobs-result:not([hidden])').waitFor();
     const desktop=path.join(os.tmpdir(),'t5-jobs-desktop.png');await page.screenshot({path:desktop,fullPage:true});
-    await page.setViewportSize({width:390,height:844});
+    await page.setViewportSize({width:1280,height:800});
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
-    const mobile=path.join(os.tmpdir(),'t5-jobs-mobile.png');await page.screenshot({path:mobile,fullPage:true});
+    const compactDesktop=path.join(os.tmpdir(),'t5-jobs-compactDesktop.png');await page.screenshot({path:compactDesktop,fullPage:true});
     await page.route('**/api/v1/matches',async route=>{
       const response=await route.fetch();const data=await response.json();data.gap_analysis=['<img src=x onerror="window.injected=true">'+'很长的解释'.repeat(500)];
       data.is_mock=true;await route.fulfill({json:data});
@@ -75,7 +75,7 @@ const path = require('node:path');
       assert.match(await page.locator('#jobs-result').innerText(),/过滤/);
       assert.match(await page.locator('#jobs-result h2').innerText(),/^0%/);
     }
-    assert.deepEqual(errors,[]);console.log(JSON.stringify({status:'PASS',desktop,mobile,
-      checks:['empty','JD save/parse','selection',process.env.T5_SMOKE_SEMANTIC === '1' ? 'real semantic blend/evidence' : '33.33 keyword score/gap','failure/retry','Mock','XSS/long text','390px','navigation cleanup']}));
+    assert.deepEqual(errors,[]);console.log(JSON.stringify({status:'PASS',desktop,compactDesktop,
+      checks:['empty','JD save/parse','selection',process.env.T5_SMOKE_SEMANTIC === '1' ? 'real semantic blend/evidence' : '33.33 keyword score/gap','failure/retry','Mock','XSS/long text','1280px','navigation cleanup']}));
   }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

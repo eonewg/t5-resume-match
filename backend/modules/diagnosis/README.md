@@ -4,7 +4,7 @@
 
 完整配置、能力表和真实验收见 [多协议验收记录](../../../docs/integration_requests/D-diagnosis-llm.md)。
 
-当前正式运行统一使用 DeepSeek 官方 `https://api.deepseek.com`、`deepseek-v4-flash`、OpenAI Chat JSON Output。无密钥可启动，但 AI 请求明确失败；不自动切换其他供应商或 Mock。默认沿用非思考策略，显式受支持 effort 保持有效。见 [当前迁移说明](../../../docs/current-provider.md)。
+当前正式运行统一使用 DeepSeek 官方 `https://api.deepseek.com`、`deepseek-flash`、OpenAI Chat JSON Output。无密钥可启动，但 AI 请求明确失败；不自动切换其他供应商或 Mock。默认沿用非思考策略，显式受支持 effort 保持有效。见 [当前迁移说明](../../../docs/current-provider.md)。
 
 ## 接入公共系统
 
@@ -16,7 +16,7 @@ DEEPSEEK_API_KEY=
 T5_DIAGNOSIS_LLM_VENDOR=deepseek
 T5_DIAGNOSIS_JSON_MODE=true
 T5_DIAGNOSIS_REASONING_EFFORT=none
-T5_DIAGNOSIS_MODEL=deepseek-v4-flash
+T5_DIAGNOSIS_MODEL=deepseek-flash
 ```
 
 `DEEPSEEK_API_KEY` 填本人的模型服务密钥；GitHub 登录凭据不能用于 DeepSeek。
@@ -93,7 +93,7 @@ uv run --frozen uvicorn backend.modules.diagnosis.web:create_app --factory --hos
 | `T5_DIAGNOSIS_ENDPOINT_PATH` | 未设置 | 根相对路径覆盖，例如 /v2/messages |
 | `T5_DIAGNOSIS_REASONING_EFFORT` | 未设置 | 仅已确认模型能力允许设置，否则配置错误 |
 | `T5_DIAGNOSIS_BASE_URL` | `https://api.deepseek.com` | HTTPS 地址；默认由 preset 决定，custom 必填 |
-| `T5_DIAGNOSIS_MODEL` | `deepseek-v4-flash` | 模型可替换 |
+| `T5_DIAGNOSIS_MODEL` | `deepseek-flash` | 模型可替换 |
 | `T5_DIAGNOSIS_TIMEOUT_SECONDS` | 30 | 每次网络操作超时，范围 (0,120] 秒 |
 | `T5_DIAGNOSIS_MAX_ATTEMPTS` | 3 | 包含首次调用，总尝试次数 1–5 |
 | `T5_DIAGNOSIS_MAX_TOKENS` | 4096 | 输出 token 上限，512–8192 |
@@ -144,7 +144,7 @@ GLM-5.3 历史单次 85.355 秒读取超时保留，本轮未测试或切换；�
   不标记为请求失败、不自动重试；原文失败优先计数，每条只计一次。
   仅过滤发生且 risks 未满 10 条时追加简短提示；保留原有风险，不重复提示或突破 schema。
   不使用模糊匹配或内部空白归一化；首尾空白继续按 schema 既有规则去除。
-- STAR 缺失内容使用“待补充”，不补造技能、公司、职责、效果数字；没有经历可返回空改写数组。
+- 经历改写保留已知事实，不补造技能、公司、职责、效果数字；没有经历可返回空改写数组。缺少信息时在本条 `reason` 提出具体问题，不在建议正文硬填“待补充”。
 - 空输出、截断、解析或结构错误、超时、连接失败、408/429/常见 5xx 共享一个有限重试预算。
 - 默认最多 3 次，间隔 1 秒、2 秒；格式失败追加修复提示。401、402 等配置/鉴权问题不重试。
 - 缓存只存成功结果，用输入、模型、服务地址和提示词版本的 SHA-256 作为键。

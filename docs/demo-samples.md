@@ -21,20 +21,20 @@
 
 唯一内容来源是 `frontend/src/demo/fixtures/`，使用静态 ES 模块导出本地文本：
 
-- `resume-zh.js`：张浩然，明确标记“合成演示简历 / Synthetic Demo Resume”。保留用户给定的技术细节与数字，去掉聊天尾巴及 Google 跳转，GitHub 只作普通文本展示。
-- `job-cpp.js`、`job-go.js`、`job-ml.js`：均标记“合成演示岗位”，不对应真实公司或招聘来源。
+- `resume-zh.ts`：张浩然，明确标记“合成演示简历 / Synthetic Demo Resume”。保留用户给定的技术细节与数字，去掉聊天尾巴及 Google 跳转，GitHub 只作普通文本展示。
+- `job-cpp.ts`、`job-go.ts`、`job-ml.ts`：均标记“合成演示岗位”，不对应真实公司或招聘来源。
 
 人物、腾讯实习经历、奖项与量化成果均为合成演示内容，不是真实人物或履历证明。
 fixture 随页面静态模块加载，按钮点击不 fetch、不访问 API、不调用 DeepSeek、
 不解析、不保存、不匹配、不诊断。页面原有的历史列表读取保持不变。
-现有便携版构建已包含整个 `frontend/src`，无需增加资源复制或后端路由。
+fixture 由 Vite 编译进静态产物，便携版仅包含 `frontend/dist`，不复制源码或 node_modules。
 
 不在启动时导入，不放入 holdout/market snapshot。只有用户主动保存岗位才写库，
 该表单按 `source_type=synthetic` 提交，不标成真实采样。主动保存后会遵循既有 Analytics
 来源筛选：可能出现在“全部来源”或合成数据范围，不能当作真实市场统计样本。
 核心算法、AI provider 与业务存储逻辑均未修改，没有引入 Mock AI。
 
-README PR #16 尚未合并，因此本轮不修改 README，避免与其整理工作冲突。
+以下为样例引入时的历史验证；React 迁移后的当前验证见 [产品前端迁移记录](frontend-product-shell.md)。
 
 ## 验证（2026-09-09）
 

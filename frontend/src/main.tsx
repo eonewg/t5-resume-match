@@ -1,0 +1,14 @@
+import { createRoot } from 'react-dom/client';
+import App from './App';
+import './styles.css';
+import './workspaces.css';
+
+// Keep existing bookmarks (#resume, #jobs, etc.) while Router owns new navigation.
+if (/^#(?:home|resume|jobs|matching|diagnosis|analytics)$/.test(location.hash)) {
+  history.replaceState(
+    null,
+    '',
+    location.pathname + location.search + '#/' + location.hash.slice(1),
+  );
+}
+createRoot(document.getElementById('root')!).render(<App />);

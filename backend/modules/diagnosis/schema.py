@@ -30,7 +30,7 @@ class DiagnosisDetail(StrictModel):
     star_rewrites: list[StarRewrite] = Field(max_length=5)
     jd_targeted_suggestions: list[Content] = Field(min_length=1, max_length=10)
     keywords_to_strengthen: list[Keyword] = Field(max_length=20)
-    risks: list[Content] = Field(min_length=1, max_length=10)
+    risks: list[Content] = Field(max_length=10)
 
 
 FILTER_WARNING = "部分 STAR 改写因事实保护未展示，请以原简历事实为准。"
