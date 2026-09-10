@@ -1,12 +1,13 @@
-import { useState, type ReactNode } from 'react';
+import Icon from '../components/Icon';
+import { useId, useState, type ReactNode } from 'react';
 import {
   connectAnalytics,
   initialFilters,
   type AnalyticsController,
 } from '../modules/analytics/controller.ts';
 import { useController } from '../core/WorkspaceContext';
-import type { AnalysisResponse } from '../core/contracts';
-import { Button, Feedback, NextLink, PageHeading, SafeSource } from '../components/ui';
+import type { AnalysisResponse, SkillFrequency } from '../core/contracts';
+import { Button, Chips, Feedback, NextLink, PageHeading, SafeSource } from '../components/ui';
 
 const sources: Record<string, string> = {
   real: '真实采样',
@@ -20,6 +21,74 @@ const number = (value: number) =>
 const start = (controller: AnalyticsController) => {
   void controller.load();
 };
+function SkillChart({ rows }: { rows: SkillFrequency[] }) {
+  const gradient = useId();
+  const shown = rows.slice(0, 6);
+  const ceiling = Math.max(4, Math.ceil(Math.max(0, ...shown.map((row) => row.job_count)) / 4) * 4);
+  return (
+    <div className="skill-chart-layout">
+      <svg
+        viewBox="0 0 370 230"
+        className="skill-column-chart"
+        role="img"
+        aria-label="热门技能岗位数量柱状图"
+      >
+        <defs>
+          <linearGradient id={gradient} x1="0" y1="0" x2="0" y2="1">
+            <stop stopColor="#80adff" />
+            <stop offset="1" stopColor="#d3e4ff" />
+          </linearGradient>
+        </defs>
+        {[0, 1, 2, 3, 4].map((tick) => (
+          <g key={tick}>
+            <line x1="35" x2="363" y1={190 - tick * 40} y2={190 - tick * 40} stroke="#e7effb" />
+            <text x="27" y={194 - tick * 40} textAnchor="end">
+              {(ceiling * tick) / 4}
+            </text>
+          </g>
+        ))}
+        {shown.map((row, index) => {
+          const x = 43 + index * (320 / shown.length);
+          const height = (row.job_count / ceiling) * 160;
+          const width = Math.min(33, 240 / shown.length);
+          return (
+            <g key={row.skill}>
+              <title>
+                {row.skill}：{row.job_count} 条岗位，占 {row.share_percent}%
+              </title>
+              <rect
+                x={x}
+                y={190 - height}
+                width={width}
+                height={height}
+                rx="2"
+                fill={`url(#${gradient})`}
+              />
+              <text x={x + width / 2} y={182 - height} textAnchor="middle">
+                {row.job_count}
+              </text>
+              <text x={x + width / 2} y="211" textAnchor="middle">
+                {row.skill.length > 7 ? row.skill.slice(0, 6) + '…' : row.skill}
+              </text>
+            </g>
+          );
+        })}
+      </svg>
+      <div className="skill-ranking">
+        <h3>热门技能 TOP {Math.min(5, rows.length)}</h3>
+        <ol>
+          {rows.slice(0, 5).map((row, index) => (
+            <li key={row.skill}>
+              <span>{index + 1}</span>
+              <strong>{row.skill}</strong>
+              <small>{row.job_count}</small>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+  );
+}
 function Table({ headers, rows }: { headers: string[]; rows: ReactNode[][] }) {
   return (
     <div
@@ -64,7 +133,14 @@ function AnalysisSection({
 }) {
   return (
     <section id={id} className="analysis-section">
-      <h2>{title}</h2>
+      <h2>
+        <Icon
+          name={
+            id === 'analytics-salary' ? 'target' : id === 'analytics-sources' ? 'resume' : 'chart'
+          }
+        />
+        {title}
+      </h2>
       {help && <p className="analytics-help">{help}</p>}
       {children}
     </section>
@@ -85,40 +161,45 @@ export function AnalyticsResult({ result }: { result: AnalysisResponse }) {
         </AnalysisSection>
       ) : (
         <>
-          <header className="analysis-overview">
-            <div className="analysis-sample">
-              <span>当前样本</span>
-              <h2>
-                {data.sample_size}
-                <small> 个岗位</small>
-              </h2>
-              <p>全库 {result.scope?.available_count ?? data.sample_size} 条记录</p>
+          <header id="analytics-metrics" className="analytics-metrics">
+            <div className="metric-card panel">
+              <span className="material-icon">
+                <Icon name="jobs" />
+              </span>
+              <div>
+                <span>已记录岗位</span>
+                <strong>{data.sample_size}</strong>
+                <small>
+                  全库 {result.scope?.available_count ?? data.sample_size} 条 · 已知雇主{' '}
+                  {data.company_count} 家
+                </small>
+              </div>
             </div>
-            <dl id="analytics-metrics" className="analysis-facts">
+            <div className="metric-card panel">
+              <span className="material-icon">
+                <Icon name="trend" />
+              </span>
               <div>
-                <dt>已知雇主</dt>
-                <dd>
-                  {data.company_count} 家 <span> / 未知 {data.unknown_company_count} 条</span>
-                </dd>
+                <span>热门技能</span>
+                <strong>{data.skill_frequency.length}</strong>
+                <small>当前岗位样本中的技能 / 工具</small>
               </div>
+            </div>
+            <div className="metric-card panel">
+              <span className="material-icon">
+                <Icon name="resume" />
+              </span>
               <div>
-                <dt>技能 / 工具</dt>
-                <dd>{data.skill_frequency.length} 项</dd>
+                <span>可比较薪资样本</span>
+                <strong>{data.salary_coverage.comparable_count}</strong>
+                <small>
+                  未知或单位不明{' '}
+                  {data.salary_coverage.missing_range_count +
+                    data.salary_coverage.missing_unit_count}{' '}
+                  条
+                </small>
               </div>
-              <div>
-                <dt>可比较薪资</dt>
-                <dd>
-                  {data.salary_coverage.comparable_count} 条{' '}
-                  <span>
-                    {' '}
-                    / 未知或单位不明{' '}
-                    {data.salary_coverage.missing_range_count +
-                      data.salary_coverage.missing_unit_count}{' '}
-                    条
-                  </span>
-                </dd>
-              </div>
-            </dl>
+            </div>
           </header>
           <p id="analytics-scope" className="analytics-scope">
             来源：
@@ -148,24 +229,30 @@ export function AnalyticsResult({ result }: { result: AnalysisResponse }) {
                   title="热门技能"
                   help={`当前 ${data.sample_size} 条岗位中的技能要求分布 · 前 ${Math.min(10, data.skill_frequency.length)} 项`}
                 >
-                  <ul id="analytics-skills" className="analytics-bars">
-                    {data.skill_frequency.slice(0, 10).map((row) => (
-                      <li key={row.skill}>
-                        <div className="analytics-bar-label">
-                          <span>{row.skill}</span>
-                          <span>
-                            {row.job_count} 条 · {row.share_percent}%
-                          </span>
-                        </div>
-                        <div className="analytics-bar-track" aria-hidden="true">
-                          <div
-                            className="analytics-bar-fill"
-                            style={{ width: `${row.share_percent}%` }}
-                          />
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
+                  {data.skill_frequency.length > 0 && <SkillChart rows={data.skill_frequency} />}
+                  <details className="analytics-details">
+                    <summary>
+                      查看前 {Math.min(10, data.skill_frequency.length)} 项技能覆盖比例
+                    </summary>
+                    <ul id="analytics-skills" className="analytics-bars">
+                      {data.skill_frequency.slice(0, 10).map((row) => (
+                        <li key={row.skill}>
+                          <div className="analytics-bar-label">
+                            <span>{row.skill}</span>
+                            <span>
+                              {row.job_count} 条 · {row.share_percent}%
+                            </span>
+                          </div>
+                          <div className="analytics-bar-track" aria-hidden="true">
+                            <div
+                              className="analytics-bar-fill"
+                              style={{ width: `${row.share_percent}%` }}
+                            />
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </details>
                   <details className="analytics-details">
                     <summary>查看全部 {data.skill_frequency.length} 项技能频率</summary>
                     <Table
@@ -178,6 +265,109 @@ export function AnalyticsResult({ result }: { result: AnalysisResponse }) {
                     />
                   </details>
                 </AnalysisSection>
+                <AnalysisSection
+                  id="analytics-salary"
+                  title="岗位薪资分布"
+                  help="原始招聘区间 · 按币种与周期分组"
+                >
+                  {!data.salary_groups.length && (
+                    <p className="analytics-empty-salary">
+                      数据不足：当前样本没有可比较的薪资区间，不生成推测分布。
+                    </p>
+                  )}
+                  {data.salary_groups.map((group) => {
+                    const max = Math.max(0, ...group.ranges.map((row) => row.upper));
+                    const scale = max || 1;
+                    return (
+                      <section
+                        className="analytics-salary-group"
+                        key={`${group.currency}/${group.period}`}
+                        data-currency={group.currency}
+                        data-period={group.period}
+                      >
+                        <h3>
+                          {group.currency} / {periods[group.period] || group.period} ·{' '}
+                          {group.sample_size} 条
+                        </h3>
+                        <div className="analytics-salary-axis">
+                          <span>0</span>
+                          <span>{number(max)}</span>
+                        </div>
+                        {group.ranges.map((row) => (
+                          <div className="analytics-salary-row" key={row.jd_id}>
+                            <div className="analytics-bar-label">
+                              <span>{row.title}</span>
+                              <span>
+                                {number(row.lower)}–{number(row.upper)}
+                              </span>
+                            </div>
+                            <div className="analytics-salary-track" aria-hidden="true">
+                              <span
+                                className={`analytics-salary-range ${row.lower === row.upper ? 'is-point' : ''}`}
+                                style={{
+                                  left: `${(row.lower / scale) * 100}%`,
+                                  width: `${((row.upper - row.lower) / scale) * 100}%`,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </section>
+                    );
+                  })}
+                  <details className="helper-disclosure">
+                    <summary>薪资口径与缺失值</summary>
+                    <p>
+                      没有完整区间 {data.salary_coverage.missing_range_count}{' '}
+                      条；币种/周期未确认或不支持 {data.salary_coverage.missing_unit_count}{' '}
+                      条。这些记录仍参与技能统计，不以零薪资进入图表。
+                    </p>
+                    <p>
+                      分组内从 0
+                      起画，不同币种、周期各用独立刻度，不折汇、不跨周期换算，不求跨组平均值。
+                    </p>
+                  </details>
+                </AnalysisSection>
+              </div>
+              <AnalysisSection
+                id="analytics-sources"
+                title="岗位样本"
+                help="统计单位是已保存岗位记录；重复手动录入分别计数，固定快照导入会去重。来源标签来自录入资料，不等于独立事实核验。"
+              >
+                <details className="analytics-details" open>
+                  <summary>共 {data.jobs.length} 条岗位来源</summary>
+                  <Table
+                    headers={['岗位 / 雇主', '已确认或解析的技能', '来源与采集日期', '薪资状态']}
+                    rows={data.jobs.map((job) => [
+                      <>
+                        <strong>{job.title}</strong>
+                        <small>{job.company || '雇主未知'}</small>
+                      </>,
+                      <Chips values={job.skills} empty="未识别 / 未确认" />,
+                      <>
+                        <span>{sources[job.source_type] || job.source_type}</span>
+                        {job.source_url && (
+                          <SafeSource url={job.source_url}>
+                            {job.source_name || '查看来源'}
+                          </SafeSource>
+                        )}
+                        <small>{job.collected_at || '采集日期未知'}</small>
+                      </>,
+                      <>
+                        {
+                          {
+                            comparable: '已进入对应分组',
+                            missing_range: '暂未提供完整区间',
+                            missing_unit: '暂未提供薪资单位',
+                          }[job.salary_status]
+                        }
+                        {job.salary && <small>{job.salary}</small>}
+                      </>,
+                    ])}
+                  />
+                </details>
+              </AnalysisSection>
+              <div className="analytics-extra">
                 <div className="analytics-side">
                   <details className="analytics-cloud-panel">
                     <summary>热门技能词云</summary>
@@ -208,115 +398,14 @@ export function AnalyticsResult({ result }: { result: AnalysisResponse }) {
                     </p>
                   </section>
                 </div>
+                <AnalysisSection id="analytics-observations" title="样本观察与使用边界">
+                  <ul>
+                    {data.observations.map((text, i) => (
+                      <li key={i}>{text}</li>
+                    ))}
+                  </ul>
+                </AnalysisSection>
               </div>
-              <AnalysisSection
-                id="analytics-salary"
-                title="岗位薪资分布"
-                help="原始招聘区间 · 按币种与周期分组"
-              >
-                {!data.salary_groups.length && (
-                  <p className="analytics-empty-salary">
-                    数据不足：当前样本没有可比较的薪资区间，不生成推测分布。
-                  </p>
-                )}
-                {data.salary_groups.map((group) => {
-                  const max = Math.max(0, ...group.ranges.map((row) => row.upper));
-                  const scale = max || 1;
-                  return (
-                    <section
-                      className="analytics-salary-group"
-                      key={`${group.currency}/${group.period}`}
-                      data-currency={group.currency}
-                      data-period={group.period}
-                    >
-                      <h3>
-                        {group.currency} / {periods[group.period] || group.period} ·{' '}
-                        {group.sample_size} 条
-                      </h3>
-                      <div className="analytics-salary-axis">
-                        <span>0</span>
-                        <span>{number(max)}</span>
-                      </div>
-                      {group.ranges.map((row) => (
-                        <div className="analytics-salary-row" key={row.jd_id}>
-                          <div className="analytics-bar-label">
-                            <span>{row.title}</span>
-                            <span>
-                              {number(row.lower)}–{number(row.upper)}
-                            </span>
-                          </div>
-                          <div className="analytics-salary-track" aria-hidden="true">
-                            <span
-                              className={`analytics-salary-range ${row.lower === row.upper ? 'is-point' : ''}`}
-                              style={{
-                                left: `${(row.lower / scale) * 100}%`,
-                                width: `${((row.upper - row.lower) / scale) * 100}%`,
-                              }}
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </section>
-                  );
-                })}
-                <details className="helper-disclosure">
-                  <summary>薪资口径与缺失值</summary>
-                  <p>
-                    没有完整区间 {data.salary_coverage.missing_range_count}{' '}
-                    条；币种/周期未确认或不支持 {data.salary_coverage.missing_unit_count}{' '}
-                    条。这些记录仍参与技能统计，不以零薪资进入图表。
-                  </p>
-                  <p>
-                    分组内从 0
-                    起画，不同币种、周期各用独立刻度，不折汇、不跨周期换算，不求跨组平均值。
-                  </p>
-                </details>
-              </AnalysisSection>
-              <AnalysisSection id="analytics-observations" title="样本观察与使用边界">
-                <ul>
-                  {data.observations.map((text, i) => (
-                    <li key={i}>{text}</li>
-                  ))}
-                </ul>
-              </AnalysisSection>
-              <AnalysisSection
-                id="analytics-sources"
-                title="岗位与来源明细"
-                help="统计单位是已保存岗位记录；重复手动录入分别计数，固定快照导入会去重。来源标签来自录入资料，不等于独立事实核验。"
-              >
-                <details className="analytics-details">
-                  <summary>查看 {data.jobs.length} 条岗位来源</summary>
-                  <Table
-                    headers={['岗位 / 雇主', '已确认或解析的技能', '来源与采集日期', '薪资状态']}
-                    rows={data.jobs.map((job) => [
-                      <>
-                        <strong>{job.title}</strong>
-                        <small>{job.company || '雇主未知'}</small>
-                      </>,
-                      job.skills.join('、') || '未识别 / 未确认',
-                      <>
-                        <span>{sources[job.source_type] || job.source_type}</span>
-                        {job.source_url && (
-                          <SafeSource url={job.source_url}>
-                            {job.source_name || '查看来源'}
-                          </SafeSource>
-                        )}
-                        <small>{job.collected_at || '采集日期未知'}</small>
-                      </>,
-                      <>
-                        {
-                          {
-                            comparable: '已进入对应分组',
-                            missing_range: '暂未提供完整区间',
-                            missing_unit: '暂未提供薪资单位',
-                          }[job.salary_status]
-                        }
-                        {job.salary && <small>{job.salary}</small>}
-                      </>,
-                    ])}
-                  />
-                </details>
-              </AnalysisSection>
             </>
           )}
         </>
@@ -331,8 +420,8 @@ export default function AnalyticsPage() {
   const c = controller.current!;
   return (
     <div className="analytics-page" data-module="analytics">
-      <PageHeading title="市场洞察">已录入岗位的技能与薪资分布。</PageHeading>
-      <details id="analytics-filters" className="analytics-filter-panel" open>
+      <PageHeading title="市场洞察">查看岗位样本、热门技能与薪资分布，辅助判断方向。</PageHeading>
+      <details id="analytics-filters" className="analytics-filter-panel">
         <summary>筛选来源与日期</summary>
         <form
           className="analytics-filters"

@@ -8,6 +8,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useController, useWorkspace } from '../core/WorkspaceContext';
 import type { ResumeField } from '../core/controller-types';
 import { fieldStatus } from '../core/ui.ts';
+import Icon from '../components/Icon';
 import demoResume from '../demo/fixtures/resume-zh.ts';
 import { Button, Feedback, NextLink, PageHeading } from '../components/ui';
 
@@ -26,7 +27,10 @@ export default function ResumePage() {
   const { store } = useWorkspace();
   const file = useRef<HTMLInputElement>(null);
   const history = useRef<HTMLDetailsElement>(null);
+  const source = useRef<HTMLDetailsElement>(null);
   const [sourceOpen, setSourceOpen] = useState(true);
+  const [sourceTab, setSourceTab] = useState('upload');
+  const [activeField, setActiveField] = useState<ResumeField>('name');
   const [dragging, setDragging] = useState(false);
   const imported = Boolean(s?.imported || s?.savedId || s?.candidate);
   useEffect(() => {
@@ -99,7 +103,12 @@ export default function ResumePage() {
     const candidate = newSuggestion(s!, key);
     const differs = candidate !== null;
     return (
-      <section id={`field-${key}`} className="resume-field" key={key}>
+      <section
+        id={`field-${key}`}
+        className="resume-field"
+        key={key}
+        onFocus={() => setActiveField(key)}
+      >
         <div className="resume-label-row">
           {key === 'experience' ? (
             <h3>{labels[key]}</h3>
@@ -109,6 +118,7 @@ export default function ResumePage() {
           <span
             className="field-state"
             data-state={badge.tone}
+            data-empty={badge.text === '未填写'}
             data-protected={s!.protectedFields.includes(key)}
           >
             {badge.text}
@@ -169,7 +179,7 @@ export default function ResumePage() {
                 id="resume-name"
                 value={s!.values.name}
                 readOnly={locked}
-                placeholder="填写姓名"
+                placeholder="请输入姓名"
                 onChange={(e) => c.edit('name', e.target.value)}
               />
             ) : (
@@ -178,7 +188,11 @@ export default function ResumePage() {
                 rows={2}
                 value={s!.values[key]}
                 readOnly={locked}
-                placeholder={key === 'skills' ? '每行一项技能' : '学校、专业与学历'}
+                placeholder={
+                  key === 'skills'
+                    ? '请输入掌握的技能、工具或证书，每行一项'
+                    : '请输入教育背景，例如：学校、专业、学历、时间等'
+                }
                 onChange={(e) => c.edit(key, e.target.value)}
               />
             )}
@@ -199,8 +213,8 @@ export default function ResumePage() {
   return (
     <div className="resume-editor" data-module="resume">
       <div className="page-title-row">
-        <PageHeading title="我的简历" />
-        <Link to="/resume/history">查找历史版本 →</Link>
+        <PageHeading title="我的简历">上传、粘贴或编辑简历内容，右侧确认关键信息。</PageHeading>
+        <Link to="/resume/history">查看历史版本 →</Link>
       </div>
       <Feedback id="resume-status" error={s.error ? status : undefined} busy={Boolean(s.busy)}>
         {status}
@@ -227,26 +241,40 @@ export default function ResumePage() {
             <div className="section-heading">
               <h2>简历原文</h2>
             </div>
-            <button
-              id="resume-dropzone"
-              type="button"
-              disabled={Boolean(s.busy)}
-              className={`resume-dropzone ${dragging ? 'drag-over' : ''}`}
-              onClick={() => file.current?.click()}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDragging(true);
-              }}
-              onDragLeave={() => setDragging(false)}
-              onDrop={(e) => {
-                e.preventDefault();
-                setDragging(false);
-                if (!s.busy) void c.upload(e.dataTransfer.files[0]);
-              }}
-            >
-              <span className="resume-upload-title">{imported ? '导入其他文件' : '上传简历'}</span>
-              <span>也可将文件拖到这里</span>
-            </button>
+            <nav className="source-tabs" aria-label="简历导入方式">
+              {(
+                [
+                  ['upload', '上传文件'],
+                  ['paste', '粘贴文本'],
+                  ['ai', 'AI 识别'],
+                ] as const
+              ).map(([key, label]) => (
+                <button
+                  type="button"
+                  key={key}
+                  aria-pressed={sourceTab === key}
+                  disabled={Boolean(s.busy)}
+                  onClick={() => {
+                    setSourceTab(key);
+                    setSourceOpen(true);
+                    if (source.current) source.current.open = true;
+                    if (key === 'upload') file.current?.click();
+                    else
+                      document
+                        .getElementById(
+                          key === 'ai'
+                            ? s.aiStatus === 'failed'
+                              ? 'resume-ai-retry'
+                              : 'resume-parse'
+                            : 'resume-raw',
+                        )
+                        ?.focus();
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </nav>
             <input
               id="resume-file"
               type="file"
@@ -261,6 +289,7 @@ export default function ResumePage() {
               }}
             />
             <details
+              ref={source}
               className="resume-source"
               open={sourceOpen}
               onToggle={(e) => setSourceOpen(e.currentTarget.open)}
@@ -275,7 +304,7 @@ export default function ResumePage() {
                 maxLength={50000}
                 value={s.values.raw_text}
                 readOnly={locked}
-                placeholder="在这里粘贴教育背景、技能和项目经历…"
+                placeholder={'在这里粘贴简历内容…\n支持从 Word、PDF 或其他文档粘贴。'}
                 onChange={(e) => c.edit('raw_text', e.target.value)}
               />
               <p className="resume-help">{s.values.raw_text.length} / 50000 字符</p>
@@ -297,6 +326,36 @@ export default function ResumePage() {
                 </p>
               </details>
             </details>
+            <div className="upload-divider">
+              <span>或上传文件</span>
+            </div>
+            <button
+              id="resume-dropzone"
+              type="button"
+              disabled={Boolean(s.busy)}
+              className={`resume-dropzone ${dragging ? 'drag-over' : ''}`}
+              onClick={() => file.current?.click()}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragging(true);
+              }}
+              onDragLeave={() => setDragging(false)}
+              onDrop={(e) => {
+                e.preventDefault();
+                setDragging(false);
+                if (!s.busy) void c.upload(e.dataTransfer.files[0]);
+              }}
+            >
+              <Icon name="upload" />
+              <span className="resume-upload-title">
+                {imported ? '导入其他文件' : '点击上传或拖拽文件到此处'}
+              </span>
+              <span>
+                支持 PDF、DOCX、TXT 格式
+                <br />
+                单个文件不超过 10 MB
+              </span>
+            </button>
             <Button
               id="resume-demo-fill"
               tone="ghost"
@@ -406,15 +465,17 @@ export default function ResumePage() {
               <a
                 key={key}
                 href={`#field-${key}`}
+                aria-current={activeField === key ? 'location' : undefined}
                 onClick={(event) => {
                   event.preventDefault();
+                  setActiveField(key);
                   document.getElementById(`field-${key}`)?.scrollIntoView({ block: 'start' });
                   document
                     .getElementById(key === 'experience' ? 'resume-experience-0' : `resume-${key}`)
                     ?.focus({ preventScroll: true });
                 }}
               >
-                {labels[key]}
+                {key === 'name' ? '基本信息' : labels[key]}
               </a>
             ))}
           </nav>

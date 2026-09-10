@@ -1,3 +1,4 @@
+import Icon from '../components/Icon';
 import { useEffect, useState } from 'react';
 import { connectDiagnosis, type DiagnosisController } from '../modules/diagnosis/controller.ts';
 import { useController, useWorkspace } from '../core/WorkspaceContext';
@@ -20,7 +21,13 @@ function Suggestion({ text }: { text: string }) {
           <p>{parts.original}</p>
         </section>
         <section>
-          <h3>建议表达</h3>
+          <h3>
+            建议表达{' '}
+            <small className="ai-label">
+              <Icon name="diagnosis" />
+              AI 建议
+            </small>
+          </h3>
           <p>
             {parts.suggested
               .split(/(【(?:待补充|待核实|待确认)[^】]*】)/g)
@@ -35,7 +42,10 @@ function Suggestion({ text }: { text: string }) {
         </section>
       </div>
       <p className="suggestion-reason">
-        <span>为什么这样改</span>
+        <span>
+          <Icon name="info" />
+          为什么这样改
+        </span>
         {parts.reason}
       </p>
     </article>
@@ -87,9 +97,7 @@ function SuggestionWorkbench({ suggestions }: { suggestions: string[] }) {
                 aria-pressed={index === itemIndex}
                 onClick={() => setItemIndex(index)}
               >
-                <span className="suggestion-position">
-                  {index + 1} / {group.items.length}
-                </span>
+                <span className="suggestion-position">{String(index + 1).padStart(2, '0')}</span>
                 <span>{preview.length > 72 ? preview.slice(0, 72) + '…' : preview}</span>
               </button>
             );
@@ -97,16 +105,17 @@ function SuggestionWorkbench({ suggestions }: { suggestions: string[] }) {
         </aside>
         <section className="suggestion-reader" aria-label="当前建议" aria-live="polite">
           <header>
-            <h2>{group.name}</h2>
+            <h2>
+              {group.name}{' '}
+              <span className="suggestion-order">{String(itemIndex + 1).padStart(2, '0')}</span>
+            </h2>
             <span>
               第 {itemIndex + 1} 条，共 {group.items.length} 条
             </span>
           </header>
           <Suggestion text={current} />
           <footer className="suggestion-reader-actions">
-            <NextLink to="/resume" primary={false}>
-              返回简历修改 →
-            </NextLink>
+            <NextLink to="/resume">返回简历修改 →</NextLink>
             {itemIndex < group.items.length - 1 && (
               <Button tone="ghost" onClick={() => setItemIndex(itemIndex + 1)}>
                 下一条建议 →
@@ -121,11 +130,11 @@ function SuggestionWorkbench({ suggestions }: { suggestions: string[] }) {
 export default function DiagnosisPage() {
   const { state: s, controller } = useController(connectDiagnosis, start, 'diagnosis');
   const { state: workspace } = useWorkspace();
-  const [selection, setSelection] = useState('');
+  const [selection, setSelection] = useState({ resume: '', education: '', job: '', company: '' });
   useEffect(() => {
     const abort = new AbortController();
     const api = createApi({ signal: abort.signal });
-    setSelection('正在读取目标岗位…');
+    setSelection({ resume: '正在读取…', education: '', job: '正在读取…', company: '' });
     if (workspace.resumeId && workspace.jdId)
       Promise.all([
         api.request<Resume>('/api/v1/resumes/' + encodeURIComponent(workspace.resumeId)),
@@ -133,12 +142,21 @@ export default function DiagnosisPage() {
       ])
         .then(([resume, job]) => {
           if (!abort.signal.aborted)
-            setSelection(
-              `针对：${job.data.title}${job.data.company ? ' · ' + job.data.company : ''} · ${resume.data.name || '我的简历'}`,
-            );
+            setSelection({
+              resume: resume.data.name || '我的简历',
+              education: resume.data.education,
+              job: job.data.title,
+              company: job.data.company || '',
+            });
         })
         .catch(() => {
-          if (!abort.signal.aborted) setSelection('已选择简历与目标岗位，名称暂时无法读取。');
+          if (!abort.signal.aborted)
+            setSelection({
+              resume: '已选择简历',
+              education: '名称暂时无法读取',
+              job: '已选择目标岗位',
+              company: '名称暂时无法读取',
+            });
         });
     return () => abort.abort();
   }, [workspace.resumeId, workspace.jdId]);
@@ -146,14 +164,36 @@ export default function DiagnosisPage() {
   const r = s.record;
   return (
     <div className="product-page diagnosis-page" data-module="diagnosis">
-      <PageHeading title="AI 优化" />
+      <PageHeading title="AI 优化">对照建议修改表达，保留真实经历。</PageHeading>
       {!s.canRun ? (
         <Empty title="先选择简历和目标岗位" to="/jobs" cta="去选择目标岗位" />
       ) : (
         <section className="diagnosis-header">
-          <p className="selected-context" data-testid="diagnosis-selection">
-            {selection}
-          </p>
+          <div className="pair-context" data-testid="diagnosis-selection">
+            <div>
+              <span className="material-icon">
+                <Icon name="resume" />
+              </span>
+              <span>
+                <small>当前简历</small>
+                <strong>{selection.resume}</strong>
+                <small>{selection.education}</small>
+              </span>
+            </div>
+            <div>
+              <span className="material-icon">
+                <Icon name="target" />
+              </span>
+              <span>
+                <small>目标岗位</small>
+                <strong>{selection.job}</strong>
+                <small>{selection.company}</small>
+              </span>
+            </div>
+            <NextLink to="/jobs" primary={false}>
+              更换简历/岗位 →
+            </NextLink>
+          </div>
           <div className="inline-actions">
             <Button
               id="diagnosis-run"

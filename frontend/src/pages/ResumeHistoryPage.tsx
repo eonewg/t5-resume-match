@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Feedback, NextLink, PageHeading } from '../components/ui';
+import Icon from '../components/Icon';
+import { Button, Chips, Feedback, NextLink, PageHeading } from '../components/ui';
 import { createApi } from '../core/api';
 import type { Resume } from '../core/contracts';
 import type { ResumeState } from '../core/controller-types';
@@ -19,6 +20,7 @@ export default function ResumeHistoryPage() {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [query, setQuery] = useState('');
+  const [previewId, setPreviewId] = useState<string | null>(null);
   const scope = useRef<AbortController | null>(null);
   const operation = useRef(false);
 
@@ -132,32 +134,18 @@ export default function ResumeHistoryPage() {
       .toLocaleLowerCase()
       .includes(query.trim().toLocaleLowerCase()),
   );
+  const preview = visibleRows.find((row) => row.id === previewId) || visibleRows[0];
   return (
     <div className="page history-page">
       <div className="page-title-row">
-        <PageHeading title="简历档案" />
-        <NextLink to="/resume" primary={false}>
-          回到简历编辑器 →
-        </NextLink>
-      </div>
-      <div className="history-toolbar">
-        <div className="history-search">
-          <label htmlFor="history-search">查找本页版本</label>
-          <input
-            id="history-search"
-            type="search"
-            placeholder="姓名、技能或经历"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </div>
+        <PageHeading title="历史简历">查找、比较并管理你保存过的简历版本。</PageHeading>
         <div className="button-row">
           <Button
             tone="ghost"
             disabled={Boolean(busy)}
             onClick={() => void run('loading', () => refresh())}
           >
-            刷新档案
+            刷新列表
           </Button>
           <Button
             tone="danger"
@@ -190,68 +178,161 @@ export default function ResumeHistoryPage() {
         </section>
       )}
       {rows.length > 0 && (
-        <div
-          className="history-table-scroll"
-          aria-busy={Boolean(busy)}
-          role="region"
-          aria-label="已保存简历版本"
-          tabIndex={0}
-        >
-          <table className="history-table">
-            <caption>
-              第 {Math.floor(offset / PAGE_SIZE) + 1} 页 · {visibleRows.length} / {rows.length}{' '}
-              份版本，按保存顺序由新到旧
-            </caption>
-            <thead>
-              <tr>
-                <th scope="col">简历 / 教育背景</th>
-                <th scope="col">技能与经历</th>
-                <th scope="col">使用状态</th>
-                <th scope="col">操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visibleRows.map((row) => (
-                <tr key={row.id} data-selected={row.id === state.resumeId}>
-                  <td>
-                    <strong>{row.name || '未命名简历'}</strong>
-                    <p>{row.education || '教育背景待补充'}</p>
-                    <small title={row.id}>版本 …{row.id.slice(-8)}</small>
-                  </td>
-                  <td>
-                    <p>{row.skills.join('、') || '尚未填写技能'}</p>
-                    <details className="history-preview">
-                      <summary>预览经历</summary>
-                      {row.experience.length ? (
-                        row.experience.map((text, index) => <p key={index}>{text}</p>)
-                      ) : (
-                        <p>尚未填写经历</p>
-                      )}
-                    </details>
-                  </td>
-                  <td>{row.id === state.resumeId ? '当前使用' : '已保存'}</td>
-                  <td>
-                    <div className="history-row-actions">
-                      <Button tone="ghost" disabled={Boolean(busy)} onClick={() => void open(row)}>
-                        打开简历 →
-                      </Button>
-                      <Button
-                        tone="danger"
-                        aria-label={`删除简历 ${row.name || '未命名简历'}`}
-                        disabled={Boolean(busy)}
-                        onClick={() => void remove(row)}
-                      >
-                        删除
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {!visibleRows.length && (
-            <p className="compact-empty">本页没有相符版本，请调整关键词或翻页查找。</p>
-          )}
+        <div className="history-workspace">
+          <section className="history-list-panel panel">
+            {' '}
+            <div className="history-toolbar">
+              <div className="history-search">
+                <label htmlFor="history-search">查找本页版本</label>
+                <input
+                  id="history-search"
+                  type="search"
+                  placeholder="姓名、技能或经历"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                />
+              </div>
+            </div>
+            <div
+              className="history-table-scroll"
+              aria-busy={Boolean(busy)}
+              role="region"
+              aria-label="已保存简历版本"
+              tabIndex={0}
+            >
+              <table className="history-table">
+                <caption>
+                  第 {Math.floor(offset / PAGE_SIZE) + 1} 页 · {visibleRows.length} / {rows.length}{' '}
+                  份版本，按保存顺序由新到旧
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">简历 / 教育背景</th>
+                    <th scope="col">技能与经历</th>
+                    <th scope="col">使用状态</th>
+                    <th scope="col">操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {visibleRows.map((row) => (
+                    <tr key={row.id} data-selected={row.id === preview?.id}>
+                      <td>
+                        <button
+                          className="history-select"
+                          type="button"
+                          aria-pressed={row.id === preview?.id}
+                          onClick={() => setPreviewId(row.id)}
+                        >
+                          {row.name || '未命名简历'}
+                        </button>
+                        <p>{row.education || '教育背景待补充'}</p>
+                        <small title={row.id}>版本 …{row.id.slice(-8)}</small>
+                      </td>
+                      <td>
+                        <p>{row.skills.join('、') || '尚未填写技能'}</p>
+                        <details className="history-preview">
+                          <summary>预览经历</summary>
+                          {row.experience.length ? (
+                            row.experience.map((text, index) => <p key={index}>{text}</p>)
+                          ) : (
+                            <p>尚未填写经历</p>
+                          )}
+                        </details>
+                      </td>
+                      <td>
+                        <span className="saved-badge">
+                          {row.id === state.resumeId ? '当前使用' : '已保存'}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="history-row-actions">
+                          <Button
+                            tone="ghost"
+                            disabled={Boolean(busy)}
+                            onClick={() => void open(row)}
+                          >
+                            打开简历 →
+                          </Button>
+                          <Button
+                            tone="danger"
+                            aria-label={`删除简历 ${row.name || '未命名简历'}`}
+                            disabled={Boolean(busy)}
+                            onClick={() => void remove(row)}
+                          >
+                            删除
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {!visibleRows.length && (
+                <p className="compact-empty">本页没有相符版本，请调整关键词或翻页查找。</p>
+              )}
+            </div>
+          </section>
+          <aside className="history-detail panel" aria-label="版本预览">
+            <h2>版本预览</h2>
+            {preview ? (
+              <>
+                <header>
+                  <h3>{preview.name || '未命名简历'}</h3>
+                  <p>
+                    版本 …{preview.id.slice(-8)}
+                    <span className="saved-badge">
+                      {preview.id === state.resumeId ? '当前使用' : '已保存'}
+                    </span>
+                  </p>
+                </header>
+                <Chips values={preview.skills} />
+                <section>
+                  <h3>
+                    <Icon name="education" />
+                    教育背景
+                  </h3>
+                  <p>{preview.education || '教育背景待补充'}</p>
+                </section>
+                <section>
+                  <h3>
+                    <Icon name="diagnosis" />
+                    技能摘要
+                  </h3>
+                  <p>{preview.skills.join('、') || '尚未填写技能'}</p>
+                </section>
+                <section>
+                  <h3>
+                    <Icon name="jobs" />
+                    重点经历
+                  </h3>
+                  {preview.experience.length ? (
+                    preview.experience.map((text, i) => <p key={i}>{text}</p>)
+                  ) : (
+                    <p>尚未填写经历</p>
+                  )}
+                </section>
+                <footer className="inline-actions">
+                  <Button
+                    tone="primary"
+                    disabled={Boolean(busy)}
+                    onClick={() => void open(preview)}
+                  >
+                    打开所选简历 <Icon name="arrow" />
+                  </Button>
+                  <Button
+                    tone="danger"
+                    disabled={Boolean(busy)}
+                    onClick={() => void remove(preview)}
+                  >
+                    <Icon name="trash" />
+                    删除所选版本
+                  </Button>
+                </footer>
+              </>
+            ) : (
+              <p className="helper-text">没有相符版本，请调整关键词。</p>
+            )}
+          </aside>
         </div>
       )}
       {(offset > 0 || hasNext) && (

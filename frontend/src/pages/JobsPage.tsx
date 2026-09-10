@@ -1,8 +1,9 @@
-import { useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { connectJobs, type JobsController } from '../modules/jobs/controller.ts';
 import { useController, useWorkspace } from '../core/WorkspaceContext';
-import { Button, Chips, Empty, Feedback, PageHeading, SafeSource } from '../components/ui';
+import { Button, Chips, Feedback, PageHeading, SafeSource } from '../components/ui';
+import Icon from '../components/Icon';
 import cpp from '../demo/fixtures/job-cpp.ts';
 import go from '../demo/fixtures/job-go.ts';
 import ml from '../demo/fixtures/job-ml.ts';
@@ -16,7 +17,9 @@ export default function JobsPage() {
   const { store } = useWorkspace();
   const [formOpen, setFormOpen] = useState(false);
   const formPanel = useRef<HTMLDetailsElement>(null);
-  const [query, setQuery] = useState('');
+  const [params] = useSearchParams();
+  const [query, setQuery] = useState(params.get('q') || '');
+  useEffect(() => setQuery(params.get('q') || ''), [params]);
   const [form, setForm] = useState({ title: '', company: '', jd_text: '' });
   const [demo, setDemo] = useState(false);
   const [operation, setOperation] = useState('load');
@@ -33,8 +36,10 @@ export default function JobsPage() {
   return (
     <div className="jobs-page" data-module="jobs">
       <div className="page-title-row">
-        <PageHeading title="目标岗位" />
-        {s.resumeId && (
+        <PageHeading title="目标岗位">
+          选择你准备申请的岗位，让后续匹配和优化有一个具体目标。
+        </PageHeading>
+        {
           <Button
             tone="primary"
             disabled={s.busy}
@@ -49,7 +54,7 @@ export default function JobsPage() {
           >
             添加岗位
           </Button>
-        )}
+        }
       </div>
       <Feedback id="jobs-status" error={s.error} busy={s.busy}>
         {s.busy
@@ -68,226 +73,247 @@ export default function JobsPage() {
       {s.jobMock && (
         <p className="result-provenance">Mock · 岗位解析使用演示服务，结果仅用于体验</p>
       )}
-      {!s.resumeId ? (
-        <Empty title="先导入一份简历" to="/resume" cta="导入简历">
-          核对并保存后，就可以选择目标岗位。
-        </Empty>
-      ) : (
-        <>
-          <div className="jobs-resume-context">
-            <span>用于分析的简历</span>
-            <strong>{resume?.name || '我的简历'}</strong>
-            <Link to="/resume/history">更换</Link>
+      <>
+        <div className="jobs-resume-context panel">
+          <span className="material-icon">
+            <Icon name="resume" />
+          </span>
+          <div>
+            <span>当前简历</span>
+            <strong>{s.resumeId ? resume?.name || '我的简历' : '尚未确认简历'}</strong>
+            <p>
+              {s.resumeId ? '已确认，可用于岗位分析。' : '支持 PDF、DOCX、TXT 或直接粘贴文本。'}
+            </p>
           </div>
-          <div className="job-browser">
-            <section className="job-collection" aria-label="已录入岗位">
-              <div className="job-search">
-                <label className="sr-only" htmlFor="job-search">
-                  在已录入岗位中查找
-                </label>
-                <input
-                  id="job-search"
-                  type="search"
-                  placeholder="搜索岗位、公司或技能"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                />
-                <p aria-live="polite">{visibleJobs.length} 个岗位</p>
-              </div>
-              <div className="job-options" aria-label="选择目标岗位">
-                {visibleJobs.map((row) => (
-                  <button
-                    type="button"
-                    className="job-option"
-                    key={row.id}
-                    data-job-id={row.id}
-                    aria-pressed={row.id === s.jdId}
-                    disabled={s.busy}
-                    onClick={() => {
-                      c.choose('jdId', row.id);
-                      setFormOpen(false);
+          <Link to={s.resumeId ? '/resume/history' : '/resume'}>
+            {s.resumeId ? '更换简历' : '导入简历'} <Icon name="arrow" />
+          </Link>
+        </div>
+        <div className="job-browser">
+          <section className="job-collection" aria-label="已录入岗位">
+            <div className="job-search">
+              <label className="sr-only" htmlFor="job-search">
+                在已录入岗位中查找
+              </label>
+              <input
+                id="job-search"
+                type="search"
+                placeholder="搜索岗位、公司或技能"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+              <p className="collection-tab" aria-live="polite">
+                全部 <strong>{visibleJobs.length}</strong>
+              </p>
+            </div>
+            <div className="job-options" aria-label="选择目标岗位">
+              {visibleJobs.map((row) => (
+                <button
+                  type="button"
+                  className="job-option"
+                  key={row.id}
+                  data-job-id={row.id}
+                  aria-pressed={row.id === s.jdId}
+                  disabled={s.busy}
+                  onClick={() => {
+                    c.choose('jdId', row.id);
+                    setFormOpen(false);
+                  }}
+                >
+                  <span className="job-option-title">
+                    <strong>{row.title}</strong>
+                    <span aria-hidden="true">{row.id === s.jdId ? '→' : ''}</span>
+                  </span>
+                  <span>{row.company || '公司暂未提供'}</span>
+                  <span className="job-option-skills">
+                    {row.skills.length
+                      ? row.skills.slice(0, 5).map((skill) => (
+                          <span className="keyword" key={skill}>
+                            {skill}
+                          </span>
+                        ))
+                      : '技能尚未提供'}
+                  </span>
+                  {row.source_type === 'synthetic' && <small>合成演示岗位</small>}
+                </button>
+              ))}
+            </div>
+            {s.jobs.length > 0 && !visibleJobs.length && (
+              <p className="compact-empty">没有相符岗位，试试其他关键词。</p>
+            )}
+            {!s.jobs.length && !s.busy && (
+              <p className="compact-empty">还没有岗位。添加一份准备申请的岗位要求。</p>
+            )}
+          </section>
+          <div className="job-reading-pane">
+            {job && (
+              <article className="job-detail" data-testid="selected-job" hidden={formOpen}>
+                <header>
+                  <span className="employer-mark" aria-hidden="true">
+                    {job.company?.slice(0, 2) || <Icon name="jobs" />}
+                  </span>
+                  <h2>{job.title}</h2>
+                  <p className="job-employer">
+                    {job.company || '公司暂未提供'}
+                    {job.salary && ` · ${job.salary}`}
+                  </p>
+                  {job.source_type === 'synthetic' && (
+                    <p className="result-provenance">合成演示岗位</p>
+                  )}
+                </header>
+                <section className="job-requirements">
+                  <h3>技能要求</h3>
+                  <Chips values={job.skills} />
+                </section>
+                {job.tools.length > 0 && (
+                  <section className="job-tools">
+                    <h3>工具</h3>
+                    <Chips values={job.tools} />
+                  </section>
+                )}
+                <section className="job-original">
+                  <h3>岗位原文</h3>
+                  <p id="jobs-original">{job.jd_text}</p>
+                </section>
+                <p className="job-source">
+                  来源：
+                  {job.source_name ||
+                    (job.source_type === 'synthetic' ? '合成演示' : '暂未提供')}{' '}
+                  {job.source_url && <SafeSource url={job.source_url}>查看来源 ↗</SafeSource>}
+                </p>
+                <footer className="job-detail-actions">
+                  <Button
+                    id="jobs-run"
+                    tone="primary"
+                    disabled={s.busy || !s.resumeId}
+                    onClick={async () => {
+                      setOperation('match');
+                      await c.match();
+                      if (controller.current === c && store.getState().result?.match)
+                        navigate('/matching');
                     }}
                   >
-                    <span className="job-option-title">
-                      <strong>{row.title}</strong>
-                      <span aria-hidden="true">{row.id === s.jdId ? '→' : ''}</span>
-                    </span>
-                    <span>{row.company || '公司暂未提供'}</span>
-                    <span className="job-option-skills">
-                      {row.skills.slice(0, 3).join(' · ') || '技能尚未提供'}
-                    </span>
-                    {row.source_type === 'synthetic' && <small>合成演示岗位</small>}
-                  </button>
-                ))}
-              </div>
-              {s.jobs.length > 0 && !visibleJobs.length && (
-                <p className="compact-empty">没有相符岗位，试试其他关键词。</p>
-              )}
-              {!s.jobs.length && !s.busy && (
-                <p className="compact-empty">还没有岗位。添加一份准备申请的岗位要求。</p>
-              )}
-            </section>
-            <div className="job-reading-pane">
-              {job && (
-                <article className="job-detail" data-testid="selected-job" hidden={formOpen}>
-                  <header>
-                    <p className="eyebrow">当前目标岗位</p>
-                    <h2>{job.title}</h2>
-                    <p className="job-employer">
-                      {job.company || '公司暂未提供'}
-                      {job.salary && ` · ${job.salary}`}
-                    </p>
-                    {job.source_type === 'synthetic' && (
-                      <p className="result-provenance">合成演示岗位</p>
-                    )}
-                  </header>
-                  <section className="job-requirements">
-                    <h3>技能要求</h3>
-                    <Chips values={job.skills} />
-                  </section>
-                  {job.tools.length > 0 && (
-                    <section className="job-tools">
-                      <h3>工具</h3>
-                      <Chips values={job.tools} />
-                    </section>
+                    {s.busy && operation === 'match'
+                      ? '正在匹配…'
+                      : s.error && operation === 'match'
+                        ? '重试匹配'
+                        : '用当前简历分析这个岗位'}
+                  </Button>
+                  {!s.resumeId && (
+                    <Link className="button secondary" to="/resume">
+                      先确认简历 <Icon name="arrow" />
+                    </Link>
                   )}
-                  <section className="job-original">
-                    <h3>岗位原文</h3>
-                    <p id="jobs-original">{job.jd_text}</p>
-                  </section>
-                  <p className="job-source">
-                    来源：
-                    {job.source_name || (job.source_type === 'synthetic' ? '合成演示' : '暂未提供')}{' '}
-                    {job.source_url && <SafeSource url={job.source_url}>查看来源 ↗</SafeSource>}
-                  </p>
-                  <footer className="job-detail-actions">
-                    <Button
-                      id="jobs-run"
-                      tone="primary"
-                      disabled={s.busy}
-                      onClick={async () => {
-                        setOperation('match');
-                        await c.match();
-                        if (controller.current === c && store.getState().result?.match)
-                          navigate('/matching');
-                      }}
-                    >
-                      {s.busy && operation === 'match'
-                        ? '正在匹配…'
-                        : s.error && operation === 'match'
-                          ? '重试匹配'
-                          : '用当前简历分析这个岗位'}
-                    </Button>
-                  </footer>
-                </article>
-              )}
-              {!job && !formOpen && (
-                <div className="job-reading-prompt">
-                  <h2>选择一个目标岗位</h2>
-                  <p>从左侧打开岗位，阅读完整要求后开始匹配。</p>
-                </div>
-              )}
-              <details
-                ref={formPanel}
-                className="job-form"
-                open={formOpen}
-                onToggle={(e) => setFormOpen(e.currentTarget.open)}
+                  {job.source_url && <SafeSource url={job.source_url}>查看原始 JD ↗</SafeSource>}
+                </footer>
+              </article>
+            )}
+            {!job && !formOpen && (
+              <div className="job-reading-prompt">
+                <h2>选择一个目标岗位</h2>
+                <p>从左侧打开岗位，阅读完整要求后开始匹配。</p>
+              </div>
+            )}
+            <details
+              ref={formPanel}
+              className="job-form"
+              open={formOpen}
+              onToggle={(e) => setFormOpen(e.currentTarget.open)}
+            >
+              <summary>{formOpen ? '收起岗位表单' : '添加岗位'}</summary>
+              <h2>录入岗位要求</h2>
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  setOperation('create');
+                  const previousId = store.getState().jdId;
+                  await c.create({
+                    ...form,
+                    company: form.company || null,
+                    ...(demo ? { source_type: 'synthetic' as const } : {}),
+                  });
+                  if (controller.current === c && store.getState().jdId !== previousId) {
+                    setFormOpen(false);
+                    setForm({ title: '', company: '', jd_text: '' });
+                    setDemo(false);
+                  }
+                }}
               >
-                <summary>{formOpen ? '收起岗位表单' : '添加岗位'}</summary>
-                <h2>录入岗位要求</h2>
-                <form
-                  onSubmit={async (e) => {
-                    e.preventDefault();
-                    setOperation('create');
-                    const previousId = store.getState().jdId;
-                    await c.create({
-                      ...form,
-                      company: form.company || null,
-                      ...(demo ? { source_type: 'synthetic' as const } : {}),
-                    });
-                    if (controller.current === c && store.getState().jdId !== previousId) {
+                {(['title', 'company', 'jd_text'] as const).map((key) => (
+                  <div key={key} className={key === 'jd_text' ? 'full-field' : ''}>
+                    <label htmlFor={key === 'jd_text' ? 'jobs-text' : `jobs-${key}`}>
+                      {key === 'title'
+                        ? '岗位名称'
+                        : key === 'company'
+                          ? '公司（选填）'
+                          : '岗位要求原文'}
+                    </label>
+                    {key === 'jd_text' ? (
+                      <textarea
+                        id="jobs-text"
+                        rows={6}
+                        required
+                        maxLength={50000}
+                        value={form[key]}
+                        readOnly={s.busy}
+                        onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+                      />
+                    ) : (
+                      <input
+                        id={`jobs-${key}`}
+                        maxLength={200}
+                        required={key === 'title'}
+                        value={form[key]}
+                        readOnly={s.busy}
+                        onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+                      />
+                    )}
+                  </div>
+                ))}
+                <Button type="submit" tone="primary" disabled={s.busy}>
+                  {s.busy && operation === 'create' ? '正在整理并保存…' : '保存并选中'}
+                </Button>
+                {operation === 'create' && s.notice && !s.error && (
+                  <Button
+                    onClick={() => {
                       setFormOpen(false);
                       setForm({ title: '', company: '', jd_text: '' });
                       setDemo(false);
-                    }
-                  }}
-                >
-                  {(['title', 'company', 'jd_text'] as const).map((key) => (
-                    <div key={key} className={key === 'jd_text' ? 'full-field' : ''}>
-                      <label htmlFor={key === 'jd_text' ? 'jobs-text' : `jobs-${key}`}>
-                        {key === 'title'
-                          ? '岗位名称'
-                          : key === 'company'
-                            ? '公司（选填）'
-                            : '岗位要求原文'}
-                      </label>
-                      {key === 'jd_text' ? (
-                        <textarea
-                          id="jobs-text"
-                          rows={6}
-                          required
-                          maxLength={50000}
-                          value={form[key]}
-                          readOnly={s.busy}
-                          onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                        />
-                      ) : (
-                        <input
-                          id={`jobs-${key}`}
-                          maxLength={200}
-                          required={key === 'title'}
-                          value={form[key]}
-                          readOnly={s.busy}
-                          onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-                        />
-                      )}
-                    </div>
-                  ))}
-                  <Button type="submit" tone="primary" disabled={s.busy}>
-                    {s.busy && operation === 'create' ? '正在整理并保存…' : '保存并选中'}
+                    }}
+                  >
+                    完成添加，继续匹配
                   </Button>
-                  {operation === 'create' && s.notice && !s.error && (
-                    <Button
-                      onClick={() => {
-                        setFormOpen(false);
-                        setForm({ title: '', company: '', jd_text: '' });
-                        setDemo(false);
-                      }}
-                    >
-                      完成添加，继续匹配
-                    </Button>
-                  )}
-                  <details className="job-demo-options full-field">
-                    <summary>使用合成示例</summary>
-                    <p>仅填入表单；保存、匹配与优化均需主动发起。</p>
-                    <div className="inline-actions">
-                      {[cpp, go, ml].map((sample) => (
-                        <Button
-                          tone="ghost"
-                          key={sample.id}
-                          id={`jobs-demo-${sample.id}`}
-                          disabled={s.busy}
-                          onClick={() => {
-                            if (
-                              Object.values(form).some((v) => v.trim()) &&
-                              !window.confirm('填入示例岗位会替换当前未保存表单，是否继续？')
-                            )
-                              return;
-                            setForm({ title: sample.title, company: '', jd_text: sample.text });
-                            setDemo(true);
-                          }}
-                        >
-                          {sample.title}
-                        </Button>
-                      ))}
-                    </div>
-                  </details>
-                </form>
-              </details>
-            </div>
+                )}
+                <details className="job-demo-options full-field">
+                  <summary>使用合成示例</summary>
+                  <p>仅填入表单；保存、匹配与优化均需主动发起。</p>
+                  <div className="inline-actions">
+                    {[cpp, go, ml].map((sample) => (
+                      <Button
+                        tone="ghost"
+                        key={sample.id}
+                        id={`jobs-demo-${sample.id}`}
+                        disabled={s.busy}
+                        onClick={() => {
+                          if (
+                            Object.values(form).some((v) => v.trim()) &&
+                            !window.confirm('填入示例岗位会替换当前未保存表单，是否继续？')
+                          )
+                            return;
+                          setForm({ title: sample.title, company: '', jd_text: sample.text });
+                          setDemo(true);
+                        }}
+                      >
+                        {sample.title}
+                      </Button>
+                    ))}
+                  </div>
+                </details>
+              </form>
+            </details>
           </div>
-        </>
-      )}
+        </div>
+      </>
     </div>
   );
 }

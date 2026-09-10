@@ -83,6 +83,23 @@ function page(path: string, selected = false) {
 const input = (id: string) => document.getElementById(id) as HTMLInputElement;
 const settleResume = () => waitFor(() => expect(input('resume-dropzone').disabled).toBe(false));
 describe('React routes and task workspace', () => {
+  it('carries global search into the job list and permits browsing before resume confirmation', async () => {
+    const store = page('/');
+    const search = screen.getByRole('searchbox', { name: '搜索已录入岗位' });
+    fireEvent.change(search, { target: { value: 'Python' } });
+    fireEvent.submit(search.closest('form')!);
+    await screen.findByRole('heading', { name: '目标岗位', level: 1 });
+    await waitFor(() => expect(document.querySelector('[data-job-id="j"]')).not.toBeNull());
+    expect(input('job-search').value).toBe('Python');
+    fireEvent.click(document.querySelector('[data-job-id="j"]')!);
+    expect((input('jobs-run') as unknown as HTMLButtonElement).disabled).toBe(true);
+    expect(store.getState()).toMatchObject({ resumeId: null, jdId: 'j', result: null });
+    fireEvent.change(search, { target: { value: '不存在的技能' } });
+    fireEvent.submit(search.closest('form')!);
+    await waitFor(() => expect(document.querySelector('[data-job-id="j"]')).toBeNull());
+    expect(document.getElementById('jobs-original')?.textContent).toBe(job.jd_text);
+    expect(requests.some((request) => request.options.method === 'POST')).toBe(false);
+  });
   it('home explains the flow and changes its CTA when confirmed selection changes', async () => {
     const store = page('/');
     expect(document.getElementById('home-next')?.textContent).toContain('导入简历');
@@ -112,6 +129,18 @@ describe('React routes and task workspace', () => {
   });
 });
 describe('migrated demo interactions', () => {
+  it('source navigation opens the text panel without triggering AI or saving', async () => {
+    page('/resume');
+    await settleResume();
+    const source = document.querySelector('.resume-source') as HTMLDetailsElement;
+    source.open = false;
+    fireEvent.click(screen.getByRole('button', { name: '粘贴文本', exact: true }));
+    expect(source.open).toBe(true);
+    expect(document.activeElement).toBe(input('resume-raw'));
+    fireEvent.click(screen.getByRole('button', { name: 'AI 识别', exact: true }));
+    expect(document.activeElement).toBe(input('resume-parse'));
+    expect(requests.some((request) => request.options.method === 'POST')).toBe(false);
+  });
   it('resume fill only changes source; repeated clicks and cancellation never submit', async () => {
     page('/resume');
     await settleResume();
@@ -173,7 +202,7 @@ describe('React lifecycle and protected fields', () => {
     fireEvent.change(input('resume-education'), { target: { value: '' } });
     fireEvent.change(input('resume-skills'), { target: { value: 'SQL' } });
     fireEvent.click(document.querySelector('[data-view=home]')!);
-    await screen.findByRole('heading', { name: /求职准备工作台/ });
+    await screen.findByRole('heading', { name: '准备好开启下一次机会了吗？' });
     fireEvent.click(document.querySelector('[data-view=resume]')!);
     await settleResume();
     expect(input('resume-skills').value).toBe('SQL');
@@ -439,7 +468,7 @@ describe('desktop workspace operations', () => {
     const store = page('/diagnosis', true);
     await screen.findByRole('button', { name: '生成优化建议' });
     fireEvent.click(input('diagnosis-run'));
-    await screen.findByRole('heading', { name: '经历表达' });
+    await screen.findByRole('heading', { name: /经历表达/ });
     const index = screen.getByRole('complementary', { name: '经历表达建议列表' });
     expect(within(index).getAllByRole('button')).toHaveLength(7);
     fireEvent.click(within(index).getAllByRole('button')[6]);

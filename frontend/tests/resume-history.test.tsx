@@ -1,6 +1,6 @@
 import { StrictMode, useEffect } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { WorkspaceProvider, useWorkspace } from '../src/core/WorkspaceContext';
 import { createWorkspace } from '../src/core/state';
@@ -98,7 +98,7 @@ function setup(initial?: ResumeDraft, strict = false) {
   return store;
 }
 const ready = async () => {
-  await screen.findByText('同学 r1');
+  await screen.findByRole('button', { name: '同学 r1', exact: true });
   await waitFor(() =>
     expect((screen.getByRole('button', { name: '清空全部' }) as HTMLButtonElement).disabled).toBe(
       false,
@@ -113,10 +113,10 @@ describe('Resume history', () => {
     await ready();
     fireEvent.change(screen.getByRole('searchbox'), { target: { value: '科研' } });
     expect(screen.queryByText('同学 r1')).toBeNull();
-    expect(screen.getByText('同学 r2')).toBeTruthy();
+    expect(screen.getByRole('button', { name: '同学 r2', exact: true })).toBeTruthy();
     expect(store.getState().resumeId).toBe('r1');
     fireEvent.change(screen.getByRole('searchbox'), { target: { value: '' } });
-    expect(screen.getByText('同学 r1')).toBeTruthy();
+    expect(screen.getByRole('button', { name: '同学 r1', exact: true })).toBeTruthy();
     expect(deleted).toHaveLength(0);
   });
 
@@ -140,7 +140,7 @@ describe('Resume history', () => {
     await ready();
     expect(screen.queryByText('同学 r13')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: '下一页 →' }));
-    await screen.findByText('同学 r13');
+    await screen.findByRole('button', { name: '同学 r13', exact: true });
     await waitFor(() =>
       expect((screen.getByRole('button', { name: '清空全部' }) as HTMLButtonElement).disabled).toBe(
         false,
@@ -159,7 +159,7 @@ describe('Resume history', () => {
     fireEvent.click(screen.getByRole('button', { name: '删除简历 同学 r1' }));
     await screen.findByText('删除失败');
     expect(store.getState().resumeId).toBe('r1');
-    expect(screen.getByText('同学 r1')).toBeTruthy();
+    expect(screen.getByRole('button', { name: '同学 r1', exact: true })).toBeTruthy();
     failDelete = false;
     fireEvent.click(screen.getByRole('button', { name: '删除简历 同学 r1' }));
     await waitFor(() => expect(screen.queryByText('同学 r1')).toBeNull());
@@ -194,5 +194,19 @@ describe('Resume history', () => {
   it('loads after StrictMode effect replay', async () => {
     setup(undefined, true);
     await ready();
+  });
+
+  it('previews another version without replacing the current selection or dirty draft', async () => {
+    const store = setup(dirtyDraft());
+    await ready();
+    fireEvent.click(screen.getByRole('button', { name: '同学 r2', exact: true }));
+    const preview = screen.getByRole('complementary', { name: '版本预览' });
+    expect(within(preview).getByRole('heading', { name: '同学 r2' })).toBeTruthy();
+    expect(store.getState().resumeId).toBe('r1');
+    expect(retained.current?.values.name).toBe('新名字');
+    expect(deleted).toHaveLength(0);
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: '没有相符的版本' } });
+    expect(within(preview).queryByRole('button', { name: /打开所选简历/ })).toBeNull();
+    expect(store.getState().resumeId).toBe('r1');
   });
 });

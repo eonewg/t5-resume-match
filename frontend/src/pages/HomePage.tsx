@@ -4,7 +4,8 @@ import { createApi } from '../core/api';
 import type { JD, Resume } from '../core/contracts';
 import { useWorkspace } from '../core/WorkspaceContext';
 import { nextStep, steps } from '../core/state';
-import { NextLink, PageHeading } from '../components/ui';
+import Icon from '../components/Icon';
+import { NextLink } from '../components/ui';
 
 export default function HomePage() {
   const { state, draft } = useWorkspace();
@@ -45,48 +46,69 @@ export default function HomePage() {
     '针对岗位优化简历',
     '查看建议并核实修改',
   ];
-  const descriptions = [
-    '上传或粘贴简历，先确认自己的真实经历。已有版本可以从历史简历中选择。',
-    '简历已确认。接下来选一个准备申请的岗位，明确这次优化的方向。',
-    '简历与目标已就绪。查看匹配分数和证据，找到值得补充的重点。',
-    '匹配分析已就绪。结合岗位要求，生成基于真实经历的优化建议。',
-    '建议已经生成。请逐项核实后手动修改简历，保存新版本后可再次匹配。',
-  ];
   return (
     <div className="home-page" data-module="home">
-      <PageHeading title="求职准备工作台" />
-      <div className="home-working-state">
-        <section className="home-next" aria-labelledby="home-next-title">
-          <p className="eyebrow">{active === 4 ? '分析已完成' : '接下来'}</p>
-          <h2 id="home-next-title">{active === 4 ? '核实建议，准备下一次匹配' : step.title}</h2>
-          <p>{descriptions[active]}</p>
-          <NextLink id="home-next" to={step.path}>
-            {ctas[active]} →
-          </NextLink>
-        </section>
-        <section className="home-progress" aria-labelledby="progress-title">
-          <h2 id="progress-title">准备状态</h2>
-          <ol className="workflow-steps">
-            {steps.map((item, i) => (
-              <li
-                key={item.path}
-                data-state={i < active ? 'complete' : i === active ? 'current' : 'pending'}
-              >
-                <Link to={item.path}>
-                  <span>{item.title}</span>
-                  <span className="step-status">
-                    {i < active ? '已就绪' : i === active ? '继续 →' : '待进行'}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ol>
-        </section>
-      </div>
+      <section className="home-hero" aria-labelledby="home-title">
+        <div className="hero-copy">
+          <p className="hero-greeting">
+            {new Date().getHours() < 12
+              ? '早上好'
+              : new Date().getHours() < 18
+                ? '下午好'
+                : '晚上好'}
+          </p>
+          <h1 id="home-title" tabIndex={-1}>
+            准备好开启下一次机会了吗？
+          </h1>
+          <p>从一份好简历开始，让你的经验被看见。</p>
+          <div className="inline-actions">
+            <NextLink id="home-next" to={step.path}>
+              {ctas[active]} <Icon name="arrow" />
+            </NextLink>
+            <Link to="/jobs" className="hero-secondary">
+              选择目标岗位
+            </Link>
+          </div>
+        </div>
+        <blockquote>
+          “更好的机会
+          <br />
+          从清晰的表达开始。”<cite>—— T5</cite>
+        </blockquote>
+      </section>
+      <section className="home-progress panel" aria-labelledby="progress-title">
+        <h2 id="progress-title">当前进度</h2>
+        <ol className="workflow-steps">
+          {steps.map((item, i) => (
+            <li
+              key={item.path}
+              data-state={i < active ? 'complete' : i === active ? 'current' : 'pending'}
+            >
+              <Link to={item.path}>
+                <span className="step-number">{i < active ? <Icon name="check" /> : i + 1}</span>
+                <span>
+                  <strong>{['确认简历', '选择岗位', '查看匹配', 'AI 优化'][i]}</strong>
+                  <small>
+                    {i < active ? '已就绪' : ['上传或编辑', '设定目标', '发现差距', '生成建议'][i]}
+                  </small>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ol>
+      </section>
       <section className="home-materials" aria-labelledby="home-materials-title">
-        <h2 id="home-materials-title">正在使用</h2>
+        <h2 id="home-materials-title" className="sr-only">
+          正在使用
+        </h2>
         <div className="home-material-row">
-          <span className="material-label">简历</span>
+          <h2 className="material-label">
+            <Icon name="resume" />
+            当前简历
+          </h2>
+          <span className="material-icon">
+            <Icon name="resume" />
+          </span>
           <div>
             <h2>
               {names.resume ||
@@ -100,10 +122,23 @@ export default function HomePage() {
               {state.resumeId ? '已确认，可用于岗位分析。' : '支持 PDF、DOCX、TXT 或直接粘贴原文。'}
             </p>
           </div>
-          <Link to="/resume">{state.resumeId ? '查看确认版本' : '导入或选择历史简历'} →</Link>
+          <div className="material-actions">
+            <Link className="button primary" to="/resume">
+              {state.resumeId ? '查看确认版本' : '上传简历'} <Icon name="arrow" />
+            </Link>
+            <Link className="button secondary" to="/resume/history">
+              历史简历
+            </Link>
+          </div>
         </div>
         <div className="home-material-row">
-          <span className="material-label">目标岗位</span>
+          <h2 className="material-label">
+            <Icon name="target" />
+            当前目标
+          </h2>
+          <span className="material-icon">
+            <Icon name="jobs" />
+          </span>
           <div>
             <h2>{names.job || (state.jdId ? '正在读取…' : '尚未选择目标岗位')}</h2>
             <p>
@@ -114,12 +149,58 @@ export default function HomePage() {
                 : '选择准备申请的岗位。'}
             </p>
           </div>
-          <Link to="/jobs">{state.jdId ? '查看或更换目标' : '选择准备申请的岗位'} →</Link>
+          <div className="material-actions">
+            <Link className="button secondary accent" to="/jobs">
+              {state.jdId ? '查看或更换目标' : '选择岗位'} <Icon name="arrow" />
+            </Link>
+            <Link className="button secondary" to="/analytics">
+              浏览岗位样本
+            </Link>
+          </div>
         </div>
       </section>
-      <aside className="home-insight">
-        <Link to="/analytics">查看岗位样本分析 ↗</Link>
-        <p>技能要求与薪资分布</p>
+      <aside className="home-insight panel">
+        <div className="section-heading">
+          <div>
+            <h2>
+              <Icon name="chart" />
+              市场洞察
+            </h2>
+            <p>了解岗位需求与热门技能，把握申请方向。</p>
+          </div>
+          <Link className="button secondary accent" to="/analytics">
+            查看洞察 <Icon name="arrow" />
+          </Link>
+        </div>
+        <div className="insight-links">
+          <Link to="/analytics">
+            <span className="material-icon">
+              <Icon name="jobs" />
+            </span>
+            <span>
+              <strong>岗位样本</strong>
+              <small>了解已录入岗位与机会</small>
+            </span>
+          </Link>
+          <Link to="/analytics">
+            <span className="material-icon">
+              <Icon name="trend" />
+            </span>
+            <span>
+              <strong>热门技能</strong>
+              <small>掌握岗位要求的核心技能</small>
+            </span>
+          </Link>
+          <Link to="/analytics">
+            <span className="material-icon">
+              <Icon name="resume" />
+            </span>
+            <span>
+              <strong>薪资参考</strong>
+              <small>查看可比较的薪资范围</small>
+            </span>
+          </Link>
+        </div>
       </aside>
     </div>
   );

@@ -1,5 +1,14 @@
-import { Component, useEffect, useState, type ReactNode } from 'react';
-import { HashRouter, Link, NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { Component, useEffect, useState, useRef, type ReactNode } from 'react';
+import {
+  HashRouter,
+  Link,
+  NavLink,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom';
 import { WorkspaceProvider } from './core/WorkspaceContext';
 import { createApi } from './core/api';
 import HomePage from './pages/HomePage';
@@ -8,20 +17,17 @@ import JobsPage from './pages/JobsPage';
 import MatchingPage from './pages/MatchingPage';
 import DiagnosisPage from './pages/DiagnosisPage';
 import AnalyticsPage from './pages/AnalyticsPage';
+import Icon, { type IconName } from './components/Icon';
 import ResumeHistoryPage from './pages/ResumeHistoryPage';
 
-const navigation = [
-  ['home', '首页', 'm3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z'],
-  ['resume', '我的简历', 'M14 3H5v18h14V8Zm0 0v5h5M8 12h8M8 16h6'],
-  ['resume/history', '历史简历', 'M3 5v5h5M3 10a9 9 0 1 1 1 7m8-11v6l4 2'],
-  ['jobs', '目标岗位', 'M8 7V4h8v3M3 7h18v14H3Zm0 5 9 3 9-3M10 12h4'],
-  ['matching', '匹配分析', 'M4 4h6v6H4Zm10 10h6v6h-6ZM14 4h6v6M20 4l-7 7M4 14v6h6M4 20l7-7'],
-  [
-    'diagnosis',
-    'AI 优化',
-    'm12 3 2.4 6.6L21 12l-6.6 2.4L12 21l-2.4-6.6L3 12l6.6-2.4ZM20 2v4m-2-2h4',
-  ],
-  ['analytics', '市场洞察', 'M4 3v18h17M8 16v-4m5 4V7m5 9V4'],
+const navigation: [string, string, IconName][] = [
+  ['home', '首页', 'home'],
+  ['resume', '我的简历', 'resume'],
+  ['resume/history', '历史简历', 'history'],
+  ['jobs', '目标岗位', 'jobs'],
+  ['matching', '匹配分析', 'matching'],
+  ['diagnosis', 'AI 优化', 'diagnosis'],
+  ['analytics', '市场洞察', 'analytics'],
 ];
 class PageBoundary extends Component<{ children: ReactNode }, { error: boolean }> {
   state = { error: false };
@@ -113,6 +119,10 @@ function ServiceStatus() {
 }
 export function ProductShell() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [search, setSearch] = useState('');
+  const [info, setInfo] = useState<'settings' | 'help'>('help');
+  const infoDialog = useRef<HTMLDialogElement>(null);
   const key = location.pathname.slice(1) || 'home';
   const title = navigation.find(([value]) => value === key)?.[1] || '市场洞察';
   useEffect(() => {
@@ -136,7 +146,7 @@ export function ProductShell() {
         <Link className="brand" to="/">
           <span className="brand-mark">T5</span>
           <span>
-            简历与岗位<small>求职准备工作台</small>
+            简历与岗位<small>求职也是工作</small>
           </span>
         </Link>
         <nav aria-label="主要导航">
@@ -154,26 +164,93 @@ export function ProductShell() {
                     : ''
               }
             >
-              <svg
-                className="nav-icon"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.65"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-                focusable="false"
-              >
-                <path d={icon} />
-              </svg>
+              <Icon name={icon} />
               <span>{label}</span>
             </NavLink>
           ))}
         </nav>
-        <ServiceStatus />
+        <div className="sidebar-bottom">
+          <button
+            type="button"
+            onClick={() => {
+              setInfo('settings');
+              infoDialog.current?.showModal();
+            }}
+          >
+            <Icon name="settings" />
+            设置
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setInfo('help');
+              infoDialog.current?.showModal();
+            }}
+          >
+            <Icon name="help" />
+            帮助与反馈
+          </button>
+          <ServiceStatus />
+        </div>
       </aside>
+      <dialog
+        ref={infoDialog}
+        className="shell-dialog"
+        aria-labelledby="shell-dialog-title"
+        onClick={(event) => {
+          if (event.target === event.currentTarget) event.currentTarget.close();
+        }}
+      >
+        <div className="section-heading">
+          <h2 id="shell-dialog-title">{info === 'settings' ? '工作区设置' : '帮助与反馈'}</h2>
+          <button
+            className="icon-button"
+            aria-label="关闭"
+            onClick={() => infoDialog.current?.close()}
+          >
+            <Icon name="close" />
+          </button>
+        </div>
+        {info === 'settings' ? (
+          <>
+            <p>当前使用本机工作区。模型和数据库连接沿用应用启动配置。</p>
+            <p>服务状态可在侧栏查看；简历版本在“历史简历”中管理。</p>
+          </>
+        ) : (
+          <>
+            <p>上传或粘贴简历 → 核对并保存 → 选择目标岗位 → 查看匹配 → 生成 AI 建议。</p>
+            <p>支持 PDF、DOCX、TXT，单个文件不超过 10 MB。扫描 PDF 请先转为可复制的文字。</p>
+            <p>AI 建议需核实后手动修改；缺失的信息请保持空白。</p>
+          </>
+        )}
+      </dialog>
       <div className="app-frame">
+        <header className="topbar">
+          <form
+            className="global-search"
+            role="search"
+            onSubmit={(event) => {
+              event.preventDefault();
+              navigate('/jobs?q=' + encodeURIComponent(search.trim()));
+            }}
+          >
+            <Icon name="search" />
+            <label htmlFor="global-search" className="sr-only">
+              搜索已录入岗位
+            </label>
+            <input
+              id="global-search"
+              type="search"
+              placeholder="搜索岗位、技能或行业…"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </form>
+          <span className="topbar-divider" />
+          <span className="user-avatar" aria-label="本地用户工作区">
+            U
+          </span>
+        </header>
         <main id="main-content" tabIndex={-1}>
           <section id="module-view" aria-label="模块页面">
             <PageBoundary key={location.pathname}>
