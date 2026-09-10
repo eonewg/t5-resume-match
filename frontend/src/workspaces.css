@@ -1101,20 +1101,19 @@
   font-size: 12px;
 }
 .diagnosis-page {
-  display: grid;
-  grid-template-columns: minmax(200px, 0.65fr) minmax(0, 1.35fr);
-  gap: 0 20px;
+  display: block;
   padding-top: 0;
 }
-.diagnosis-page > .page-heading {
-  margin: 0 0 18px 12px;
-  align-self: center;
+.diagnosis-page > .page-title-row {
+  align-items: flex-start;
+  margin-bottom: 16px;
 }
-.diagnosis-page > .product-empty,
-.diagnosis-page > .feedback,
-.diagnosis-page > [data-testid='diagnosis-result'],
-.diagnosis-footnote {
-  grid-column: 1 / -1;
+.diagnosis-page .page-heading {
+  margin-bottom: 0;
+}
+.diagnosis-page > .page-title-row > .inline-actions {
+  flex-shrink: 0;
+  padding-top: 6px;
 }
 .diagnosis-header {
   background: #fff;
@@ -2287,35 +2286,37 @@
 }
 
 @media (min-width: 1001px) {
-  .history-frame {
+  .split-workspace-frame {
     height: 100dvh;
     min-height: 0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
   }
-  .history-frame > .topbar {
+  .split-workspace-frame > .topbar {
     flex-shrink: 0;
   }
-  .history-frame > main {
+  .split-workspace-frame > main {
     flex: 1;
     min-height: 0;
     width: 100%;
     display: flex;
   }
-  .history-frame #module-view {
+  .split-workspace-frame #module-view {
     flex: 1;
     min-height: 0;
     display: flex;
   }
-  .history-page {
+  .history-page,
+  .jobs-page {
     flex: 1;
     min-width: 0;
     min-height: 0;
     display: flex;
     flex-direction: column;
   }
-  .history-page > :not(.history-workspace) {
+  .history-page > :not(.history-workspace),
+  .jobs-page > :not(.job-browser) {
     flex-shrink: 0;
   }
   .history-workspace {
@@ -2344,5 +2345,78 @@
   .history-detail section p {
     font-size: 14px;
     line-height: 1.85;
+  }
+}
+
+.diagnosis-header .pair-context {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 24px;
+}
+.diagnosis-header .pair-context > div,
+.diagnosis-header .pair-context > div > span:last-child {
+  min-width: 0;
+}
+.diagnosis-header strong {
+  font-size: 16px;
+}
+.diagnosis-header small {
+  font-size: 12px;
+}
+.diagnosis-header .pair-context > a {
+  font-size: 13px;
+  white-space: nowrap;
+}
+.diagnosis-resume-summary {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (min-width: 1001px) {
+  .job-browser {
+    flex: 1;
+    min-height: 0;
+    grid-template-columns: clamp(260px, 28%, 350px) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+  }
+  .job-collection {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .job-search {
+    flex-shrink: 0;
+  }
+  .job-options {
+    flex: 1;
+    min-height: 0;
+    max-height: none;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+  .job-reading-pane {
+    min-height: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: white;
+  }
+  .job-reading-pane > .job-detail,
+  .job-reading-pane > .job-form,
+  .job-reading-pane > .job-reading-prompt {
+    border: 0;
+    border-radius: 0;
+  }
+  .job-option {
+    padding: 14px 12px;
+  }
+}
+@media (max-width: 760px) {
+  .diagnosis-header .pair-context {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

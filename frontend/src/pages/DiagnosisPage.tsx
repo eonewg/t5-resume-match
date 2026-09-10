@@ -164,36 +164,9 @@ export default function DiagnosisPage() {
   const r = s.record;
   return (
     <div className="product-page diagnosis-page" data-module="diagnosis">
-      <PageHeading title="AI 优化">对照建议修改表达，保留真实经历。</PageHeading>
-      {!s.canRun ? (
-        <Empty title="先选择简历和目标岗位" to="/jobs" cta="去选择目标岗位" />
-      ) : (
-        <section className="diagnosis-header">
-          <div className="pair-context" data-testid="diagnosis-selection">
-            <div>
-              <span className="material-icon">
-                <Icon name="resume" />
-              </span>
-              <span>
-                <small>当前简历</small>
-                <strong>{selection.resume}</strong>
-                <small>{selection.education}</small>
-              </span>
-            </div>
-            <div>
-              <span className="material-icon">
-                <Icon name="target" />
-              </span>
-              <span>
-                <small>目标岗位</small>
-                <strong>{selection.job}</strong>
-                <small>{selection.company}</small>
-              </span>
-            </div>
-            <NextLink to="/jobs" primary={false}>
-              更换简历/岗位 →
-            </NextLink>
-          </div>
+      <div className="page-title-row">
+        <PageHeading title="AI 优化">对照建议修改表达，保留真实经历。</PageHeading>
+        {s.canRun && (
           <div className="inline-actions">
             <Button
               id="diagnosis-run"
@@ -214,6 +187,39 @@ export default function DiagnosisPage() {
                 返回简历修改
               </NextLink>
             )}
+          </div>
+        )}
+      </div>
+      {!s.canRun ? (
+        <Empty title="先选择简历和目标岗位" to="/jobs" cta="去选择目标岗位" />
+      ) : (
+        <section className="diagnosis-header">
+          <div className="pair-context" data-testid="diagnosis-selection">
+            <div>
+              <span className="material-icon">
+                <Icon name="resume" />
+              </span>
+              <span>
+                <small>当前简历</small>
+                <strong>{selection.resume}</strong>
+                <small className="diagnosis-resume-summary" title={selection.education}>
+                  {selection.education}
+                </small>
+              </span>
+            </div>
+            <div>
+              <span className="material-icon">
+                <Icon name="target" />
+              </span>
+              <span>
+                <small>目标岗位</small>
+                <strong>{selection.job}</strong>
+                <small>{selection.company}</small>
+              </span>
+            </div>
+            <NextLink to="/jobs" primary={false}>
+              更换简历/岗位 →
+            </NextLink>
           </div>
         </section>
       )}

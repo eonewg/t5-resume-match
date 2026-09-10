@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { connectJobs, type JobsController } from '../modules/jobs/controller.ts';
 import { useController, useWorkspace } from '../core/WorkspaceContext';
@@ -16,6 +16,10 @@ export default function JobsPage() {
   const navigate = useNavigate();
   const { store } = useWorkspace();
   const [formOpen, setFormOpen] = useState(false);
+  const readingPane = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (readingPane.current) readingPane.current.scrollTop = 0;
+  }, [s?.jdId, formOpen]);
   useEffect(() => {
     if (formOpen) document.getElementById('jobs-title')?.focus();
   }, [formOpen]);
@@ -100,7 +104,7 @@ export default function JobsPage() {
                 全部 <strong>{visibleJobs.length}</strong>
               </p>
             </div>
-            <div className="job-options" aria-label="选择目标岗位">
+            <div className="job-options" role="region" tabIndex={0} aria-label="选择目标岗位">
               {visibleJobs.map((row) => (
                 <button
                   type="button"
@@ -139,7 +143,13 @@ export default function JobsPage() {
               <p className="compact-empty">还没有岗位。添加一份准备申请的岗位要求。</p>
             )}
           </section>
-          <div className="job-reading-pane">
+          <div
+            className="job-reading-pane"
+            ref={readingPane}
+            role="region"
+            tabIndex={0}
+            aria-label={formOpen ? '添加岗位表单' : '岗位详情'}
+          >
             {job && (
               <article className="job-detail" data-testid="selected-job" hidden={formOpen}>
                 <header>
