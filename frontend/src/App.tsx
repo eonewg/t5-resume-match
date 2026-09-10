@@ -11,13 +11,17 @@ import AnalyticsPage from './pages/AnalyticsPage';
 import ResumeHistoryPage from './pages/ResumeHistoryPage';
 
 const navigation = [
-  ['home', '首页'],
-  ['resume', '我的简历'],
-  ['resume/history', '历史简历'],
-  ['jobs', '目标岗位'],
-  ['matching', '匹配分析'],
-  ['diagnosis', 'AI 优化'],
-  ['analytics', '市场洞察'],
+  ['home', '首页', 'm3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z'],
+  ['resume', '我的简历', 'M14 3H5v18h14V8Zm0 0v5h5M8 12h8M8 16h6'],
+  ['resume/history', '历史简历', 'M3 5v5h5M3 10a9 9 0 1 1 1 7m8-11v6l4 2'],
+  ['jobs', '目标岗位', 'M8 7V4h8v3M3 7h18v14H3Zm0 5 9 3 9-3M10 12h4'],
+  ['matching', '匹配分析', 'M4 4h6v6H4Zm10 10h6v6h-6ZM14 4h6v6M20 4l-7 7M4 14v6h6M4 20l7-7'],
+  [
+    'diagnosis',
+    'AI 优化',
+    'm12 3 2.4 6.6L21 12l-6.6 2.4L12 21l-2.4-6.6L3 12l6.6-2.4ZM20 2v4m-2-2h4',
+  ],
+  ['analytics', '市场洞察', 'M4 3v18h17M8 16v-4m5 4V7m5 9V4'],
 ];
 class PageBoundary extends Component<{ children: ReactNode }, { error: boolean }> {
   state = { error: false };
@@ -136,7 +140,7 @@ export function ProductShell() {
           </span>
         </Link>
         <nav aria-label="主要导航">
-          {navigation.map(([value, label]) => (
+          {navigation.map(([value, label, icon]) => (
             <NavLink
               key={value}
               to={value === 'home' ? '/' : `/${value}`}
@@ -150,6 +154,19 @@ export function ProductShell() {
                     : ''
               }
             >
+              <svg
+                className="nav-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.65"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path d={icon} />
+              </svg>
               <span>{label}</span>
             </NavLink>
           ))}
