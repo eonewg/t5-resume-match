@@ -72,7 +72,7 @@ export default function AISettingsPanel() {
       reuse && drafts.current[key]
         ? drafts.current[key]
         : {
-            profile_name: profile?.name || '我的供应商',
+            profile_name: profile?.name || `${source.model || '默认模型'} 配置`,
             base_url: source.base_url,
             model: source.model,
             api_style: source.api_style === 'responses' ? 'responses' : 'chat_completions',
@@ -240,7 +240,7 @@ export default function AISettingsPanel() {
   return (
     <div className="ai-settings-panel">
       <p className="ai-settings-intro">
-        保存多份供应商配置，按功能切换。配置保留在本机，启动时读取；页面与本次运行中的密钥在关闭后清除。
+        选择要设置的功能，填写连接信息，再保存应用。配置保留在本机。
       </p>
       {settings?.warning && (
         <p role="alert" className="feedback" data-error="true">
@@ -278,25 +278,29 @@ export default function AISettingsPanel() {
                 <small>{settings.modules[key].model || '离线 / 替代模块'}</small>
                 <span>
                   {settings.profiles.find((entry) => entry.id === settings.modules[key].profile_id)
-                    ?.name || '启动配置'}
+                    ?.name || '默认配置'}
                 </span>
               </button>
             ))}
           </div>
           <div className="ai-profile-picker">
             <div>
-              <label htmlFor="ai-profile">供应商配置</label>
+              <label htmlFor="ai-profile">已保存的配置</label>
               <select
                 id="ai-profile"
                 value={profileId}
-                disabled={Boolean(busy)}
+                disabled={Boolean(busy) || settings.profiles.length === 0}
                 onChange={(e) => {
                   fill(settings, module, e.target.value, true);
                   setError('');
                   setNotice('');
                 }}
               >
-                <option value="">{isNew ? '新建供应商' : '从启动配置新建'}</option>
+                {!profileId && (
+                  <option value="" disabled hidden>
+                    {settings.profiles.length ? '选择已保存的配置' : '暂无已保存的配置'}
+                  </option>
+                )}
                 {settings.profiles.map((entry) => (
                   <option key={entry.id} value={entry.id}>
                     {entry.name} · {entry.model}
@@ -316,14 +320,7 @@ export default function AISettingsPanel() {
                 setNotice('');
               }}
             >
-              新建
-            </Button>
-            <Button
-              disabled={Boolean(busy) || !profile || inUse}
-              title={inUse ? '正在使用，请先切换或恢复启动配置' : undefined}
-              onClick={() => void act('delete')}
-            >
-              删除
+              新建配置
             </Button>
           </div>
           <form
@@ -334,35 +331,41 @@ export default function AISettingsPanel() {
           >
             <fieldset disabled={Boolean(busy) || !canEdit}>
               <legend>
-                {moduleLabels[module]} · 当前使用{' '}
-                {settings.profiles.find((entry) => entry.id === current?.profile_id)?.name ||
-                  '启动配置'}
+                {profile ? `编辑配置：${profile.name}` : isNew ? '新建配置' : '当前默认配置'}
               </legend>
-              {!canEdit && <p>当前功能使用离线或替代模块，无法在此修改 AI 配置。</p>}
-              <label htmlFor="ai-profile-name">配置名称</label>
-              <input
-                id="ai-profile-name"
-                required
-                maxLength={80}
-                value={draft.profile_name}
-                placeholder="例如：日常使用 / 备用模型"
-                onChange={(e) => edit({ profile_name: e.target.value })}
-              />
-              <label htmlFor="ai-base-url">API 地址</label>
-              <input
-                id="ai-base-url"
-                type="url"
-                required
-                autoComplete="off"
-                maxLength={2048}
-                placeholder="https://api.example.com/v1"
-                value={draft.base_url}
-                onChange={(e) => edit({ base_url: e.target.value })}
-              />
-              <p className="field-help">
-                使用服务商给出的 HTTPS 基础地址，保留其要求的 /v1 等路径。模型需要支持 JSON
-                结构化输出。
+              <p className="field-help ai-current-config">
+                {moduleLabels[module]}当前使用：
+                {settings.profiles.find((entry) => entry.id === current?.profile_id)?.name ||
+                  '启动时的默认配置'}
+                。保存应用后生效。
               </p>
+              {!canEdit && <p>当前功能使用离线或替代模块，无法在此修改 AI 配置。</p>}
+              <div className="ai-settings-row ai-connection-fields">
+                <div>
+                  <label htmlFor="ai-profile-name">配置名称</label>
+                  <input
+                    id="ai-profile-name"
+                    required
+                    maxLength={80}
+                    value={draft.profile_name}
+                    placeholder="例如：日常使用 / 备用模型"
+                    onChange={(e) => edit({ profile_name: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="ai-base-url">API 地址</label>
+                  <input
+                    id="ai-base-url"
+                    type="url"
+                    required
+                    autoComplete="off"
+                    maxLength={2048}
+                    placeholder="https://api.example.com/v1"
+                    value={draft.base_url}
+                    onChange={(e) => edit({ base_url: e.target.value })}
+                  />
+                </div>
+              </div>
               <div className="ai-settings-row">
                 <div>
                   <label htmlFor="ai-model">模型名 Model</label>
@@ -413,38 +416,8 @@ export default function AISettingsPanel() {
                   {showKey ? '隐藏' : '显示'}
                 </Button>
               </div>
-              <p className="field-help">
-                更换地址需填写对应密钥。测试连接仅发送一条简短消息，不包含简历或岗位内容。
-              </p>
-              <div className="ai-profile-apply">
-                <label className="ai-settings-all">
-                  <input
-                    type="checkbox"
-                    checked={all}
-                    disabled={!Object.values(settings.modules).every((value) => value.configurable)}
-                    onChange={(e) => {
-                      setAll(e.target.checked);
-                      setError('');
-                      setNotice('');
-                    }}
-                  />
-                  同时应用到全部 AI 功能
-                </label>
-                <Button disabled={!unchanged} onClick={() => void act('activate')}>
-                  使用此配置
-                </Button>
-              </div>
-              <div className="ai-settings-actions">
-                <Button type="submit" tone="primary">
-                  {busy === 'save' ? '正在保存…' : '保存并应用'}
-                </Button>
-                <Button
-                  onClick={(e) => {
-                    if (e.currentTarget.form?.reportValidity()) void act('store');
-                  }}
-                >
-                  仅保存配置
-                </Button>
+              <div className="ai-connection-check">
+                <p className="field-help">密钥留空保留；更换 API 地址需填写新密钥。</p>
                 <div className="ai-settings-test">
                   <Button
                     onClick={(e) => {
@@ -459,27 +432,75 @@ export default function AISettingsPanel() {
                     </span>
                   )}
                 </div>
-                <Button
-                  className="ai-settings-reset"
-                  disabled={!targets.some((key) => settings.modules[key].source === 'custom')}
-                  onClick={() => void act('reset')}
-                >
-                  恢复启动配置
-                </Button>
               </div>
-              {settings.can_exit && (
-                <div className="ai-settings-exit-line">
-                  <span>保留本机配置，下次启动继续使用。</span>
-                  <Button
-                    tone="danger"
-                    onClick={(event) => {
-                      if (event.currentTarget.form?.reportValidity()) void act('exit');
+              <div className="ai-profile-apply">
+                <label className="ai-settings-all">
+                  <input
+                    type="checkbox"
+                    checked={all}
+                    disabled={!Object.values(settings.modules).every((value) => value.configurable)}
+                    onChange={(e) => {
+                      setAll(e.target.checked);
+                      setError('');
+                      setNotice('');
                     }}
+                  />
+                  同时应用到全部 AI 功能
+                </label>
+              </div>
+              <div className="ai-settings-actions">
+                <Button type="submit" tone="primary">
+                  {busy === 'save' ? '正在保存…' : '保存并应用'}
+                </Button>
+                <Button
+                  onClick={(e) => {
+                    if (e.currentTarget.form?.reportValidity()) void act('store');
+                  }}
+                >
+                  仅保存配置
+                </Button>
+                {profile && targets.some((key) => settings.modules[key].profile_id !== profile.id) && (
+                  <Button disabled={!unchanged} onClick={() => void act('activate')}>
+                    使用此配置
+                  </Button>
+                )}
+              </div>
+              <details className="ai-settings-more">
+                <summary>更多操作</summary>
+                <div className="ai-settings-maintenance">
+                  <Button
+                    disabled={!profile || inUse}
+                    title={inUse ? '正在使用，请先切换或恢复启动配置' : undefined}
+                    onClick={() => void act('delete')}
                   >
-                    {busy === 'exit' ? '正在保存并退出…' : '保存并退出'}
+                    删除配置
+                  </Button>
+                  <Button
+                    className="ai-settings-reset"
+                    disabled={!targets.some((key) => settings.modules[key].source === 'custom')}
+                    onClick={() => void act('reset')}
+                  >
+                    恢复启动配置
                   </Button>
                 </div>
-              )}
+                {settings.can_exit && (
+                  <div className="ai-settings-exit-line">
+                    <span>保留本机配置，下次启动继续使用。</span>
+                    <Button
+                      tone="danger"
+                      onClick={(event) => {
+                        if (event.currentTarget.form?.reportValidity()) void act('exit');
+                      }}
+                    >
+                      {busy === 'exit' ? '正在保存并退出…' : '保存并退出'}
+                    </Button>
+                  </div>
+                )}
+                <p className="field-help">
+                  API 地址使用服务商提供的 HTTPS 基础地址，保留 /v1 等路径。模型需支持 JSON
+                  结构化输出。测试仅发送简短消息，不包含简历或岗位。
+                </p>
+              </details>
             </fieldset>
           </form>
         </>

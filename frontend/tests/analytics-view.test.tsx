@@ -147,7 +147,7 @@ it('filters source evidence on skill selection without changing chart denominato
 it('salary groups use separate selectable scales', () => {
   show(result());
   fireEvent.click(screen.getByRole('tab', { name: '薪资分析' }));
-  fireEvent.change(screen.getByRole('combobox', { name: '薪资口径' }), {
+  fireEvent.change(screen.getByRole('combobox', { name: '查看哪类薪资' }), {
     target: { value: 'USD/hour' },
   });
   expect(document.querySelector('[data-currency="USD"]')?.hasAttribute('hidden')).toBe(false);
@@ -158,12 +158,12 @@ it('salary groups use separate selectable scales', () => {
 it('salary histogram counts each selected interval once and labels its midpoint basis', () => {
   show(result());
   fireEvent.click(screen.getByRole('tab', { name: '薪资分析' }));
-  const chart = screen.getByRole('img', { name: /CNY 每月薪资区间中点分布/ });
+  const chart = screen.getByRole('img', { name: /人民币月薪分布/ });
   const counts = Array.from(chart.querySelectorAll('title')).map((node) =>
-    Number(/：(\d+) 条/.exec(node.textContent || '')![1]),
+    Number(/：(\d+) 个岗位/.exec(node.textContent || '')![1]),
   );
   expect(counts.reduce((sum, value) => sum + value, 0)).toBe(1);
-  expect(screen.getByText(/非实际到手薪资/)).toBeTruthy();
+  expect(screen.getByText(/不是实际到手收入/)).toBeTruthy();
 });
 
 it('shows only one full topic and supports keyboard tab navigation', () => {

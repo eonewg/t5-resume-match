@@ -18,6 +18,16 @@ const sources: Record<string, string> = {
   unknown: '来源暂未提供',
 };
 const periods: Record<string, string> = { hour: '小时', day: '日', month: '月', year: '年' };
+const currencies: Record<string, string> = {
+  CNY: '人民币',
+  USD: '美元',
+  EUR: '欧元',
+  GBP: '英镑',
+  HKD: '港币',
+  JPY: '日元',
+};
+const salaryLabel = (group: SalaryGroup) =>
+  `${currencies[group.currency] || group.currency}${({ hour: '时薪', day: '日薪', month: '月薪', year: '年薪' } as Record<string, string>)[group.period] || ` / ${group.period}`}`;
 const number = (value: number) =>
   new Intl.NumberFormat('zh-CN', { maximumFractionDigits: 2 }).format(value);
 const start = (controller: AnalyticsController) => {
@@ -136,13 +146,13 @@ function SalaryHistogram({ group }: { group: SalaryGroup }) {
   const counts = Array.from({ length: 6 }, () => 0);
   for (const value of midpoints) counts[Math.min(5, Math.floor(value / step))]++;
   const ceiling = Math.max(2, Math.ceil(Math.max(0, ...counts) / 2) * 2);
-  const compact = (value: number) => (value >= 1000 ? `${number(value / 1000)}k` : number(value));
+  const compact = (value: number) => (value >= 1000 ? `${number(value / 1000)}千` : number(value));
   return (
     <svg
       viewBox="0 0 420 180"
       className="salary-histogram"
       role="img"
-      aria-label={`${group.currency} 每${periods[group.period] || group.period}薪资区间中点分布，${group.sample_size}条岗位`}
+      aria-label={`${salaryLabel(group)}分布，${group.sample_size}个岗位，按招聘薪资范围的中间值归类`}
     >
       <defs>
         <linearGradient id={gradient} x1="0" y1="0" x2="0" y2="1">
@@ -161,8 +171,8 @@ function SalaryHistogram({ group }: { group: SalaryGroup }) {
       {counts.map((count, index) => (
         <g key={index}>
           <title>
-            {number(index * step)}–{number((index + 1) * step)} {group.currency}：{count}{' '}
-            条岗位（区间中点）
+            {number(index * step)}–{number((index + 1) * step)}{' '}
+            {currencies[group.currency] || group.currency}：{count} 个岗位（按薪资范围的中间值归类）
           </title>
           <rect
             x={35 + index * 64}
@@ -448,23 +458,24 @@ export function AnalyticsResult({ result }: { result: AnalysisResponse }) {
                 <AnalysisSection
                   id="analytics-salary"
                   title="岗位薪资分布"
-                  help="原始招聘区间 · 按币种与周期分组"
+                  help="看看招聘岗位主要集中在哪些薪资范围。月薪、年薪和不同货币分别展示。"
                 >
                   {!data.salary_groups.length && (
                     <div className="analytics-empty-salary">
-                      <strong>当前样本未披露可比较的薪资</strong>
+                      <strong>暂时没有信息完整的薪资可供展示</strong>
                       <p>
-                        {data.salary_coverage.missing_range_count} 条缺少完整区间，
-                        {data.salary_coverage.missing_unit_count} 条币种或周期未确认。
+                        {data.salary_coverage.missing_range_count} 个岗位未提供完整薪资范围，
+                        {data.salary_coverage.missing_unit_count}{' '}
+                        个岗位未说明货币或按月、按年等计薪方式。
                       </p>
                       <NextLink to="/jobs">录入带薪资的岗位 →</NextLink>
                     </div>
                   )}
                   {data.salary_groups.length > 0 && (
                     <label className="salary-unit-select">
-                      薪资口径
+                      查看哪类薪资
                       <select
-                        aria-label="薪资口径"
+                        aria-label="查看哪类薪资"
                         value={salaryGroup ? `${salaryGroup.currency}/${salaryGroup.period}` : ''}
                         onChange={(e) => setSalaryKey(e.target.value)}
                       >
@@ -473,8 +484,7 @@ export function AnalyticsResult({ result }: { result: AnalysisResponse }) {
                             key={`${group.currency}/${group.period}`}
                             value={`${group.currency}/${group.period}`}
                           >
-                            {group.currency} / {periods[group.period] || group.period} ·{' '}
-                            {group.sample_size} 条
+                            {salaryLabel(group)} · {group.sample_size} 个岗位
                           </option>
                         ))}
                       </select>
@@ -483,13 +493,14 @@ export function AnalyticsResult({ result }: { result: AnalysisResponse }) {
                   {salaryGroup && (
                     <>
                       <p className="salary-histogram-note">
-                        按每条岗位薪资区间的中点计数 · 非实际到手薪资
+                        横轴是薪资范围，柱子上的数字是岗位数量。例如招聘月薪 8,000–12,000 元，
+                        会按中间值 10,000 元归类；这里展示的是招聘薪资，不是实际到手收入。
                       </p>
                       <SalaryHistogram group={salaryGroup} />
                     </>
                   )}
                   <details className="analytics-details salary-range-details" open>
-                    <summary>查看各岗位原始薪资区间</summary>
+                    <summary>查看每个岗位的招聘薪资</summary>
                     {data.salary_groups.map((group) => {
                       const max = Math.max(0, ...group.ranges.map((row) => row.upper));
                       const scale = max || 1;
@@ -502,12 +513,11 @@ export function AnalyticsResult({ result }: { result: AnalysisResponse }) {
                           data-period={group.period}
                         >
                           <h3>
-                            {group.currency} / {periods[group.period] || group.period} ·{' '}
-                            {group.sample_size} 条
+                            {salaryLabel(group)} · {group.sample_size} 个岗位
                           </h3>
                           <p className="salary-range-legend">
-                            横轴：{group.currency} / {periods[group.period] || group.period}
-                            ；线段左端为最低值，右端为最高值，圆点表示单一报价。
+                            蓝线表示招聘方给出的薪资范围：左边是最低薪资，右边是最高薪资。
+                            只有一个金额时显示为圆点。以下均为{salaryLabel(group)}。
                           </p>
                           <div className="analytics-salary-axis">
                             {[0, 1, 2, 3, 4].map((tick) => (
@@ -521,7 +531,8 @@ export function AnalyticsResult({ result }: { result: AnalysisResponse }) {
                               <div className="analytics-bar-label">
                                 <span>{row.title}</span>
                                 <span>
-                                  {number(row.lower)}–{number(row.upper)} {group.currency}/
+                                  {number(row.lower)}–{number(row.upper)}{' '}
+                                  {currencies[group.currency] || group.currency}/
                                   {periods[group.period] || group.period}
                                 </span>
                               </div>
@@ -541,15 +552,16 @@ export function AnalyticsResult({ result }: { result: AnalysisResponse }) {
                     })}
                   </details>
                   <details className="helper-disclosure">
-                    <summary>薪资口径与缺失值</summary>
+                    <summary>为什么有些岗位没有出现在图里？</summary>
                     <p>
-                      没有完整区间 {data.salary_coverage.missing_range_count}{' '}
-                      条；币种/周期未确认或不支持 {data.salary_coverage.missing_unit_count}{' '}
-                      条。这些记录仍参与技能统计，不以零薪资进入图表。
+                      {data.salary_coverage.missing_range_count} 个岗位缺少完整薪资范围；
+                      {data.salary_coverage.missing_unit_count}{' '}
+                      个岗位的货币或计薪方式不明确，或暂不支持。
+                      它们仍计入技能分析，但不会被当作“薪资为零”画进图里。
                     </p>
                     <p>
-                      分组内从 0
-                      起画，不同币种、周期各用独立刻度，不折汇、不跨周期换算，不求跨组平均值。
+                      月薪、年薪和不同货币各自展示，图表从零开始。系统不会自动换算汇率、把年薪转成月薪，
+                      也不会把这些金额混在一起算平均值。
                     </p>
                   </details>
                 </AnalysisSection>
@@ -607,7 +619,7 @@ export function AnalyticsResult({ result }: { result: AnalysisResponse }) {
                 </AnalysisSection>
               </div>
               <details className="market-methodology">
-                <summary>样本解读与统计口径</summary>
+                <summary>如何理解这些数据？</summary>
                 <AnalysisSection id="analytics-observations" title="样本解读">
                   <div className="market-findings">
                     <p>
@@ -631,7 +643,7 @@ export function AnalyticsResult({ result }: { result: AnalysisResponse }) {
                     </p>
                   </div>
                   <details className="analytics-details">
-                    <summary>统计口径与使用边界</summary>
+                    <summary>这些数据包含什么？</summary>
                     <ul>
                       {data.observations.map((text, i) => (
                         <li key={i}>{text}</li>

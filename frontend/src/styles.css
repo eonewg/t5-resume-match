@@ -940,6 +940,72 @@ body {
   white-space: nowrap;
 }
 
+.ai-connection-fields {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+}
+.ai-connection-check {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 10px 0 18px;
+}
+.ai-settings-panel .ai-connection-check .field-help {
+  margin: 0;
+}
+.ai-settings-panel .ai-current-config {
+  margin: 0 0 16px;
+}
+.ai-settings-more {
+  margin-top: 18px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.ai-settings-more > summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 13px;
+  width: fit-content;
+}
+.ai-settings-maintenance {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+.ai-settings-panel .button {
+  min-height: 38px;
+  padding: 8px 14px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.ai-settings-panel .ai-settings-row #ai-profile-name {
+  margin-bottom: 0;
+}
+@media (max-width: 600px) {
+  .ai-settings-dialog {
+    width: calc(100vw - 24px);
+    padding: 18px;
+  }
+  .ai-settings-panel .ai-settings-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .ai-settings-modules {
+    gap: 6px;
+  }
+  .ai-settings-modules button {
+    padding: 8px;
+  }
+  .ai-settings-modules strong {
+    font-size: 12px;
+  }
+  .ai-settings-exit-line {
+    flex-wrap: wrap;
+  }
+}
+
 .ai-profile-picker {
   display: flex;
   gap: 10px;
@@ -1009,7 +1075,7 @@ body {
   margin: 12px 0 16px;
 }
 .ai-settings-modules button {
-  padding: 10px 12px;
+  padding: 8px 12px;
 }
 .ai-profile-picker {
   margin-bottom: 14px;

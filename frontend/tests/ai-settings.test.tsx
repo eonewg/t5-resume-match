@@ -52,6 +52,8 @@ const value = (label: string) => (screen.getByLabelText(label) as HTMLInputEleme
 it('loads masked state without AI calls and retains unsaved module drafts in this dialog', async () => {
   await open();
   expect(value('API Key')).toBe('');
+  expect((screen.getByLabelText('已保存的配置') as HTMLSelectElement).disabled).toBe(true);
+  expect(screen.queryByRole('option', { name: '从启动配置新建' })).toBeNull();
   expect(value('模型名 Model')).toBe('resume-model');
   fireEvent.change(screen.getByLabelText('模型名 Model'), { target: { value: 'my-draft' } });
   fireEvent.change(screen.getByLabelText('API Key'), { target: { value: 'synthetic-key' } });
@@ -122,6 +124,7 @@ it('changing service address requires a new key and reset sends no credentials',
     target: { value: 'https://another.test/v1' },
   });
   expect((screen.getByLabelText('API Key') as HTMLInputElement).required).toBe(true);
+  fireEvent.click(screen.getByText('更多操作'));
   fireEvent.click(screen.getByRole('button', { name: '恢复启动配置' }));
   await screen.findByText(/已恢复启动配置/);
   expect(calls[1].path).toBe('/api/v1/settings/ai/reset');
@@ -159,7 +162,7 @@ it('switches among saved suppliers without resending keys or deleting the previo
     state.modules.resume.profile_id = body.profile_id;
     return json(state);
   };
-  fireEvent.change(screen.getByLabelText('供应商配置'), { target: { value: 'b' } });
+  fireEvent.change(screen.getByLabelText('已保存的配置'), { target: { value: 'b' } });
   expect(value('模型名 Model')).toBe('model-b');
   fireEvent.click(screen.getByRole('button', { name: '使用此配置' }));
   await screen.findByText(/已切换供应商/);
@@ -169,6 +172,13 @@ it('switches among saved suppliers without resending keys or deleting the previo
   });
   expect(calls[1].body.api_key).toBeUndefined();
   expect(state.profiles).toHaveLength(2);
+  fireEvent.click(screen.getByRole('button', { name: '新建配置' }));
+  expect(value('配置名称')).toBe('');
+  expect(value('模型名 Model')).toBe('');
+  expect(value('API Key')).toBe('');
+  expect(calls).toHaveLength(2);
+  fireEvent.change(screen.getByLabelText('已保存的配置'), { target: { value: 'b' } });
+  expect(value('模型名 Model')).toBe('model-b');
 });
 
 it('shows a saved key only on request, can hide it, and clears it on closing', async () => {
@@ -191,6 +201,7 @@ it('save-and-exit sends the edited configuration and clears displayed credential
   window.addEventListener('vitae-exiting', exited);
   action = () => json({ exiting: true, message: '配置已保存' });
   fireEvent.change(screen.getByLabelText('API Key'), { target: { value: 'synthetic-exit-key' } });
+  fireEvent.click(screen.getByText('更多操作'));
   fireEvent.click(screen.getByRole('button', { name: '保存并退出' }));
   await waitFor(() => expect(exited).toHaveBeenCalledOnce());
   expect(calls[1].path).toBe('/api/v1/settings/ai/save-exit');
