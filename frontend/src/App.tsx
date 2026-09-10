@@ -224,7 +224,7 @@ export function ProductShell() {
           </>
         )}
       </dialog>
-      <div className="app-frame">
+      <div className={`app-frame ${key === 'resume/history' ? 'history-frame' : ''}`}>
         <header className="topbar">
           <form
             className="global-search"

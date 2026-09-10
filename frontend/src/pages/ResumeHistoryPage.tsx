@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from '../components/Icon';
-import { Button, Chips, Feedback, NextLink, PageHeading } from '../components/ui';
+import { Button, Feedback, NextLink, PageHeading } from '../components/ui';
 import { createApi } from '../core/api';
 import type { Resume } from '../core/contracts';
 import type { ResumeState } from '../core/controller-types';
@@ -23,6 +23,7 @@ export default function ResumeHistoryPage() {
   const [previewId, setPreviewId] = useState<string | null>(null);
   const scope = useRef<AbortController | null>(null);
   const operation = useRef(false);
+  const previewPanel = useRef<HTMLElement>(null);
 
   async function refresh(nextOffset = offset) {
     if (!scope.current || scope.current.signal.aborted) return;
@@ -135,6 +136,9 @@ export default function ResumeHistoryPage() {
       .includes(query.trim().toLocaleLowerCase()),
   );
   const preview = visibleRows.find((row) => row.id === previewId) || visibleRows[0];
+  useEffect(() => {
+    if (previewPanel.current) previewPanel.current.scrollTop = 0;
+  }, [preview?.id]);
   return (
     <div className="page history-page">
       <div className="page-title-row">
@@ -180,7 +184,6 @@ export default function ResumeHistoryPage() {
       {rows.length > 0 && (
         <div className="history-workspace">
           <section className="history-list-panel panel">
-            {' '}
             <div className="history-toolbar">
               <div className="history-search">
                 <label htmlFor="history-search">查找本页版本</label>
@@ -194,85 +197,62 @@ export default function ResumeHistoryPage() {
               </div>
             </div>
             <div
-              className="history-table-scroll"
+              className="history-list-scroll"
               aria-busy={Boolean(busy)}
               role="region"
               aria-label="已保存简历版本"
               tabIndex={0}
             >
-              <table className="history-table">
-                <caption>
-                  第 {Math.floor(offset / PAGE_SIZE) + 1} 页 · {visibleRows.length} / {rows.length}{' '}
-                  份版本，按保存顺序由新到旧
-                </caption>
-                <thead>
-                  <tr>
-                    <th scope="col">简历 / 教育背景</th>
-                    <th scope="col">技能与经历</th>
-                    <th scope="col">使用状态</th>
-                    <th scope="col">操作</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {visibleRows.map((row) => (
-                    <tr key={row.id} data-selected={row.id === preview?.id}>
-                      <td>
-                        <button
-                          className="history-select"
-                          type="button"
-                          aria-pressed={row.id === preview?.id}
-                          onClick={() => setPreviewId(row.id)}
-                        >
-                          {row.name || '未命名简历'}
-                        </button>
-                        <p>{row.education || '教育背景待补充'}</p>
-                        <small title={row.id}>版本 …{row.id.slice(-8)}</small>
-                      </td>
-                      <td>
-                        <p>{row.skills.join('、') || '尚未填写技能'}</p>
-                        <details className="history-preview">
-                          <summary>预览经历</summary>
-                          {row.experience.length ? (
-                            row.experience.map((text, index) => <p key={index}>{text}</p>)
-                          ) : (
-                            <p>尚未填写经历</p>
-                          )}
-                        </details>
-                      </td>
-                      <td>
-                        <span className="saved-badge">
-                          {row.id === state.resumeId ? '当前使用' : '已保存'}
-                        </span>
-                      </td>
-                      <td>
-                        <div className="history-row-actions">
-                          <Button
-                            tone="ghost"
-                            disabled={Boolean(busy)}
-                            onClick={() => void open(row)}
-                          >
-                            打开简历 →
-                          </Button>
-                          <Button
-                            tone="danger"
-                            aria-label={`删除简历 ${row.name || '未命名简历'}`}
-                            disabled={Boolean(busy)}
-                            onClick={() => void remove(row)}
-                          >
-                            删除
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <p className="history-list-count">
+                第 {Math.floor(offset / PAGE_SIZE) + 1} 页 · {visibleRows.length} / {rows.length}{' '}
+                份版本，按保存顺序由新到旧
+              </p>
+              <ul className="history-version-list">
+                {visibleRows.map((row) => (
+                  <li key={row.id} data-selected={row.id === preview?.id}>
+                    <button
+                      className="history-select"
+                      type="button"
+                      aria-label={row.name || '未命名简历'}
+                      aria-pressed={row.id === preview?.id}
+                      onClick={() => setPreviewId(row.id)}
+                    >
+                      <span className="history-version-title">
+                        <strong>{row.name || '未命名简历'}</strong>
+                        {row.id === state.resumeId && <small>当前使用</small>}
+                      </span>
+                      <span className="history-version-excerpt">
+                        {row.education || '教育背景待补充'}
+                      </span>
+                      <small title={row.id}>版本 …{row.id.slice(-8)}</small>
+                    </button>
+                    <div className="history-row-actions">
+                      <Button tone="ghost" disabled={Boolean(busy)} onClick={() => void open(row)}>
+                        打开简历 →
+                      </Button>
+                      <Button
+                        tone="danger"
+                        aria-label={`删除简历 ${row.name || '未命名简历'}`}
+                        disabled={Boolean(busy)}
+                        onClick={() => void remove(row)}
+                      >
+                        删除
+                      </Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
               {!visibleRows.length && (
                 <p className="compact-empty">本页没有相符版本，请调整关键词或翻页查找。</p>
               )}
             </div>
           </section>
-          <aside className="history-detail panel" aria-label="版本预览">
+          <aside
+            className="history-detail panel"
+            aria-label="版本预览"
+            ref={previewPanel}
+            tabIndex={0}
+          >
             <h2>版本预览</h2>
             {preview ? (
               <>
@@ -285,7 +265,6 @@ export default function ResumeHistoryPage() {
                     </span>
                   </p>
                 </header>
-                <Chips values={preview.skills} />
                 <section>
                   <h3>
                     <Icon name="education" />

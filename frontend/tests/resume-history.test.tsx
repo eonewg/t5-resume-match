@@ -199,8 +199,10 @@ describe('Resume history', () => {
   it('previews another version without replacing the current selection or dirty draft', async () => {
     const store = setup(dirtyDraft());
     await ready();
-    fireEvent.click(screen.getByRole('button', { name: '同学 r2', exact: true }));
     const preview = screen.getByRole('complementary', { name: '版本预览' });
+    preview.scrollTop = 500;
+    fireEvent.click(screen.getByRole('button', { name: '同学 r2', exact: true }));
+    expect(preview.scrollTop).toBe(0);
     expect(within(preview).getByRole('heading', { name: '同学 r2' })).toBeTruthy();
     expect(store.getState().resumeId).toBe('r1');
     expect(retained.current?.values.name).toBe('新名字');
