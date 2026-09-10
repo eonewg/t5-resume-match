@@ -27,6 +27,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'PyInstaller failed.' }
     Set-Content -LiteralPath (Join-Path $DistPath 'T5-Resume-Match/.env.example') -Encoding ascii `
         -Value 'DEEPSEEK_API_KEY='
+    Copy-Item -LiteralPath 'docs/windows-quickstart.txt' `
+        -Destination (Join-Path $DistPath 'T5-Resume-Match/使用说明.txt')
     Write-Host (Join-Path $DistPath 'T5-Resume-Match/T5-Resume-Match.exe')
 } finally {
     Pop-Location
