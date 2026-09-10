@@ -35,15 +35,16 @@ const empty = {
   api_style: 'chat_completions' as Protocol,
   api_key: '',
 };
-type Action = 'save' | 'store' | 'test' | 'reset' | 'activate' | 'delete' | 'exit';
+type Action = 'store' | 'test' | 'reset' | 'activate' | 'delete' | 'exit';
 
 export default function AISettingsPanel() {
   const [settings, setSettings] = useState<Settings | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [preset, setPreset] = useState('deepseek');
   const [module, setModule] = useState<Module>('resume');
   const [profileId, setProfileId] = useState('');
   const [isNew, setIsNew] = useState(false);
   const [draft, setDraft] = useState(empty);
-  const [all, setAll] = useState(false);
   const [showKey, setShowKey] = useState(false);
   const [busy, setBusy] = useState('load');
   const [error, setError] = useState('');
@@ -52,34 +53,25 @@ export default function AISettingsPanel() {
   const lifetime = useRef<AbortController | null>(null);
   const pending = useRef(false);
   const revealed = useRef('');
-  const drafts = useRef<Record<string, typeof empty>>({});
-  const draftKey = `${module}:${profileId || (isNew ? 'new' : 'startup')}`;
 
   function fill(
     value: Settings,
     selected: Module,
     identifier = value.modules[selected].profile_id || '',
-    reuse = false,
   ) {
     const profile = value.profiles.find((entry) => entry.id === identifier);
     const source = profile || value.modules[selected];
-    const key = `${selected}:${identifier || 'startup'}`;
     setProfileId(identifier);
     setIsNew(false);
     setShowKey(false);
     revealed.current = '';
-    setDraft(
-      reuse && drafts.current[key]
-        ? drafts.current[key]
-        : {
-            profile_name: profile?.name || `${source.model || '默认模型'} 配置`,
-            base_url: source.base_url,
-            model: source.model,
-            api_style: source.api_style === 'responses' ? 'responses' : 'chat_completions',
-            api_key: '',
-          },
-    );
-    setAll(false);
+    setDraft({
+      profile_name: profile?.name || `${source.model || '默认模型'} 配置`,
+      base_url: source.base_url,
+      model: source.model,
+      api_style: source.api_style === 'responses' ? 'responses' : 'chat_completions',
+      api_key: '',
+    });
   }
   async function load(signal: AbortSignal) {
     setBusy('load');
@@ -102,7 +94,6 @@ export default function AISettingsPanel() {
     void load(abort.signal);
     return () => {
       abort.abort();
-      drafts.current = {};
       revealed.current = '';
     };
   }, []);
@@ -110,27 +101,15 @@ export default function AISettingsPanel() {
   const current = settings?.modules[module];
   const profile = settings?.profiles.find((entry) => entry.id === profileId);
   const source = profile || (!isNew ? current : undefined);
-  const targets = all ? (Object.keys(moduleLabels) as Module[]) : [module];
+  const targets = [module];
   const canEdit = Boolean(current?.configurable);
   const requiresKey =
     !source?.api_key_configured ||
     source.base_url.replace(/\/+$/, '') !== draft.base_url.trim().replace(/\/+$/, '');
-  const inUse = Boolean(
-    profile && Object.values(settings!.modules).some((value) => value.profile_id === profile.id),
-  );
-  const unchanged = Boolean(
-    profile &&
-    profile.name === draft.profile_name &&
-    profile.base_url === draft.base_url &&
-    profile.model === draft.model &&
-    profile.api_style === draft.api_style &&
-    (!draft.api_key || draft.api_key === revealed.current),
-  );
 
   function edit(values: Partial<typeof empty>) {
     setDraft((previous) => {
       const next = { ...previous, ...values };
-      drafts.current[draftKey] = next;
       return next;
     });
     setError('');
@@ -169,7 +148,7 @@ export default function AISettingsPanel() {
       if (!signal.aborted) setBusy('');
     }
   }
-  async function act(action: Action) {
+  async function act(action: Action, selectedProfile = profileId, selectedTargets = targets) {
     if (!settings || !lifetime.current || pending.current) return;
     pending.current = true;
     setBusy(action);
@@ -179,33 +158,38 @@ export default function AISettingsPanel() {
     const signal = lifetime.current.signal;
     try {
       let path = '/api/v1/settings/ai';
-      let body: object = { revision: settings.revision, modules: targets };
+      let body: object = { revision: settings.revision, modules: selectedTargets };
       if (action === 'activate' || action === 'delete') {
         path += action === 'delete' ? '/profiles/delete' : '/activate';
-        body = { ...body, profile_id: profileId };
+        body = { ...body, profile_id: selectedProfile };
       } else if (action === 'reset') path += '/reset';
       else {
         if (action === 'test') path += '/test';
+        const testModule = (Object.keys(moduleLabels) as Module[]).find(
+          (key) =>
+            settings.modules[key].configurable &&
+            (draft.api_style !== 'responses' || key !== 'matching'),
+        );
+        if (action === 'test' && !testModule) throw new Error('当前没有支持此协议的 AI 功能。');
         body = {
           ...body,
           ...draft,
           source_module: module,
           profile_id: profileId || null,
           api_key: draft.api_key.trim() || null,
-          modules: action === 'store' ? [] : action === 'test' ? [module] : targets,
+          modules: action === 'store' ? [] : action === 'test' ? [testModule] : targets,
         };
       }
       if (action === 'exit') {
         path += '/save-exit';
-        body = { revision: settings.revision, update: body };
+        body = { revision: settings.revision };
       }
       const { data } = await createApi({ signal }).request<Settings | { message: string }>(path, {
-        method: action === 'save' || action === 'store' ? 'PUT' : 'POST',
+        method: action === 'store' ? 'PUT' : 'POST',
         body,
       });
       if (signal.aborted) return;
       if (action === 'exit') {
-        drafts.current = {};
         revealed.current = '';
         setDraft(empty);
         setShowKey(false);
@@ -214,12 +198,14 @@ export default function AISettingsPanel() {
         return;
       }
       if ('modules' in data) {
-        delete drafts.current[draftKey];
+        if (action === 'store') {
+          setEditing(false);
+          setShowKey(false);
+        }
         setSettings(data);
         fill(data, module, data.saved_profile_id || data.modules[module].profile_id || '');
         setNotice(
           {
-            save: '已保存并应用。后续新请求使用此配置，已有分析结果保留。',
             store: '供应商配置已保存。已使用这份配置的功能同步更新，其他功能不变。',
             activate: '已切换供应商，后续新请求立即生效。',
             reset: '已恢复启动配置，已保存的供应商仍可随时切换使用。',
@@ -240,7 +226,7 @@ export default function AISettingsPanel() {
   return (
     <div className="ai-settings-panel">
       <p className="ai-settings-intro">
-        选择要设置的功能，填写连接信息，再保存应用。配置保留在本机。
+        管理多份模型连接，在每行右侧勾选需要使用的功能。配置保留在本机。
       </p>
       {settings?.warning && (
         <p role="alert" className="feedback" data-error="true">
@@ -250,7 +236,7 @@ export default function AISettingsPanel() {
       <Feedback error={error} busy={Boolean(busy)}>
         {busy === 'load' ? '正在加载设置…' : isTestNotice ? '' : notice}
       </Feedback>
-      {error && (
+      {error && !editing && (
         <Button
           disabled={Boolean(busy)}
           onClick={() => lifetime.current && void load(lifetime.current.signal)}
@@ -260,60 +246,31 @@ export default function AISettingsPanel() {
       )}
       {settings && (
         <>
-          <div className="ai-settings-modules" aria-label="选择 AI 功能">
-            {(Object.keys(moduleLabels) as Module[]).map((key) => (
-              <button
-                key={key}
-                type="button"
-                aria-pressed={module === key}
-                disabled={Boolean(busy)}
-                onClick={() => {
-                  setModule(key);
-                  fill(settings, key, undefined, true);
-                  setError('');
-                  setNotice('');
-                }}
-              >
-                <strong>{moduleLabels[key]}</strong>
-                <small>{settings.modules[key].model || '离线 / 替代模块'}</small>
-                <span>
-                  {settings.profiles.find((entry) => entry.id === settings.modules[key].profile_id)
-                    ?.name || '默认配置'}
-                </span>
-              </button>
-            ))}
-          </div>
-          <div className="ai-profile-picker">
-            <div>
-              <label htmlFor="ai-profile">已保存的配置</label>
-              <select
-                id="ai-profile"
-                value={profileId}
-                disabled={Boolean(busy) || settings.profiles.length === 0}
-                onChange={(e) => {
-                  fill(settings, module, e.target.value, true);
-                  setError('');
-                  setNotice('');
-                }}
-              >
-                {!profileId && (
-                  <option value="" disabled hidden>
-                    {settings.profiles.length ? '选择已保存的配置' : '暂无已保存的配置'}
-                  </option>
-                )}
-                {settings.profiles.map((entry) => (
-                  <option key={entry.id} value={entry.id}>
-                    {entry.name} · {entry.model}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="ai-provider-toolbar">
+            <h3>模型配置</h3>
             <Button
-              disabled={Boolean(busy) || !canEdit}
+              tone="primary"
+              disabled={
+                Boolean(busy) ||
+                editing ||
+                !Object.values(settings.modules).some((value) => value.configurable)
+              }
               onClick={() => {
                 setProfileId('');
                 setIsNew(true);
-                setDraft({ ...empty });
+                setEditing(true);
+                setPreset('deepseek');
+                setModule(
+                  (Object.keys(moduleLabels) as Module[]).find(
+                    (key) => settings.modules[key].configurable,
+                  ) || 'resume',
+                );
+                setDraft({
+                  ...empty,
+                  profile_name: 'DeepSeek',
+                  base_url: 'https://api.deepseek.com',
+                  model: 'deepseek-flash',
+                });
                 setShowKey(false);
                 revealed.current = '';
                 setError('');
@@ -323,186 +280,279 @@ export default function AISettingsPanel() {
               新建配置
             </Button>
           </div>
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              void act('save');
-            }}
-          >
-            <fieldset disabled={Boolean(busy) || !canEdit}>
-              <legend>
-                {profile ? `编辑配置：${profile.name}` : isNew ? '新建配置' : '当前默认配置'}
-              </legend>
-              <p className="field-help ai-current-config">
-                {moduleLabels[module]}当前使用：
-                {settings.profiles.find((entry) => entry.id === current?.profile_id)?.name ||
-                  '启动时的默认配置'}
-                。保存应用后生效。
+          <div className="ai-provider-list" aria-label="模型配置列表">
+            {!settings.profiles.length && (
+              <p className="ai-provider-empty">
+                还没有模型配置，点击“新建配置”添加 DeepSeek 或其他服务商。
               </p>
-              {!canEdit && <p>当前功能使用离线或替代模块，无法在此修改 AI 配置。</p>}
-              <div className="ai-settings-row ai-connection-fields">
-                <div>
-                  <label htmlFor="ai-profile-name">配置名称</label>
-                  <input
-                    id="ai-profile-name"
-                    required
-                    maxLength={80}
-                    value={draft.profile_name}
-                    placeholder="例如：日常使用 / 备用模型"
-                    onChange={(e) => edit({ profile_name: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="ai-base-url">API 地址</label>
-                  <input
-                    id="ai-base-url"
-                    type="url"
-                    required
-                    autoComplete="off"
-                    maxLength={2048}
-                    placeholder="https://api.example.com/v1"
-                    value={draft.base_url}
-                    onChange={(e) => edit({ base_url: e.target.value })}
-                  />
-                </div>
-              </div>
-              <div className="ai-settings-row">
-                <div>
-                  <label htmlFor="ai-model">模型名 Model</label>
-                  <input
-                    id="ai-model"
-                    required
-                    maxLength={200}
-                    autoComplete="off"
-                    placeholder="服务商提供的模型 ID"
-                    value={draft.model}
-                    onChange={(e) => edit({ model: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="ai-protocol">接口协议</label>
-                  <select
-                    id="ai-protocol"
-                    value={draft.api_style}
-                    onChange={(e) => edit({ api_style: e.target.value as Protocol })}
-                  >
-                    <option value="chat_completions">Chat Completions</option>
-                    <option value="responses">Responses（简历 / 优化）</option>
-                  </select>
-                </div>
-              </div>
-              <label htmlFor="ai-api-key">API Key</label>
-              <div className="ai-key-input">
-                <input
-                  id="ai-api-key"
-                  type={showKey ? 'text' : 'password'}
-                  autoComplete="new-password"
-                  spellCheck={false}
-                  maxLength={4096}
-                  required={requiresKey}
-                  value={draft.api_key}
-                  placeholder={
-                    requiresKey ? '填写此服务的 API Key' : '已配置 · 可显示查看，留空保留'
-                  }
-                  onChange={(e) => {
-                    revealed.current = '';
-                    edit({ api_key: e.target.value });
-                  }}
-                />
-                <Button
-                  aria-label={showKey ? '隐藏 API Key' : '显示 API Key'}
-                  onClick={() => void toggleKey()}
+            )}
+            {settings.profiles.map((entry) => {
+              const used = Object.values(settings.modules).some(
+                (value) => value.profile_id === entry.id,
+              );
+              return (
+                <article
+                  className="ai-provider-card"
+                  key={entry.id}
+                  aria-label={entry.name}
+                  data-active={used}
                 >
-                  {showKey ? '隐藏' : '显示'}
-                </Button>
-              </div>
-              <div className="ai-connection-check">
-                <p className="field-help">密钥留空保留；更换 API 地址需填写新密钥。</p>
-                <div className="ai-settings-test">
-                  <Button
-                    onClick={(e) => {
-                      if (e.currentTarget.form?.reportValidity()) void act('test');
-                    }}
-                  >
-                    {busy === 'test' ? '正在测试…' : '测试连接'}
-                  </Button>
-                  {isTestNotice && notice && (
-                    <span className="ai-settings-test-success" role="status">
-                      连接成功
+                  <div className="ai-provider-identity">
+                    <span className="ai-provider-avatar" aria-hidden="true">
+                      {entry.name.slice(0, 1).toUpperCase()}
                     </span>
-                  )}
+                    <div>
+                      <h3>{entry.name}</h3>
+                      <p>{entry.model}</p>
+                      <small>{entry.base_url}</small>
+                    </div>
+                  </div>
+                  <div className="ai-provider-controls">
+                    <div
+                      className="ai-provider-assignments"
+                      role="group"
+                      aria-label={`${entry.name} 应用到`}
+                    >
+                      {(Object.keys(moduleLabels) as Module[]).map((key) => (
+                        <label
+                          key={key}
+                          title={
+                            key === 'matching' && entry.api_style === 'responses'
+                              ? '匹配分析需要 Chat Completions 协议'
+                              : undefined
+                          }
+                        >
+                          <input
+                            type="checkbox"
+                            checked={settings.modules[key].profile_id === entry.id}
+                            disabled={
+                              Boolean(busy) ||
+                              editing ||
+                              !settings.modules[key].configurable ||
+                              (key === 'matching' && entry.api_style === 'responses')
+                            }
+                            onChange={(event) =>
+                              void act(event.target.checked ? 'activate' : 'reset', entry.id, [key])
+                            }
+                          />
+                          {moduleLabels[key]}
+                        </label>
+                      ))}
+                    </div>
+                    <div className="inline-actions">
+                      <Button
+                        disabled={Boolean(busy) || editing}
+                        onClick={() => {
+                          const selected =
+                            (Object.keys(moduleLabels) as Module[]).find(
+                              (key) =>
+                                settings.modules[key].configurable &&
+                                (entry.api_style !== 'responses' || key !== 'matching'),
+                            ) || 'resume';
+                          setModule(selected);
+                          fill(settings, selected, entry.id);
+                          setEditing(true);
+                          setError('');
+                          setNotice('');
+                        }}
+                      >
+                        编辑
+                      </Button>
+                      <Button
+                        disabled={Boolean(busy) || editing || used}
+                        title={used ? '请先取消功能勾选，或切换到其他配置' : undefined}
+                        onClick={() => void act('delete', entry.id, [])}
+                      >
+                        删除
+                      </Button>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+          <p className="field-help">
+            每个功能只能使用一份配置，勾选其他配置会立即切换。取消勾选恢复默认，正在使用的配置需先取消勾选才能删除。
+          </p>
+          <div className="ai-provider-defaults">
+            {(Object.keys(moduleLabels) as Module[]).map((key) => (
+              <span key={key}>
+                {moduleLabels[key]}：
+                {settings.profiles.find((entry) => entry.id === settings.modules[key].profile_id)
+                  ?.name || `默认配置（${settings.modules[key].model || '离线'}）`}
+              </span>
+            ))}
+          </div>
+          {editing && (
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                void act('store');
+              }}
+            >
+              <fieldset disabled={Boolean(busy) || !canEdit}>
+                <legend>
+                  {profile ? `编辑配置：${profile.name}` : isNew ? '新建配置' : '当前默认配置'}
+                </legend>
+                {!canEdit && <p>当前功能使用离线或替代模块，无法在此修改 AI 配置。</p>}
+                {isNew && (
+                  <div className="ai-provider-preset">
+                    <label htmlFor="ai-preset">服务商</label>
+                    <select
+                      id="ai-preset"
+                      value={preset}
+                      onChange={(event) => {
+                        setPreset(event.target.value);
+                        setDraft(
+                          event.target.value === 'deepseek'
+                            ? {
+                                ...empty,
+                                profile_name: 'DeepSeek',
+                                base_url: 'https://api.deepseek.com',
+                                model: 'deepseek-flash',
+                              }
+                            : { ...empty },
+                        );
+                        setShowKey(false);
+                        revealed.current = '';
+                        setError('');
+                        setNotice('');
+                      }}
+                    >
+                      <option value="deepseek">DeepSeek</option>
+                      <option value="custom">其他服务商 / 自定义</option>
+                    </select>
+                  </div>
+                )}
+                <div className="ai-settings-row ai-connection-fields">
+                  <div>
+                    <label htmlFor="ai-profile-name">配置名称</label>
+                    <input
+                      id="ai-profile-name"
+                      required
+                      maxLength={80}
+                      value={draft.profile_name}
+                      placeholder="例如：日常使用 / 备用模型"
+                      onChange={(e) => edit({ profile_name: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="ai-base-url">API 地址</label>
+                    <input
+                      id="ai-base-url"
+                      type="url"
+                      required
+                      autoComplete="off"
+                      maxLength={2048}
+                      placeholder="https://api.example.com/v1"
+                      value={draft.base_url}
+                      onChange={(e) => edit({ base_url: e.target.value })}
+                    />
+                  </div>
                 </div>
-              </div>
-              <div className="ai-profile-apply">
-                <label className="ai-settings-all">
+                <div className="ai-settings-row">
+                  <div>
+                    <label htmlFor="ai-model">模型名 Model</label>
+                    <input
+                      id="ai-model"
+                      required
+                      maxLength={200}
+                      autoComplete="off"
+                      placeholder="服务商提供的模型 ID"
+                      value={draft.model}
+                      onChange={(e) => edit({ model: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="ai-protocol">接口协议</label>
+                    <select
+                      id="ai-protocol"
+                      value={draft.api_style}
+                      onChange={(e) => edit({ api_style: e.target.value as Protocol })}
+                    >
+                      <option value="chat_completions">Chat Completions</option>
+                      <option value="responses">Responses（简历 / 优化）</option>
+                    </select>
+                  </div>
+                </div>
+                <label htmlFor="ai-api-key">API Key</label>
+                <div className="ai-key-input">
                   <input
-                    type="checkbox"
-                    checked={all}
-                    disabled={!Object.values(settings.modules).every((value) => value.configurable)}
+                    id="ai-api-key"
+                    type={showKey ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    spellCheck={false}
+                    maxLength={4096}
+                    required={requiresKey}
+                    value={draft.api_key}
+                    placeholder={
+                      requiresKey ? '填写此服务的 API Key' : '已配置 · 可显示查看，留空保留'
+                    }
                     onChange={(e) => {
-                      setAll(e.target.checked);
+                      revealed.current = '';
+                      edit({ api_key: e.target.value });
+                    }}
+                  />
+                  <Button
+                    aria-label={showKey ? '隐藏 API Key' : '显示 API Key'}
+                    onClick={() => void toggleKey()}
+                  >
+                    {showKey ? '隐藏' : '显示'}
+                  </Button>
+                </div>
+                <div className="ai-connection-check">
+                  <p className="field-help">密钥留空保留；更换 API 地址需填写新密钥。</p>
+                  <div className="ai-settings-test">
+                    <Button
+                      onClick={(e) => {
+                        if (e.currentTarget.form?.reportValidity()) void act('test');
+                      }}
+                    >
+                      {busy === 'test' ? '正在测试…' : '测试连接'}
+                    </Button>
+                    {isTestNotice && notice && (
+                      <span className="ai-settings-test-success" role="status">
+                        连接成功
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="ai-settings-actions">
+                  <Button type="submit" tone="primary">
+                    {busy === 'store' ? '正在保存…' : '保存配置'}
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setEditing(false);
+                      setDraft(empty);
+                      setShowKey(false);
+                      revealed.current = '';
                       setError('');
                       setNotice('');
                     }}
-                  />
-                  同时应用到全部 AI 功能
-                </label>
-              </div>
-              <div className="ai-settings-actions">
-                <Button type="submit" tone="primary">
-                  {busy === 'save' ? '正在保存…' : '保存并应用'}
-                </Button>
+                  >
+                    取消
+                  </Button>
+                  <span className="field-help">保存后，在列表右侧勾选需要使用的功能。</span>
+                </div>{' '}
+              </fieldset>
+            </form>
+          )}
+          {settings.can_exit && (
+            <details className="ai-settings-more">
+              <summary>更多操作</summary>
+              <div className="ai-settings-exit-line">
+                <span>保留已保存的配置并关闭 Vitae。</span>
                 <Button
-                  onClick={(e) => {
-                    if (e.currentTarget.form?.reportValidity()) void act('store');
-                  }}
+                  tone="danger"
+                  disabled={Boolean(busy) || editing}
+                  onClick={() => void act('exit')}
                 >
-                  仅保存配置
+                  保存并退出
                 </Button>
-                {profile && targets.some((key) => settings.modules[key].profile_id !== profile.id) && (
-                  <Button disabled={!unchanged} onClick={() => void act('activate')}>
-                    使用此配置
-                  </Button>
-                )}
               </div>
-              <details className="ai-settings-more">
-                <summary>更多操作</summary>
-                <div className="ai-settings-maintenance">
-                  <Button
-                    disabled={!profile || inUse}
-                    title={inUse ? '正在使用，请先切换或恢复启动配置' : undefined}
-                    onClick={() => void act('delete')}
-                  >
-                    删除配置
-                  </Button>
-                  <Button
-                    className="ai-settings-reset"
-                    disabled={!targets.some((key) => settings.modules[key].source === 'custom')}
-                    onClick={() => void act('reset')}
-                  >
-                    恢复启动配置
-                  </Button>
-                </div>
-                {settings.can_exit && (
-                  <div className="ai-settings-exit-line">
-                    <span>保留本机配置，下次启动继续使用。</span>
-                    <Button
-                      tone="danger"
-                      onClick={(event) => {
-                        if (event.currentTarget.form?.reportValidity()) void act('exit');
-                      }}
-                    >
-                      {busy === 'exit' ? '正在保存并退出…' : '保存并退出'}
-                    </Button>
-                  </div>
-                )}
-                <p className="field-help">
-                  API 地址使用服务商提供的 HTTPS 基础地址，保留 /v1 等路径。模型需支持 JSON
-                  结构化输出。测试仅发送简短消息，不包含简历或岗位。
-                </p>
-              </details>
-            </fieldset>
-          </form>
+            </details>
+          )}
         </>
       )}
     </div>

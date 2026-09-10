@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import AISettingsPanel from '../src/components/AISettingsPanel';
 
 const snapshot = () => ({
@@ -45,170 +45,186 @@ afterEach(() => {
 });
 async function open() {
   render(<AISettingsPanel />);
-  await screen.findByLabelText('API 地址');
+  await screen.findByLabelText('模型配置列表');
 }
 const value = (label: string) => (screen.getByLabelText(label) as HTMLInputElement).value;
-
-it('loads masked state without AI calls and retains unsaved module drafts in this dialog', async () => {
-  await open();
-  expect(value('API Key')).toBe('');
-  expect((screen.getByLabelText('已保存的配置') as HTMLSelectElement).disabled).toBe(true);
-  expect(screen.queryByRole('option', { name: '从启动配置新建' })).toBeNull();
-  expect(value('模型名 Model')).toBe('resume-model');
-  fireEvent.change(screen.getByLabelText('模型名 Model'), { target: { value: 'my-draft' } });
-  fireEvent.change(screen.getByLabelText('API Key'), { target: { value: 'synthetic-key' } });
-  fireEvent.click(screen.getByRole('button', { name: /匹配分析/ }));
-  expect(value('模型名 Model')).toBe('matching-model');
-  fireEvent.click(screen.getByRole('button', { name: /简历识别/ }));
-  expect(value('模型名 Model')).toBe('my-draft');
-  expect(value('API Key')).toBe('synthetic-key');
-  expect(calls).toHaveLength(1);
-});
-
-it('explicit save targets one module, clears the key and applies the returned revision', async () => {
-  await open();
-  action = (_path, body) => {
-    state.revision = 'two';
-    state.modules.resume = { ...state.modules.resume, model: body.model, source: 'custom' };
-    return json(state);
-  };
-  fireEvent.change(screen.getByLabelText('模型名 Model'), { target: { value: 'my-model' } });
-  fireEvent.change(screen.getByLabelText('API Key'), { target: { value: 'synthetic-key' } });
-  fireEvent.click(screen.getByRole('button', { name: '保存并应用' }));
-  await screen.findByText(/已保存并应用/);
-  expect(calls[1].body).toMatchObject({
-    modules: ['resume'],
-    revision: 'one',
-    model: 'my-model',
-    api_key: 'synthetic-key',
-  });
-  expect(value('API Key')).toBe('');
-  fireEvent.click(screen.getByRole('button', { name: '保存并应用' }));
-  await waitFor(() => expect(calls).toHaveLength(3));
-  expect(calls[2].body).toMatchObject({ revision: 'two', api_key: null });
-});
-
-it('test connection sends only the selected draft and never saves even when apply-all is checked', async () => {
-  await open();
-  action = () => json({ message: '连接成功，尚未保存。' });
-  fireEvent.click(screen.getByLabelText('同时应用到全部 AI 功能'));
-  fireEvent.click(screen.getByRole('button', { name: '测试连接' }));
-  const result = await screen.findByText('连接成功');
-  expect(result.getAttribute('role')).toBe('status');
-  expect(result.parentElement).toBe(screen.getByRole('button', { name: '测试连接' }).parentElement);
-  expect(screen.getAllByText('连接成功')).toHaveLength(1);
-  expect(screen.queryByText('连接成功，尚未保存。')).toBeNull();
-  expect(calls[1].path).toBe('/api/v1/settings/ai/test');
-  expect(calls[1].body.modules).toEqual(['resume']);
-  expect(calls).toHaveLength(2);
-  fireEvent.change(screen.getByLabelText('模型名 Model'), { target: { value: 'changed-model' } });
-  expect(screen.queryByText('连接成功')).toBeNull();
-});
-
-it('failed save preserves input while closing discards the unsaved key', async () => {
-  await open();
-  action = () => json({ error: { message: '保存失败，当前配置未改变。' } }, 503);
-  fireEvent.change(screen.getByLabelText('API Key'), { target: { value: 'synthetic-key' } });
-  fireEvent.click(screen.getByRole('button', { name: '保存并应用' }));
-  await screen.findByRole('alert');
-  expect(value('API Key')).toBe('synthetic-key');
-  cleanup();
-  await open();
-  expect(value('API Key')).toBe('');
-});
-
-it('changing service address requires a new key and reset sends no credentials', async () => {
-  state.modules.resume.source = 'custom';
-  await open();
-  fireEvent.change(screen.getByLabelText('API 地址'), {
-    target: { value: 'https://another.test/v1' },
-  });
-  expect((screen.getByLabelText('API Key') as HTMLInputElement).required).toBe(true);
-  fireEvent.click(screen.getByText('更多操作'));
-  fireEvent.click(screen.getByRole('button', { name: '恢复启动配置' }));
-  await screen.findByText(/已恢复启动配置/);
-  expect(calls[1].path).toBe('/api/v1/settings/ai/reset');
-  expect(calls[1].body).toEqual({ modules: ['resume'], revision: 'one' });
-});
-
-it('apply-all saves all three modules and pending actions cannot be sent twice', async () => {
-  await open();
-  let finish: (value: Response) => void;
-  action = () =>
-    new Promise((resolve) => {
-      finish = resolve;
-    });
-  fireEvent.click(screen.getByLabelText('同时应用到全部 AI 功能'));
-  fireEvent.click(screen.getByRole('button', { name: '保存并应用' }));
-  fireEvent.click(screen.getByRole('button', { name: '正在保存…' }));
-  expect(calls).toHaveLength(2);
-  expect(calls[1].body.modules).toEqual(['resume', 'matching', 'diagnosis']);
-  finish!(json(state));
-  await screen.findByText(/已保存并应用/);
-});
-
-it('switches among saved suppliers without resending keys or deleting the previous supplier', async () => {
+function profiles() {
   state.profiles = ['a', 'b'].map((id) => ({
     id,
-    name: `Supplier ${id}`,
-    base_url: 'https://fixture.test/v1',
+    name: `模型 ${id}`,
     model: `model-${id}`,
+    base_url: 'https://fixture.test/v1',
     api_style: 'chat_completions',
     api_key_configured: true,
   }));
+}
+const row = (id: string) => within(screen.getByRole('article', { name: `模型 ${id}` }));
+
+it('lists profiles without an editor or key request and creates DeepSeek or custom drafts locally', async () => {
+  await open();
+  expect(screen.queryByLabelText('API 地址')).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: '新建配置' }));
+  expect(value('服务商')).toBe('deepseek');
+  expect(value('API 地址')).toBe('https://api.deepseek.com');
+  expect(value('模型名 Model')).toBe('deepseek-flash');
+  expect((screen.getByLabelText('API Key') as HTMLInputElement).required).toBe(true);
+  fireEvent.change(screen.getByLabelText('服务商'), { target: { value: 'custom' } });
+  expect(value('API 地址')).toBe('');
+  expect(value('API Key')).toBe('');
+  expect(calls).toHaveLength(1);
+});
+
+it('stores a new profile without applying it to any module', async () => {
+  await open();
+  fireEvent.click(screen.getByRole('button', { name: '新建配置' }));
+  fireEvent.change(screen.getByLabelText('API Key'), { target: { value: 'synthetic-only' } });
+  fireEvent.click(screen.getByRole('button', { name: '保存配置' }));
+  await screen.findByText(/供应商配置已保存/);
+  expect(calls[1].body).toMatchObject({
+    modules: [],
+    profile_id: null,
+    model: 'deepseek-flash',
+    api_key: 'synthetic-only',
+  });
+  expect(screen.queryByLabelText('API Key')).toBeNull();
+});
+
+it('switches only the checked module and unchecking restores its default', async () => {
+  profiles();
   state.modules.resume.profile_id = 'a';
   await open();
-  action = (_path, body) => {
-    state.modules.resume.profile_id = body.profile_id;
+  action = (path, body) => {
+    state.revision = 'two';
+    state.modules.resume.profile_id = path.endsWith('/reset') ? null : body.profile_id;
     return json(state);
   };
-  fireEvent.change(screen.getByLabelText('已保存的配置'), { target: { value: 'b' } });
-  expect(value('模型名 Model')).toBe('model-b');
-  fireEvent.click(screen.getByRole('button', { name: '使用此配置' }));
-  await screen.findByText(/已切换供应商/);
+  fireEvent.click(row('b').getByRole('checkbox', { name: '简历识别' }));
+  await waitFor(() =>
+    expect((row('b').getByRole('checkbox', { name: '简历识别' }) as HTMLInputElement).checked).toBe(
+      true,
+    ),
+  );
+  expect((row('a').getByRole('checkbox', { name: '简历识别' }) as HTMLInputElement).checked).toBe(
+    false,
+  );
   expect(calls[1]).toMatchObject({
     path: '/api/v1/settings/ai/activate',
     body: { modules: ['resume'], profile_id: 'b' },
   });
-  expect(calls[1].body.api_key).toBeUndefined();
-  expect(state.profiles).toHaveLength(2);
-  fireEvent.click(screen.getByRole('button', { name: '新建配置' }));
-  expect(value('配置名称')).toBe('');
-  expect(value('模型名 Model')).toBe('');
-  expect(value('API Key')).toBe('');
+  fireEvent.click(row('b').getByRole('checkbox', { name: '简历识别' }));
+  await waitFor(() => expect(calls).toHaveLength(3));
+  expect(calls[2]).toMatchObject({
+    path: '/api/v1/settings/ai/reset',
+    body: { revision: 'two', modules: ['resume'] },
+  });
+});
+
+it('failed assignment retains the current selection and no automatic retry occurs', async () => {
+  profiles();
+  state.modules.resume.profile_id = 'a';
+  await open();
+  action = () => json({ error: { message: '无法保存配置' } }, 503);
+  fireEvent.click(row('b').getByRole('checkbox', { name: '简历识别' }));
+  await screen.findByRole('alert');
+  expect((row('a').getByRole('checkbox', { name: '简历识别' }) as HTMLInputElement).checked).toBe(
+    true,
+  );
+  expect((row('b').getByRole('checkbox', { name: '简历识别' }) as HTMLInputElement).checked).toBe(
+    false,
+  );
   expect(calls).toHaveLength(2);
-  fireEvent.change(screen.getByLabelText('已保存的配置'), { target: { value: 'b' } });
-  expect(value('模型名 Model')).toBe('model-b');
 });
 
-it('shows a saved key only on request, can hide it, and clears it on closing', async () => {
+it('protects assigned profiles from deletion and deletes an unused profile explicitly', async () => {
+  profiles();
+  state.modules.resume.profile_id = 'a';
   await open();
-  action = () => json({ api_key: 'synthetic-visible-key' });
-  fireEvent.click(screen.getByRole('button', { name: '显示 API Key' }));
-  await waitFor(() => expect(value('API Key')).toBe('synthetic-visible-key'));
-  expect((screen.getByLabelText('API Key') as HTMLInputElement).type).toBe('text');
-  expect(calls[1].path).toBe('/api/v1/settings/ai/key');
-  fireEvent.click(screen.getByRole('button', { name: '隐藏 API Key' }));
-  expect((screen.getByLabelText('API Key') as HTMLInputElement).type).toBe('password');
-  cleanup();
+  expect((row('a').getByRole('button', { name: '删除' }) as HTMLButtonElement).disabled).toBe(true);
+  action = () => {
+    state.profiles = state.profiles.filter((p) => p.id !== 'b');
+    return json(state);
+  };
+  fireEvent.click(row('b').getByRole('button', { name: '删除' }));
+  await waitFor(() => expect(screen.queryByRole('article', { name: '模型 b' })).toBeNull());
+  expect(calls[1]).toMatchObject({
+    path: '/api/v1/settings/ai/profiles/delete',
+    body: { modules: [], profile_id: 'b' },
+  });
+});
+
+it('editing preserves stored keys, errors keep drafts, cancelling discards revealed keys', async () => {
+  profiles();
   await open();
+  fireEvent.click(row('b').getByRole('button', { name: '编辑' }));
   expect(value('API Key')).toBe('');
+  expect((screen.getByLabelText('API Key') as HTMLInputElement).required).toBe(false);
+  action = () => json({ error: { message: '保存失败' } }, 503);
+  fireEvent.change(screen.getByLabelText('模型名 Model'), { target: { value: 'edited-model' } });
+  fireEvent.click(screen.getByRole('button', { name: '保存配置' }));
+  await screen.findByRole('alert');
+  expect(value('模型名 Model')).toBe('edited-model');
+  expect(calls[1].body).toMatchObject({ profile_id: 'b', api_key: null, modules: [] });
+  action = () => json({ api_key: 'synthetic-reveal' });
+  fireEvent.click(screen.getByRole('button', { name: '显示 API Key' }));
+  await waitFor(() => expect(value('API Key')).toBe('synthetic-reveal'));
+  fireEvent.click(screen.getByRole('button', { name: '取消' }));
+  fireEvent.click(row('b').getByRole('button', { name: '编辑' }));
+  expect(value('API Key')).toBe('');
+  fireEvent.change(screen.getByLabelText('API 地址'), { target: { value: 'https://new.test' } });
+  expect((screen.getByLabelText('API Key') as HTMLInputElement).required).toBe(true);
 });
 
-it('save-and-exit sends the edited configuration and clears displayed credentials on success', async () => {
+it('test success stays beside the button, clears on edit and never saves', async () => {
+  profiles();
+  await open();
+  fireEvent.click(row('a').getByRole('button', { name: '编辑' }));
+  action = () => json({ message: '连接成功，模型已回复。' });
+  fireEvent.click(screen.getByRole('button', { name: '测试连接' }));
+  const success = await screen.findByText('连接成功');
+  expect(success.parentElement).toBe(
+    screen.getByRole('button', { name: '测试连接' }).parentElement,
+  );
+  expect(calls[1].path).toBe('/api/v1/settings/ai/test');
+  fireEvent.change(screen.getByLabelText('模型名 Model'), { target: { value: 'another' } });
+  expect(screen.queryByText('连接成功')).toBeNull();
+  expect(calls).toHaveLength(2);
+});
+
+it('disables incompatible assignments and blocks concurrent changes while saving', async () => {
+  profiles();
+  state.profiles[0].api_style = 'responses';
+  state.modules.diagnosis.configurable = false;
+  await open();
+  expect((row('a').getByRole('checkbox', { name: '匹配分析' }) as HTMLInputElement).disabled).toBe(
+    true,
+  );
+  expect((row('b').getByRole('checkbox', { name: 'AI 优化' }) as HTMLInputElement).disabled).toBe(
+    true,
+  );
+  let finish!: (value: Response) => void;
+  action = () =>
+    new Promise((resolve) => {
+      finish = resolve;
+    });
+  fireEvent.click(row('b').getByRole('checkbox', { name: '简历识别' }));
+  fireEvent.click(row('a').getByRole('checkbox', { name: '简历识别' }));
+  expect(calls).toHaveLength(2);
+  finish(json(state));
+  await waitFor(() =>
+    expect((screen.getByRole('button', { name: '新建配置' }) as HTMLButtonElement).disabled).toBe(
+      false,
+    ),
+  );
+});
+
+it('save-and-exit retains existing profiles without sending an editor update', async () => {
   await open();
   const exited = vi.fn();
   window.addEventListener('vitae-exiting', exited);
-  action = () => json({ exiting: true, message: '配置已保存' });
-  fireEvent.change(screen.getByLabelText('API Key'), { target: { value: 'synthetic-exit-key' } });
+  action = () => json({ exiting: true });
   fireEvent.click(screen.getByText('更多操作'));
   fireEvent.click(screen.getByRole('button', { name: '保存并退出' }));
   await waitFor(() => expect(exited).toHaveBeenCalledOnce());
-  expect(calls[1].path).toBe('/api/v1/settings/ai/save-exit');
-  expect(calls[1].body.update).toMatchObject({
-    api_key: 'synthetic-exit-key',
-    modules: ['resume'],
-  });
-  expect(screen.queryByLabelText('API Key')).toBeNull();
+  expect(calls[1].body).toEqual({ revision: 'one' });
   window.removeEventListener('vitae-exiting', exited);
 });
