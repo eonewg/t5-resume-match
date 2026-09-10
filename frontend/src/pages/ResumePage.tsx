@@ -27,15 +27,9 @@ export default function ResumePage() {
   const { store } = useWorkspace();
   const file = useRef<HTMLInputElement>(null);
   const history = useRef<HTMLDetailsElement>(null);
-  const source = useRef<HTMLDetailsElement>(null);
-  const [sourceOpen, setSourceOpen] = useState(true);
-  const [sourceTab, setSourceTab] = useState('upload');
   const [activeField, setActiveField] = useState<ResumeField>('name');
   const [dragging, setDragging] = useState(false);
   const imported = Boolean(s?.imported || s?.savedId || s?.candidate);
-  useEffect(() => {
-    if (imported || s?.values.raw_text) setSourceOpen(true);
-  }, [imported, Boolean(s?.values.raw_text)]);
   useEffect(() => {
     const beforeUnload = (event: BeforeUnloadEvent) => {
       if (s?.dirty) {
@@ -84,7 +78,6 @@ export default function ResumePage() {
   function reset() {
     if (!window.confirm('清空当前草稿并重新开始？已保存的历史简历不会删除。')) return;
     c.reset(true);
-    setSourceOpen(true);
   }
   async function saveAndContinue() {
     await c.save();
@@ -240,41 +233,29 @@ export default function ResumePage() {
           <div className="resume-source-workspace">
             <div className="section-heading">
               <h2>简历原文</h2>
+              <Button
+                id="resume-dropzone"
+                tone="secondary"
+                disabled={Boolean(s.busy)}
+                className={`resume-upload-button ${dragging ? 'drag-over' : ''}`}
+                title="支持 PDF、DOCX、TXT，最大 10 MB；也可拖拽文件到此按钮"
+                onClick={() => file.current?.click()}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  if (!s.busy) setDragging(true);
+                }}
+                onDragLeave={() => setDragging(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragging(false);
+                  const selected = e.dataTransfer.files[0];
+                  if (!s.busy && selected) void c.upload(selected);
+                }}
+              >
+                <Icon name="upload" />
+                上传文件
+              </Button>
             </div>
-            <nav className="source-tabs" aria-label="简历导入方式">
-              {(
-                [
-                  ['upload', '上传文件'],
-                  ['paste', '粘贴文本'],
-                  ['ai', 'AI 识别'],
-                ] as const
-              ).map(([key, label]) => (
-                <button
-                  type="button"
-                  key={key}
-                  aria-pressed={sourceTab === key}
-                  disabled={Boolean(s.busy)}
-                  onClick={() => {
-                    setSourceTab(key);
-                    setSourceOpen(true);
-                    if (source.current) source.current.open = true;
-                    if (key === 'upload') file.current?.click();
-                    else
-                      document
-                        .getElementById(
-                          key === 'ai'
-                            ? s.aiStatus === 'failed'
-                              ? 'resume-ai-retry'
-                              : 'resume-parse'
-                            : 'resume-raw',
-                        )
-                        ?.focus();
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </nav>
             <input
               id="resume-file"
               type="file"
@@ -288,15 +269,9 @@ export default function ResumePage() {
                 e.target.value = '';
               }}
             />
-            <details
-              ref={source}
-              className="resume-source"
-              open={sourceOpen}
-              onToggle={(e) => setSourceOpen(e.currentTarget.open)}
-            >
-              <summary>{imported ? '查看与编辑原文' : '粘贴简历文本'}</summary>
-              <label className="sr-only" htmlFor="resume-raw">
-                粘贴完整原文
+            <div className="resume-source">
+              <label htmlFor="resume-raw">
+                {imported ? '查看与编辑原文' : '或在下方粘贴简历文本'}
               </label>
               <textarea
                 id="resume-raw"
@@ -325,37 +300,7 @@ export default function ResumePage() {
                   PDF 暂不支持，请粘贴文字。文件支持 PDF / DOCX / TXT，最大 10 MB。
                 </p>
               </details>
-            </details>
-            <div className="upload-divider">
-              <span>或上传文件</span>
             </div>
-            <button
-              id="resume-dropzone"
-              type="button"
-              disabled={Boolean(s.busy)}
-              className={`resume-dropzone ${dragging ? 'drag-over' : ''}`}
-              onClick={() => file.current?.click()}
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDragging(true);
-              }}
-              onDragLeave={() => setDragging(false)}
-              onDrop={(e) => {
-                e.preventDefault();
-                setDragging(false);
-                if (!s.busy) void c.upload(e.dataTransfer.files[0]);
-              }}
-            >
-              <Icon name="upload" />
-              <span className="resume-upload-title">
-                {imported ? '导入其他文件' : '点击上传或拖拽文件到此处'}
-              </span>
-              <span>
-                支持 PDF、DOCX、TXT 格式
-                <br />
-                单个文件不超过 10 MB
-              </span>
-            </button>
             <Button
               id="resume-demo-fill"
               tone="ghost"
@@ -368,7 +313,6 @@ export default function ResumePage() {
                 )
                   return;
                 c.edit('raw_text', demoResume);
-                setSourceOpen(true);
               }}
             >
               填入示例简历

@@ -129,17 +129,24 @@ describe('React routes and task workspace', () => {
   });
 });
 describe('migrated demo interactions', () => {
-  it('source navigation opens the text panel without triggering AI or saving', async () => {
+  it('upload opens the file picker and pasted text waits for explicit recognition', async () => {
+    handler = (path, options) =>
+      path.endsWith('/preview')
+        ? json({ ...resume, raw_text: JSON.parse(options.body as string).raw_text })
+        : undefined;
     page('/resume');
     await settleResume();
-    const source = document.querySelector('.resume-source') as HTMLDetailsElement;
-    source.open = false;
-    fireEvent.click(screen.getByRole('button', { name: '粘贴文本', exact: true }));
-    expect(source.open).toBe(true);
-    expect(document.activeElement).toBe(input('resume-raw'));
-    fireEvent.click(screen.getByRole('button', { name: 'AI 识别', exact: true }));
-    expect(document.activeElement).toBe(input('resume-parse'));
+    const picker = vi.spyOn(input('resume-file'), 'click');
+    fireEvent.click(screen.getByRole('button', { name: '上传文件', exact: true }));
+    expect(picker).toHaveBeenCalledOnce();
+    fireEvent.change(input('resume-raw'), { target: { value: '待识别的简历原文' } });
+    expect(input('resume-raw').value).toBe('待识别的简历原文');
     expect(requests.some((request) => request.options.method === 'POST')).toBe(false);
+    fireEvent.click(input('resume-parse'));
+    await waitFor(() => expect(input('resume-name').value).toBe(resume.name));
+    const mutations = requests.filter((request) => request.options.method === 'POST');
+    expect(mutations).toHaveLength(1);
+    expect(mutations[0].path).toBe('/api/v1/resumes/preview');
   });
   it('resume fill only changes source; repeated clicks and cancellation never submit', async () => {
     page('/resume');
