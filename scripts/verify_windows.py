@@ -17,7 +17,7 @@ def verify(folder):
         probe.bind(("127.0.0.1", 8000))
     urlopen = build_opener(ProxyHandler({})).open
     folder = folder.resolve()
-    exe = folder / "T5-Resume-Match.exe"
+    exe = folder / "Vitae.exe"
     env_file = folder / ".env"
     if env_file.exists() or (folder / "data/t5.db").exists():
         raise RuntimeError("Use a fresh distribution; verification creates a test database.")

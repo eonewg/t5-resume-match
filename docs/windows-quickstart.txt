@@ -1,8 +1,8 @@
-Vitae / T5 简历与岗位助手 · Windows 便携版
+Vitae 简历与岗位助手 · Windows 便携版
 
 开始使用
 1. 将压缩包完整解压到一个可写入的文件夹，不要在压缩包内直接运行。
-2. 双击 T5-Resume-Match.exe，稍等片刻，默认浏览器会自动打开应用。
+2. 双击 Vitae.exe，稍等片刻，默认浏览器会自动打开应用。
    如果浏览器没有打开，请访问 http://127.0.0.1:8000/ 。
 3. 点击侧栏“设置”，填写 API 地址、模型名和你自己的 API Key。
    使用 DeepSeek 时：API 地址 https://api.deepseek.com，模型 deepseek-flash。

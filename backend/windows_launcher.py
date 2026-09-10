@@ -33,7 +33,7 @@ def main():
         )
         return
     if sys.argv[1:]:
-        raise SystemExit("Usage: T5-Resume-Match.exe")
+        raise SystemExit("Usage: Vitae.exe")
 
     import uvicorn
 

@@ -29,11 +29,11 @@
 
 ### Windows 便携版
 
-解压整个 `T5-Resume-Match` 文件夹 → 双击 `T5-Resume-Match.exe` → 在侧栏“设置”填写自己的 API Key → 测试连接后保存并应用。最终用户无需安装 Python、uv、Git 或 Node，也无需手动编辑 `.env`。保留整个目录（包括 `_internal`），不能只复制 EXE。详细步骤见包内 `使用说明.txt` 或 [Windows 上手说明](docs/windows-quickstart.txt)。
+解压整个 `Vitae` 文件夹 → 双击 `Vitae.exe` → 在侧栏“设置”填写自己的 API Key → 测试连接后保存并应用。最终用户无需安装 Python、uv、Git 或 Node，也无需手动编辑 `.env`。保留整个目录（包括 `_internal`），不能只复制 EXE。详细步骤见包内 `使用说明.txt` 或 [Windows 上手说明](docs/windows-quickstart.txt)。
 
 启动后仅监听 `127.0.0.1:8000`，成功后自动打开浏览器；关闭控制台或按 Ctrl+C 停止。端口已占用时启动失败，不自动换端口，请先停止占用 8000 的程序后重试。`.env` 从 EXE 同目录读取，SQLite 默认保存在 EXE 同目录的 `data/t5.db`；请解压到可写目录。移动整个文件夹即可保留配置与数据，不使用 LocalAppData。AI 功能需要有效密钥和联网；未配置密钥仍可启动，但 AI 请求会明确失败。`/ready` 表示数据库和四个正式 provider 已加载，不检测密钥有效性。
 
-开发机在 Windows 上运行 `powershell -ExecutionPolicy Bypass -File scripts/build_windows.ps1`，使用已有 uv 安装锁定的构建依赖，以 PyInstaller **onedir** 生成 `dist/T5-Resume-Match/`。构建资源采用白名单，不复制开发机 `.env` 或数据库；构建产物不提交 Git。资源与 EXE 目录分离遵循 [PyInstaller 运行时路径规则](https://pyinstaller.org/en/stable/runtime-information.html)。开发验证可对全新构建运行 `uv run python -m scripts.verify_windows dist/T5-Resume-Match`（需空闲 8000，会创建测试数据库并打开浏览器）；EXE 的 `--check-config` 仅输出配置路径和两模块密钥是否已配置，不输出密钥。实测结果见 [便携版验证记录](docs/windows-portable.md)。
+开发机在 Windows 上运行 `powershell -ExecutionPolicy Bypass -File scripts/build_windows.ps1`，使用已有 uv 安装锁定的构建依赖，以 PyInstaller **onedir** 生成 `dist/Vitae/`。构建资源采用白名单，不复制开发机 `.env` 或数据库；构建产物不提交 Git。资源与 EXE 目录分离遵循 [PyInstaller 运行时路径规则](https://pyinstaller.org/en/stable/runtime-information.html)。开发验证可对全新构建运行 `uv run python -m scripts.verify_windows dist/Vitae`（需空闲 8000，会创建测试数据库并打开浏览器）；EXE 的 `--check-config` 仅输出配置路径和两模块密钥是否已配置，不输出密钥。实测结果见 [便携版验证记录](docs/windows-portable.md)。
 
 ### 源码运行
 
